@@ -68,3 +68,8 @@ export const searchQuerySchema = z.object({
   q: z.string().trim().min(1).max(120),
   type: z.enum(CONTENT_TYPES).optional(),
 });
+
+/** Drops control characters (keeps newlines and tabs). Output is always rendered as escaped text. */
+export function sanitizeText(s: string): string {
+  return s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "").trim();
+}

@@ -1,4 +1,5 @@
 import { handler, HttpError, json, requireApiUser } from "@/lib/api/http";
+import { awardXp, XP } from "@/lib/gamification/service";
 import { setLessonCompleted } from "@/lib/learning/service";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -6,8 +7,10 @@ type Ctx = { params: Promise<{ id: string }> };
 export const POST = handler(async (_req: Request, { params }: Ctx) => {
   const user = await requireApiUser();
   const { id } = await params;
-  if (!(await setLessonCompleted(user.id, id, true))) throw new HttpError(404, "Урок не найден");
-  return json({ status: "completed" });
+  const r = await setLessonCompleted(user.id, id, true);
+  if (!r) throw new HttpError(404, "Урок не найден");
+  const xp = await awardXp(user.id, r.firstCompletion ? XP.lessonCompleted : 0);
+  return json({ status: "completed", xp });
 });
 
 export const DELETE = handler(async (_req: Request, { params }: Ctx) => {

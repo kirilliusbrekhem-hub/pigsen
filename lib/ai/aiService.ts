@@ -33,3 +33,31 @@ export function titleFromQuestion(q: string): string {
   const clean = q.replace(/\s+/g, " ").trim();
   return clean.length > 60 ? `${clean.slice(0, 57).trimEnd()}…` : clean;
 }
+
+/**
+ * One-shot structured answer: asks the real provider for JSON and validates it with `parse`.
+ * Returns null in demo mode or when the model's output doesn't validate, so callers fall back to rule-based results.
+ */
+export async function completeJson<T>(system: string, prompt: string, parse: (raw: unknown) => T | null): Promise<T | null> {
+  const provider = getAIProvider();
+  if (provider.isMock) return null;
+  let text = "";
+  try {
+    const ctx: AIContext = { userName: "", tone: "concise", interests: [], learningSummary: "", related: [] };
+    for await (const chunk of provider.stream({ system, messages: [{ role: "user", content: prompt }], context: ctx })) {
+      text += chunk;
+      if (text.length > 20_000) break;
+    }
+  } catch (err) {
+    console.error("[ai] completeJson failed", err instanceof Error ? err.message : err);
+    return null;
+  }
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start < 0 || end <= start) return null;
+  try {
+    return parse(JSON.parse(text.slice(start, end + 1)));
+  } catch {
+    return null;
+  }
+}

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ActivityBars } from "@/components/dashboard/ActivityBars";
+import { GameStrip } from "@/components/dashboard/GameStrip";
 import { Greeting } from "@/components/dashboard/Greeting";
 import { ContentRow } from "@/components/content/ContentCard";
 import { CourseCard } from "@/components/learning/CourseCard";
@@ -10,6 +11,8 @@ import { EmptyState } from "@/components/ui/States";
 import { prisma } from "@/lib/db/prisma";
 import { requireUser } from "@/lib/auth/session";
 import { trendingContent } from "@/lib/content/service";
+import { factOfTheDay } from "@/lib/facts";
+import { getGameStats } from "@/lib/gamification/service";
 import { listSaved } from "@/lib/content/saved";
 import { learningActivity, learningStats, listCoursesWithProgress } from "@/lib/learning/service";
 import { getInterestProfile, getRecommendations } from "@/lib/recommendations/service";
@@ -18,7 +21,7 @@ export const metadata: Metadata = { title: "Главная" };
 
 export default async function DashboardPage() {
   const user = await requireUser();
-  const [stats, activity, courses, recs, interests, trending, saved, convoCount] = await Promise.all([
+  const [stats, activity, courses, recs, interests, trending, saved, convoCount, game] = await Promise.all([
     learningStats(user.id),
     learningActivity(user.id, 14),
     listCoursesWithProgress(user.id),
@@ -27,6 +30,7 @@ export default async function DashboardPage() {
     trendingContent(user.id, 6),
     listSaved(user.id),
     prisma.conversation.count({ where: { userId: user.id } }),
+    getGameStats(user.id),
   ]);
   const weekLessons = activity.slice(-7).reduce((s, d) => s + d.count, 0);
   const coursesInProgress = courses.filter((c) => c.started && c.percent < 100);
@@ -45,6 +49,27 @@ export default async function DashboardPage() {
     <>
       <section className="hello">
         <Greeting name={firstName} />
+      </section>
+
+      <GameStrip game={game} fact={factOfTheDay()} />
+
+      <section className="tool-tabs h-scroll" aria-label="Инструменты">
+        {[
+          { id: "idea", label: "Разбор идеи", desc: "$PIG оценит бизнес-идею", icon: "rocket" },
+          { id: "compound", label: "Сложный процент", desc: "Как растут вложения", icon: "trendUp" },
+          { id: "unit", label: "Юнит-экономика", desc: "LTV, CAC, окупаемость", icon: "chart" },
+          { id: "goal", label: "Цель накоплений", desc: "Когда наберётся сумма", icon: "piggy" },
+        ].map((t) => (
+          <Link key={t.id} href={`/tools?tab=${t.id}`} className="tool-tab">
+            <span className="ic">
+              <Icon name={t.icon} />
+            </span>
+            <span>
+              <b>{t.label}</b>
+              <span className="muted">{t.desc}</span>
+            </span>
+          </Link>
+        ))}
       </section>
 
       <section>

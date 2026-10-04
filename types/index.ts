@@ -85,3 +85,33 @@ export interface ApiError {
   error: string;
   details?: Record<string, string>;
 }
+
+/** XP outcome of an action, returned by mutating endpoints that award XP. */
+export interface XpResultDTO {
+  gained: number;
+  xp: number;
+  streak: number;
+  level: { index: number; name: string; percent: number };
+  leveledUp: boolean;
+}
+
+export interface QuizQuestionDTO {
+  q: string;
+  options: string[];
+}
+
+export interface QuizResultDTO {
+  score: number;
+  total: number;
+  results: Array<{ correct: boolean; answer: number; explain: string }>;
+  xp: XpResultDTO;
+  firstTime: boolean;
+}
+
+export interface IdeaReviewDTO {
+  score: number;
+  verdict: string;
+  strengths: string[];
+  risks: string[];
+  steps: string[];
+}

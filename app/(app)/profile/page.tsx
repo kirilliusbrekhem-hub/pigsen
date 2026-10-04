@@ -11,7 +11,9 @@ import { EmptyState } from "@/components/ui/States";
 import { requireUser } from "@/lib/auth/session";
 import { listCategories, viewHistory } from "@/lib/content/service";
 import { listSaved } from "@/lib/content/saved";
+import { getGameStats } from "@/lib/gamification/service";
 import { learningHistory, learningStats, listCoursesWithProgress } from "@/lib/learning/service";
+import { ProgressBar } from "@/components/ui/Ring";
 import { parseInterests, profileTheme, profileTone } from "@/lib/profile/service";
 
 export const metadata: Metadata = { title: "Профиль" };
@@ -87,8 +89,11 @@ async function InterestsSection({ userInterests }: { userInterests: string[] }) 
 }
 
 async function ProgressSection({ userId }: { userId: string }) {
-  const [stats, courses] = await Promise.all([learningStats(userId), listCoursesWithProgress(userId)]);
+  const [stats, courses, game] = await Promise.all([learningStats(userId), listCoursesWithProgress(userId), getGameStats(userId)]);
   const metrics = [
+    { k: "Уровень", v: `${game.level.index} · ${game.level.name}` },
+    { k: "Опыт", v: `${game.xp} XP` },
+    { k: "Серия", v: `${game.streak} 🔥` },
     { k: "Общий прогресс", v: `${stats.percent}%` },
     { k: "Уроков пройдено", v: `${stats.lessonsCompleted}` },
     { k: "Курсов начато", v: `${stats.coursesStarted}` },
@@ -104,14 +109,38 @@ async function ProgressSection({ userId }: { userId: string }) {
           </div>
         ))}
       </div>
+      <div className="card card-pad stack" style={{ gap: 10 }}>
+        <div className="row" style={{ justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+          <b>
+            Уровень {game.level.index}: {game.level.name}
+          </b>
+          <span className="muted num" style={{ fontSize: 13 }}>
+            {game.level.nextMin !== null ? `${game.xp} / ${game.level.nextMin} XP до «${game.level.nextName}»` : `${game.xp} XP · максимальный уровень`}
+          </span>
+        </div>
+        <ProgressBar percent={game.level.percent} label="Прогресс уровня" />
+        <span className="muted" style={{ fontSize: 12.5 }}>
+          XP начисляются за пройденные уроки (+20), верные ответы в квизах (+10) и разбор бизнес-идеи (+15).
+        </span>
+      </div>
+      <h3 style={{ fontSize: 15 }}>
+        Бейджи · {game.badges.filter((b) => b.earned).length} из {game.badges.length}
+      </h3>
+      <div className="badge-grid">
+        {game.badges.map((b) => (
+          <div key={b.id} className={`badge-tile ${b.earned ? "earned" : ""}`} title={b.earned ? "Получен" : "Ещё не получен"}>
+            <span className="ic">
+              <Icon name={b.earned ? b.icon : "lock"} />
+            </span>
+            <b>{b.name}</b>
+            <span>{b.description}</span>
+          </div>
+        ))}
+      </div>
       <div className="grid cols-2">
         {courses.map((c) => (
           <CourseCard key={c.id} course={c} />
         ))}
-      </div>
-      <div className="safety">
-        <Icon name="sparkle" />
-        <span>Скоро: XP, серии дней подряд и достижения за пройденные курсы.</span>
       </div>
     </>
   );

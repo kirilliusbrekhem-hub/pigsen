@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { SetCrumb } from "@/components/layout/crumb";
 import { Markdown } from "@/components/content/Markdown";
 import { CompleteLessonButton } from "@/components/learning/CompleteLessonButton";
+import { LessonQuiz } from "@/components/learning/LessonQuiz";
+import { prisma } from "@/lib/db/prisma";
 import { Icon } from "@/components/ui/Icon";
 import { ProgressBar } from "@/components/ui/Ring";
 import { requireUser } from "@/lib/auth/session";
@@ -19,6 +21,7 @@ export default async function LessonPage({ params }: { params: Promise<{ course:
   if (data.lesson.status === "not_started") await startLesson(user.id, data.lesson.id);
   const { course, lessons, lesson, prev, next } = data;
   const courseHref = `/learn/${course.slug}`;
+  const passedQuiz = (await prisma.quizAttempt.count({ where: { userId: user.id, lessonId: lesson.id, completedAt: { not: null } } })) > 0;
 
   return (
     <>
@@ -34,21 +37,24 @@ export default async function LessonPage({ params }: { params: Promise<{ course:
       </section>
 
       <section className="reader">
-        <article className="card" style={{ overflow: "hidden" }}>
-          <div className="reader-main">
-            <Markdown>{lesson.body}</Markdown>
-          </div>
-          <div className="reader-foot">
-            {prev ? (
-              <Link className="btn btn-ghost" href={`${courseHref}/${prev.slug}`}>
-                <Icon name="back" size="sm" /> {prev.title}
-              </Link>
-            ) : (
-              <span />
-            )}
-            <CompleteLessonButton lessonId={lesson.id} completed={lesson.status === "completed"} nextHref={next ? `${courseHref}/${next.slug}` : null} courseHref={courseHref} isLast={!next} />
-          </div>
-        </article>
+        <div className="stack" style={{ minWidth: 0, gap: 20 }}>
+          <article className="card" style={{ overflow: "hidden" }}>
+            <div className="reader-main">
+              <Markdown>{lesson.body}</Markdown>
+            </div>
+            <div className="reader-foot">
+              {prev ? (
+                <Link className="btn btn-ghost" href={`${courseHref}/${prev.slug}`}>
+                  <Icon name="back" size="sm" /> {prev.title}
+                </Link>
+              ) : (
+                <span />
+              )}
+              <CompleteLessonButton lessonId={lesson.id} completed={lesson.status === "completed"} nextHref={next ? `${courseHref}/${next.slug}` : null} courseHref={courseHref} isLast={!next} />
+            </div>
+          </article>
+          <LessonQuiz lessonId={lesson.id} passedBefore={passedQuiz} />
+        </div>
 
         <aside className="reader-side">
           <div className="card card-pad stack" style={{ gap: 12 }}>
@@ -63,14 +69,23 @@ export default async function LessonPage({ params }: { params: Promise<{ course:
             <ProgressBar percent={course.percent} label="Прогресс курса" />
             <div className="stack" style={{ gap: 2 }}>
               {lessons.map((l) => (
-                <Link key={l.id} href={`${courseHref}/${l.slug}`} className={`ms-link ${l.id === lesson.id ? "cur" : ""} ${l.status === "completed" ? "done" : ""}`} aria-current={l.id === lesson.id ? "page" : undefined}>
+                <Link
+                  key={l.id}
+                  href={`${courseHref}/${l.slug}`}
+                  className={`ms-link ${l.id === lesson.id ? "cur" : ""} ${l.status === "completed" ? "done" : ""}`}
+                  aria-current={l.id === lesson.id ? "page" : undefined}
+                >
                   <i />
                   <span>{l.title}</span>
                 </Link>
               ))}
             </div>
           </div>
-          <Link className="card clickable" href={`/ai?q=${encodeURIComponent(`Объясни урок «${lesson.title}» из курса «${course.title}» на простом примере`)}`} style={{ padding: "14px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+          <Link
+            className="card clickable"
+            href={`/ai?q=${encodeURIComponent(`Объясни урок «${lesson.title}» из курса «${course.title}» на простом примере`)}`}
+            style={{ padding: "14px 16px", display: "flex", alignItems: "center", gap: 12 }}
+          >
             <span className="opp-icon">
               <Icon name="sparkle" />
             </span>

@@ -90,14 +90,19 @@ export async function startLesson(userId: string, lessonId: string) {
   });
 }
 
+/** Returns null for an unknown lesson; `firstCompletion` is true only the first time a lesson is completed. */
 export async function setLessonCompleted(userId: string, lessonId: string, completed: boolean) {
   const lesson = await prisma.lesson.findUnique({ where: { id: lessonId }, select: { id: true } });
   if (!lesson) return null;
-  return prisma.progress.upsert({
+  const before = await prisma.progress.findUnique({ where: { userId_lessonId: { userId, lessonId } }, select: { completedAt: true, status: true } });
+  // completedAt survives un-completing, so re-completing a lesson never pays XP twice.
+  const everCompleted = !!before?.completedAt;
+  const progress = await prisma.progress.upsert({
     where: { userId_lessonId: { userId, lessonId } },
-    update: { status: completed ? "completed" : "in_progress", completedAt: completed ? new Date() : null },
+    update: completed ? { status: "completed", completedAt: before?.completedAt ?? new Date() } : { status: "in_progress" },
     create: { userId, lessonId, status: completed ? "completed" : "in_progress", completedAt: completed ? new Date() : null },
   });
+  return { progress, firstCompletion: completed && !everCompleted };
 }
 
 export async function learningStats(userId: string) {
@@ -151,7 +156,7 @@ export async function learningHistory(userId: string, take = 20) {
   return rows.map((r) => ({
     id: r.id,
     status: r.status as "in_progress" | "completed",
-    at: (r.completedAt ?? r.startedAt).toISOString(),
+    at: (r.status === "completed" && r.completedAt ? r.completedAt : r.updatedAt).toISOString(),
     lessonTitle: r.lesson.title,
     courseTitle: r.lesson.course.title,
     href: `/learn/${r.lesson.course.slug}/${r.lesson.slug}`,

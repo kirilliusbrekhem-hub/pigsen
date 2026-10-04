@@ -25,6 +25,8 @@ model User {
   conversations Conversation[]
   views         ContentView[]
   searches      SearchQuery[]
+  quizAttempts  QuizAttempt[]
+  ideaReviews   IdeaReview[]
 }
 
 model Profile {
@@ -41,11 +43,12 @@ model Profile {
   dailyGoalMinutes  Int      @default(15)
   notifyDigest      Boolean  @default(true)
   notifyNewContent  Boolean  @default(true)
-  // Reserved for later stages: subscription, gamification
+  // Gamification: xp total, streak of consecutive active days (UTC), last active day as YYYY-MM-DD
   plan              String   @default("free")
   xp                Int      @default(0)
   streak            Int      @default(0)
   lastActiveAt      DateTime @default(now())
+  lastActiveDay     String   @default("")
   updatedAt         DateTime @updatedAt
 }
 
@@ -116,6 +119,7 @@ model Lesson {
   courseId    String
   course      Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
   progress    Progress[]
+  quizzes     QuizAttempt[]
 
   @@unique([courseId, slug])
   @@index([courseId, order])
@@ -192,4 +196,34 @@ model Message {
   createdAt      DateTime     @default(now())
 
   @@index([conversationId, createdAt])
+}
+
+/// One generated quiz for a lesson. `questions` holds JSON with correct answers and stays server-side.
+model QuizAttempt {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId    String
+  lesson      Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  questions   String
+  total       Int
+  score       Int?
+  xpAwarded   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  @@index([userId, lessonId])
+}
+
+/// A $PIG review of a business idea. `result` is the JSON card shown to the user.
+model IdeaReview {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  idea      String
+  result    String
+  score     Int
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
 }
