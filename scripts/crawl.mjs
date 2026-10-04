@@ -5,6 +5,7 @@ import { chromium } from "playwright";
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const MAX = Number(process.env.MAX_PAGES ?? 400);
 const problems = [];
+const report = (m) => { problems.push(m); console.log(" ✗ " + m); };
 const launch = { headless: true };
 if (process.env.CHROMIUM_PATH) launch.executablePath = process.env.CHROMIUM_PATH;
 const browser = await chromium.launch(launch);
@@ -25,20 +26,22 @@ async function crawl(ctx, label, seeds, skip = () => false) {
     if (seen.has(url)) continue;
     seen.add(url);
     n++;
+    if (n % 25 === 0) console.log(`  … [${label}] ${n} страниц`);
+    await page.waitForTimeout(150);
     errs.length = 0;
     let status = 0;
     try {
-      const res = await page.goto(BASE + url, { waitUntil: "networkidle", timeout: 45_000 });
+      const res = await page.goto(BASE + url, { waitUntil: "load", timeout: 30_000 });
       status = res?.status() ?? 0;
     } catch (e) {
-      problems.push(`[${label}] ${url}: navigation failed: ${e.message.split("\n")[0]}`);
+      report(`[${label}] ${url}: navigation failed: ${e.message.split("\n")[0]}`);
       continue;
     }
     const body = await page.locator("body").innerText().catch(() => "");
-    if (status >= 500) problems.push(`[${label}] ${url}: HTTP ${status}`);
-    if (ERROR_TEXT.test(body)) problems.push(`[${label}] ${url}: error screen`);
-    if (await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1)) problems.push(`[${label}] ${url}: horizontal overflow`);
-    for (const e of errs) problems.push(`[${label}] ${url}: ${e}`);
+    if (status >= 500) report(`[${label}] ${url}: HTTP ${status}`);
+    if (ERROR_TEXT.test(body)) report(`[${label}] ${url}: error screen`);
+    if (await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1)) report(`[${label}] ${url}: horizontal overflow`);
+    for (const e of errs) report(`[${label}] ${url}: ${e}`);
     const links = await page.$$eval("a[href]", (as) => as.map((a) => a.getAttribute("href")));
     for (const h of links) {
       if (!h || !h.startsWith("/") || h.startsWith("//") || h.startsWith("/api/") || h.startsWith("/ai?q=")) continue;
