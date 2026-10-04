@@ -6,8 +6,8 @@ MVP образовательной платформы о бизнесе, ста�
 
 ```bash
 npm i
-cp .env.example .env      # задайте AUTH_SECRET (openssl rand -base64 32)
-npm run setup             # создаёт SQLite-базу и заливает сиды
+cp .env.example .env      # впишите DATABASE_URL, DIRECT_URL и AUTH_SECRET
+npm run setup             # создаёт таблицы в Postgres и заливает сиды
 npm run dev               # http://localhost:3000
 ```
 
@@ -19,7 +19,7 @@ npm run dev               # http://localhost:3000
 - `ANTHROPIC_API_KEY` задан (и нет ключа Gemini): ответы стримятся из Claude (`ANTHROPIC_MODEL`, по умолчанию `claude-opus-5-5`). Ключ живёт только на сервере.
 
 ## Стек
-Next.js 16 (App Router), React, TypeScript, Prisma + SQLite, zod, JWT-сессия в httpOnly cookie (jose + bcrypt).
+Next.js 16 (App Router), React, TypeScript, Prisma + Postgres (Supabase), zod, JWT-сессия в httpOnly cookie (jose + bcrypt).
 
 ## Архитектура
 - `app/(app)/*`: разделы Главная, $PIG (`/ai`), Обучение, Библиотека, Сохранённое, Поиск, Профиль.
@@ -42,4 +42,10 @@ CHROMIUM_PATH=/path/to/chromium BASE_URL=http://localhost:3100 npm run e2e
 ## Известные ограничения
 - Внешние ссылки в сидах не проверены вживую (сеть была закрыта), сомнительные заменены на `null`.
 - Rate limiting в памяти процесса: для нескольких инстансов нужен Redis.
-- Для продакшена смените provider на Postgres в `schema.prisma`.
+
+## Публикация: Vercel + Supabase
+1. **Supabase**: создайте проект, нажмите Connect → ORMs → Prisma и возьмите две строки:
+   - `DATABASE_URL` (порт 6543), в конец добавьте `?pgbouncer=true&connection_limit=1`;
+   - `DIRECT_URL` (порт 5432).
+2. **Таблицы и данные** создаются автоматически при сборке на Vercel (`npm run build` выполняет `prisma db push` и сид, повторный запуск безопасен).
+3. **Vercel**: Add New → Project, выберите репозиторий. В Environment Variables добавьте `DATABASE_URL`, `DIRECT_URL`, `AUTH_SECRET` и, по желанию, `GEMINI_API_KEY` или `ANTHROPIC_API_KEY`. Нажмите Deploy.
