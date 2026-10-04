@@ -14,8 +14,9 @@ npm run dev               # http://localhost:3000
 Зарегистрируйтесь на `/register`: после онбординга откроется главная.
 
 ### $PIG: реальный AI или демо
-- `ANTHROPIC_API_KEY` пустой: работает встроенный mock-провайдер, ответы помечены как демо.
-- Ключ задан: ответы стримятся из Claude (`ANTHROPIC_MODEL`, по умолчанию `claude-opus-5-5`). Ключ живёт только на сервере.
+- Нет ключей: работает встроенный mock-провайдер, ответы помечены как демо.
+- `GEMINI_API_KEY` задан: ответы стримятся из Google Gemini (`GEMINI_MODEL`, по умолчанию `gemini-2.5-flash`). Ключ берётся на aistudio.google.com/apikey.
+- `ANTHROPIC_API_KEY` задан (и нет ключа Gemini): ответы стримятся из Claude (`ANTHROPIC_MODEL`, по умолчанию `claude-opus-5-5`). Ключ живёт только на сервере.
 
 ## Стек
 Next.js 16 (App Router), React, TypeScript, Prisma + SQLite, zod, JWT-сессия в httpOnly cookie (jose + bcrypt).
@@ -23,7 +24,7 @@ Next.js 16 (App Router), React, TypeScript, Prisma + SQLite, zod, JWT-сесси
 ## Архитектура
 - `app/(app)/*`: разделы Главная, $PIG (`/ai`), Обучение, Библиотека, Сохранённое, Поиск, Профиль.
 - `app/api/*`: auth, ai/conversations (создать, продолжить, история, удалить, стрим NDJSON), content, saved, lessons, search, recommendations, profile.
-- `lib/ai`: `aiService` + сменные провайдеры (`providers/anthropic.ts`, `providers/mock.ts`).
+- `lib/ai`: `aiService` + сменные провайдеры (`providers/gemini.ts`, `providers/anthropic.ts`, `providers/mock.ts`).
 - `lib/recommendations`: rule-engine за интерфейсом `RecommendationEngine`, легко заменить на ML.
 - `lib/search`: поиск по нормализованному тексту по всем материалам, курсам и урокам.
 - `proxy.ts`: проверка сессии, 401 для API, редирект для страниц, проверка Origin на изменяющих запросах.

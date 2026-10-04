@@ -1,5 +1,6 @@
 import "server-only";
 import { createAnthropicProvider } from "./providers/anthropic";
+import { createGeminiProvider } from "./providers/gemini";
 import { mockProvider } from "./providers/mock";
 import { buildSystemPrompt } from "./prompts";
 import type { AIContext, AIProvider, ChatTurn } from "./types";
@@ -9,8 +10,10 @@ let cached: AIProvider | null = null;
 /** Picks the provider from the environment. API keys never leave the server. */
 export function getAIProvider(): AIProvider {
   if (cached) return cached;
-  const key = process.env.ANTHROPIC_API_KEY?.trim();
-  cached = key ? createAnthropicProvider(key) : mockProvider;
+  // First configured key wins: Gemini, then Anthropic, otherwise the labeled demo provider.
+  const gemini = process.env.GEMINI_API_KEY?.trim();
+  const anthropic = process.env.ANTHROPIC_API_KEY?.trim();
+  cached = gemini ? createGeminiProvider(gemini) : anthropic ? createAnthropicProvider(anthropic) : mockProvider;
   return cached;
 }
 

@@ -1,7 +1,7 @@
 import "server-only";
 import type { AIProvider, StreamRequest } from "../types";
 
-// Demo provider used when ANTHROPIC_API_KEY is not set. Answers are scripted per topic
+// Demo provider used when no GEMINI_API_KEY or ANTHROPIC_API_KEY is set. Answers are scripted per topic
 // and clearly labelled in the UI as demo mode. Replace by setting the key; no code changes.
 
 const ANSWERS: Array<{ re: RegExp; text: string }> = [
@@ -100,7 +100,7 @@ function genericAnswer(req: StreamRequest): string {
     : "";
   return `Хороший вопрос: «${q.slice(0, 140)}».
 
-Сейчас $PIG работает в **демо-режиме**, поэтому подробно отвечает только на ключевые темы: венчурное финансирование, юнит-экономика, стартапы и MVP, AI в бизнесе и основы инвестиций. Чтобы получать полноценные ответы на любые вопросы, администратору нужно указать \`ANTHROPIC_API_KEY\`.${list}`;
+Сейчас $PIG работает в **демо-режиме**, поэтому подробно отвечает только на ключевые темы: венчурное финансирование, юнит-экономика, стартапы и MVP, AI в бизнесе и основы инвестиций. Чтобы получать полноценные ответы на любые вопросы, администратору нужно указать \`GEMINI_API_KEY\` или \`ANTHROPIC_API_KEY\`.${list}`;
 }
 
 function* chunk(text: string): Generator<string> {
