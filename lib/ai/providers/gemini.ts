@@ -37,11 +37,16 @@ export function createGeminiProvider(apiKey: string): AIProvider {
 
       if (!res.ok || !res.body) {
         const detail = await res.text().catch(() => "");
-        if (res.status === 429) throw new AIProviderError(detail, "$PIG сейчас перегружен. Попробуйте через минуту.");
-        if (res.status === 400 || res.status === 401 || res.status === 403) {
-          throw new AIProviderError(detail, "Ключ AI-провайдера недействителен. Проверьте GEMINI_API_KEY.");
+        // Google's error body is {error:{code,status,message}}; surface its short status so the cause is visible.
+        let reason = String(res.status);
+        try {
+          const e = (JSON.parse(detail) as { error?: { status?: string; message?: string } }).error;
+          if (e?.status) reason = `${res.status} ${e.status}: ${(e.message ?? "").slice(0, 160)}`;
+        } catch {
+          /* non-JSON body */
         }
-        throw new AIProviderError(`${res.status} ${detail}`, "AI-провайдер вернул ошибку. Попробуйте ещё раз.");
+        if (res.status === 429) throw new AIProviderError(detail, "$PIG сейчас перегружен. Попробуйте через минуту.");
+        throw new AIProviderError(`${res.status} ${detail}`, `Gemini вернул ошибку (${reason}).`);
       }
 
       const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
