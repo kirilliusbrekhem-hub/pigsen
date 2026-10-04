@@ -1,0 +1,195 @@
+// PIGSEN data model.
+// Postgres (Supabase). DATABASE_URL is the pooled connection used at runtime, DIRECT_URL the direct one for `prisma db push`.
+// String-typed "enum" columns (type, role, status) are validated in lib/validation.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  passwordHash  String
+  name          String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  profile       Profile?
+  progress      Progress[]
+  savedItems    SavedItem[]
+  conversations Conversation[]
+  views         ContentView[]
+  searches      SearchQuery[]
+}
+
+model Profile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  avatar            String? // small data URL (validated, <= 200 KB)
+  bio               String   @default("")
+  interests         String   @default("[]") // JSON array of Category slugs
+  onboarded         Boolean  @default(false)
+  // Settings
+  theme             String   @default("system") // system | light | dark
+  aiTone            String   @default("balanced") // concise | balanced | detailed
+  dailyGoalMinutes  Int      @default(15)
+  notifyDigest      Boolean  @default(true)
+  notifyNewContent  Boolean  @default(true)
+  // Reserved for later stages: subscription, gamification
+  plan              String   @default("free")
+  xp                Int      @default(0)
+  streak            Int      @default(0)
+  lastActiveAt      DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Category {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  name        String
+  description String
+  icon        String
+  order       Int           @default(0)
+  contents    ContentItem[]
+  courses     Course[]
+}
+
+model ContentItem {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  title       String
+  description String
+  body        String? // markdown notes/summary shown inside PIGSEN
+  type        String // article | book | video | podcast | course
+  author      String
+  source      String
+  url         String? // external original; null for in-app materials
+  image       String?
+  publishedAt DateTime
+  readingTime Int // minutes
+  tags        String        @default("") // comma separated, lowercase
+  featured    Boolean       @default(false)
+  trending    Int           @default(0) // editorial "hot topic" weight
+  searchText  String        @default("") // lowercased title+description+tags+author for search
+  createdAt   DateTime      @default(now())
+  categoryId  String
+  category    Category      @relation(fields: [categoryId], references: [id])
+  course      Course?
+  savedBy     SavedItem[]
+  views       ContentView[]
+
+  @@index([categoryId])
+  @@index([type])
+}
+
+model Course {
+  id            String       @id @default(cuid())
+  slug          String       @unique
+  title         String
+  description   String
+  level         String // beginner | intermediate | advanced
+  order         Int          @default(0)
+  searchText    String       @default("")
+  categoryId    String
+  category      Category     @relation(fields: [categoryId], references: [id])
+  contentItemId String?      @unique
+  contentItem   ContentItem? @relation(fields: [contentItemId], references: [id])
+  lessons       Lesson[]
+  createdAt     DateTime     @default(now())
+}
+
+model Lesson {
+  id          String     @id @default(cuid())
+  slug        String
+  title       String
+  summary     String
+  body        String // markdown
+  order       Int
+  durationMin Int
+  searchText  String     @default("")
+  courseId    String
+  course      Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  progress    Progress[]
+
+  @@unique([courseId, slug])
+  @@index([courseId, order])
+}
+
+model Progress {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId    String
+  lesson      Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  status      String    @default("in_progress") // in_progress | completed
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([userId, lessonId])
+  @@index([userId, status])
+}
+
+model SavedItem {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contentItemId String
+  contentItem   ContentItem @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+
+  @@unique([userId, contentItemId])
+  @@index([userId, createdAt])
+}
+
+model ContentView {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contentItemId String
+  contentItem   ContentItem @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model SearchQuery {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  query     String
+  results   Int
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model Conversation {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  messages  Message[]
+
+  @@index([userId, updatedAt])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String // user | assistant | system
+  content        String
+  metadata       String? // JSON: provider, related content ids
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}
