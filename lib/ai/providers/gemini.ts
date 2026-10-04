@@ -1,7 +1,8 @@
 import "server-only";
 import { AIProviderError, type AIProvider, type StreamRequest } from "../types";
 
-const DEFAULT_MODEL = "gemini-3.8-flash";
+// Lighter model first; if Google doesn't know it (404) or it stays overloaded, fall back to the full model.
+const DEFAULT_MODELS = ["gemini-3.8-flash-lite", "gemini-3.8-flash"];
 const BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 interface GeminiChunk {
@@ -14,7 +15,7 @@ interface GeminiChunk {
 
 /** Google Gemini over the REST streaming endpoint (server-sent events), no SDK dependency. */
 export function createGeminiProvider(apiKey: string): AIProvider {
-  const model = process.env.GEMINI_MODEL || DEFAULT_MODEL;
+  const models = [...new Set([process.env.GEMINI_MODEL?.trim(), ...DEFAULT_MODELS].filter((m): m is string => !!m))];
 
   return {
     id: "gemini",
@@ -22,32 +23,30 @@ export function createGeminiProvider(apiKey: string): AIProvider {
     isMock: false,
     async *stream({ system, messages, signal }: StreamRequest) {
       let res!: Response;
-      // Google returns 503/429 on demand spikes; retry a few times before the stream starts.
-      for (let attempt = 0; attempt < 4; attempt++) {
-        if (attempt) await new Promise((r) => setTimeout(r, 800 * 2 ** (attempt - 1)));
-        if (signal?.aborted) return;
-        try {
-          res = await fetch(`${BASE}/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`, {
-            method: "POST",
-            headers: {
-              "content-type": "application/json",
-              "x-goog-api-key": apiKey,
-            },
-            body: JSON.stringify({
-              systemInstruction: { parts: [{ text: system }] },
-              contents: messages.map((m) => ({
-                role: m.role === "assistant" ? "model" : "user",
-                parts: [{ text: m.content }],
-              })),
-              generationConfig: { maxOutputTokens: 8192 },
-            }),
-            signal,
-          });
-        } catch (err) {
+      // Per model: retry Google's 503/429 demand spikes briefly; on 404 (unknown model) or persistent overload try the next model.
+      outer: for (const model of models) {
+        for (let attempt = 0; attempt < 3; attempt++) {
+          if (attempt) await new Promise((r) => setTimeout(r, 800 * 2 ** (attempt - 1)));
           if (signal?.aborted) return;
-          throw new AIProviderError(String(err), "Не удалось связаться с AI-провайдером. Попробуйте ещё раз.");
+          try {
+            res = await fetch(`${BASE}/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`, {
+              method: "POST",
+              headers: { "content-type": "application/json", "x-goog-api-key": apiKey },
+              body: JSON.stringify({
+                systemInstruction: { parts: [{ text: system }] },
+                contents: messages.map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] })),
+                generationConfig: { maxOutputTokens: 8192 },
+              }),
+              signal,
+            });
+          } catch (err) {
+            if (signal?.aborted) return;
+            throw new AIProviderError(String(err), "Не удалось связаться с AI-провайдером. Попробуйте ещё раз.");
+          }
+          if (res.ok) break outer;
+          if (res.status === 404) break; // unknown model: next one
+          if (res.status !== 503 && res.status !== 429) break outer; // real error: report it
         }
-        if (res.status !== 503 && res.status !== 429) break;
       }
 
       if (!res.ok || !res.body) {

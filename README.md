@@ -15,7 +15,7 @@ npm run dev               # http://localhost:3000
 
 ### $PIG: реальный AI или демо
 - Нет ключей: работает встроенный mock-провайдер, ответы помечены как демо.
-- `GEMINI_API_KEY` задан: ответы стримятся из Google Gemini (`GEMINI_MODEL`, по умолчанию `gemini-3.8-flash`). Ключ берётся на aistudio.google.com/apikey.
+- `GEMINI_API_KEY` задан: ответы стримятся из Google Gemini (`GEMINI_MODEL`; по умолчанию облегчённая `gemini-3.8-flash-lite`, при ошибке или перегрузке автоматически `gemini-3.8-flash`). Ключ берётся на aistudio.google.com/apikey.
 - `ANTHROPIC_API_KEY` задан (и нет ключа Gemini): ответы стримятся из Claude (`ANTHROPIC_MODEL`, по умолчанию `claude-opus-5-5`). Ключ живёт только на сервере.
 
 ## Геймификация и инструменты
