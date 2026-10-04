@@ -21,7 +21,10 @@ export function errorResponse(err: unknown) {
     return NextResponse.json(body, { status: err.status });
   }
   console.error("[api] unhandled", err);
-  return NextResponse.json<ApiError>({ error: "Что-то пошло не так. Попробуйте ещё раз." }, { status: 500 });
+  // Show a short, non-sensitive cause (error class and Prisma code like P1001/P2024) so failures can be diagnosed from a screenshot.
+  const e = err as { name?: string; code?: string; errorCode?: string };
+  const tag = [e?.name && e.name !== "Error" ? e.name.replace(/^PrismaClient/, "DB") : null, e?.code ?? e?.errorCode].filter(Boolean).join(" ");
+  return NextResponse.json<ApiError>({ error: `Что-то пошло не так. Попробуйте ещё раз.${tag ? ` (код: ${tag})` : ""}` }, { status: 500 });
 }
 
 export async function requireApiUser(): Promise<CurrentUser> {
