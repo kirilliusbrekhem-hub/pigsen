@@ -90,7 +90,17 @@ export interface GameStats {
   badges: Badge[];
 }
 
+/** Never throws: the dashboard and profile still render (with empty stats) if a query fails. */
 export async function getGameStats(userId: string): Promise<GameStats> {
+  try {
+    return await loadGameStats(userId);
+  } catch (err) {
+    console.error("[game] stats failed", err instanceof Error ? err.message : err);
+    return { xp: 0, streak: 0, level: levelOf(0), badges: [] };
+  }
+}
+
+async function loadGameStats(userId: string): Promise<GameStats> {
   const [profile, lessons, perfectQuiz, quizzes, saved, convos, ideas, courses] = await Promise.all([
     prisma.profile.findUnique({ where: { userId }, select: { xp: true, streak: true, lastActiveDay: true } }),
     prisma.progress.count({ where: { userId, status: "completed" } }),
@@ -99,12 +109,13 @@ export async function getGameStats(userId: string): Promise<GameStats> {
     prisma.savedItem.count({ where: { userId } }),
     prisma.conversation.count({ where: { userId } }),
     prisma.ideaReview.count({ where: { userId } }),
-    prisma.course.findMany({ select: { lessons: { select: { progress: { where: { userId, status: "completed" }, select: { id: true } } } } } }),
+    prisma.course.findMany({ select: { id: true, _count: { select: { lessons: true } } } }),
   ]);
+  const doneByCourse = await prisma.lesson.groupBy({ by: ["courseId"], where: { progress: { some: { userId, status: "completed" } } }, _count: { _all: true } });
   const xp = profile?.xp ?? 0;
   const streak = liveStreak(profile?.streak ?? 0, profile?.lastActiveDay ?? "");
   const bestStreak = profile?.streak ?? 0;
-  const courseDone = courses.some((c) => c.lessons.length > 0 && c.lessons.every((l) => l.progress.length > 0));
+  const courseDone = courses.some((c) => c._count.lessons > 0 && doneByCourse.some((d) => d.courseId === c.id && d._count._all >= c._count.lessons));
   const perfect = !!perfectQuiz && perfectQuiz.score === perfectQuiz.total;
 
   const badges: Badge[] = [
