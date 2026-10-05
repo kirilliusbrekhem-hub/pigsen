@@ -5,6 +5,7 @@ import { Icon } from "@/components/ui/Icon";
 import { requireUser } from "@/lib/auth/session";
 import { PLANS, PRO_PERKS, isPro } from "@/lib/billing/plan";
 import { paymentsEnabled, syncRecentPayments } from "@/lib/billing/yookassa";
+import { starsEnabled } from "@/lib/billing/telegram";
 import { dateRu } from "@/lib/client/format";
 import { SHOP, ownedItems } from "@/lib/coins/service";
 import { prisma } from "@/lib/db/prisma";
@@ -30,7 +31,9 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
     prisma.coinTx.findMany({ where: { userId: user.id, amount: { not: 0 } }, orderBy: { createdAt: "desc" }, take: 8 }),
   ]);
   const coins = profile?.coins ?? 0;
-  const enabled = paymentsEnabled();
+  const stars = starsEnabled();
+  const enabled = stars || paymentsEnabled();
+  const price = (p: (typeof PLANS)[keyof typeof PLANS]) => (stars ? `${p.stars} ⭐` : `${p.price} ₽`);
 
   return (
     <div className="stack" style={{ gap: 24 }}>
@@ -63,19 +66,19 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
           </ul>
           <div className="plan-row">
             <div className="plan-opt">
-              <b className="num">{PLANS.month.price} ₽</b>
+              <b className="num">{price(PLANS.month)}</b>
               <span className="muted">в месяц</span>
               <BuyPlan plan="month" label={pro ? "Продлить на месяц" : "Оформить на месяц"} enabled={enabled} />
             </div>
             <div className="plan-opt best">
               <span className="chip">−30%</span>
-              <b className="num">{PLANS.year.price} ₽</b>
+              <b className="num">{price(PLANS.year)}</b>
               <span className="muted">в год</span>
               <BuyPlan plan="year" label={pro ? "Продлить на год" : "Оформить на год"} enabled={enabled} />
             </div>
           </div>
           <span className="muted" style={{ fontSize: 12 }}>
-            Оплата через ЮKassa. Без автосписаний: Pro просто заканчивается в срок.
+            {stars ? "Оплата звёздами в Telegram: картой из любой страны или через App Store / Google Play." : "Оплата через ЮKassa."} Без автосписаний: Pro просто заканчивается в срок.
           </span>
         </section>
 

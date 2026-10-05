@@ -9,16 +9,57 @@ import { api, errorMessage } from "@/lib/client/api";
 
 export function BuyPlan({ plan, label, enabled }: { plan: "month" | "year"; label: string; enabled: boolean }) {
   const toast = useToast();
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
+  const [waiting, setWaiting] = useState(false);
+
+  // Telegram payments finish in another tab/app: poll our server until the bot confirms.
+  async function waitFor(id: string) {
+    setWaiting(true);
+    for (let i = 0; i < 150; i++) {
+      await new Promise((r) => setTimeout(r, 4000));
+      try {
+        const s = await api<{ status: string | null }>(`/api/billing/status?id=${encodeURIComponent(id)}`);
+        if (s.status === "succeeded") {
+          toast.show("Оплата прошла, Pro активирован! 🎉");
+          setWaiting(false);
+          router.refresh();
+          return;
+        }
+      } catch {
+        /* keep polling */
+      }
+    }
+    setWaiting(false);
+  }
+
   async function go() {
     setBusy(true);
+    // Open the window synchronously so popup blockers allow it; point it at the invoice once we have it.
+    const win = window.open("about:blank", "_blank");
     try {
-      const r = await api<{ url: string }>("/api/billing/checkout", { method: "POST", body: { plan } });
-      window.location.assign(r.url);
+      const r = await api<{ url: string; id?: string; telegram?: boolean }>("/api/billing/checkout", { method: "POST", body: { plan } });
+      if (r.telegram && r.id) {
+        if (win) win.location.href = r.url;
+        else window.location.assign(r.url);
+        void waitFor(r.id);
+      } else {
+        win?.close();
+        window.location.assign(r.url);
+      }
     } catch (err) {
+      win?.close();
       toast.show(errorMessage(err), { kind: "err" });
+    } finally {
       setBusy(false);
     }
+  }
+  if (waiting) {
+    return (
+      <Button variant="secondary" loading>
+        Ждём оплату в Telegram…
+      </Button>
+    );
   }
   if (!enabled) {
     return (

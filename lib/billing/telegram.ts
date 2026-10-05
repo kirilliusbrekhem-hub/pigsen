@@ -1,0 +1,91 @@
+import "server-only";
+import { randomBytes, timingSafeEqual } from "node:crypto";
+import { prisma } from "@/lib/db/prisma";
+import { extendPro } from "@/lib/coins/service";
+import { HttpError } from "@/lib/api/http";
+import { PLANS, type PlanId } from "./plan";
+
+// Telegram Stars payments through the PIGSEN bot. Token and webhook secret live only on the server.
+const token = () => process.env.TELEGRAM_BOT_TOKEN?.trim() ?? "";
+export const webhookSecret = () => process.env.TELEGRAM_WEBHOOK_SECRET?.trim() ?? "";
+
+export function starsEnabled(): boolean {
+  return !!token() && !!webhookSecret();
+}
+
+async function tg<T>(method: string, body: object): Promise<T> {
+  const res = await fetch(`https://api.telegram.org/bot${token()}/${method}`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const data = (await res.json().catch(() => null)) as { ok: boolean; result?: T; description?: string } | null;
+  if (!data?.ok) throw new HttpError(502, `Telegram вернул ошибку (${data?.description ?? res.status}).`);
+  return data.result as T;
+}
+
+/** Creates a Stars invoice link. Our payment id travels as the invoice payload. */
+export async function createStarsInvoice(userId: string, planId: PlanId): Promise<{ url: string; id: string }> {
+  if (!starsEnabled()) throw new HttpError(503, "Оплата пока не подключена. Попробуйте Pro за PigCoin$.");
+  const plan = PLANS[planId];
+  const id = `tg_${randomBytes(12).toString("hex")}`;
+  await prisma.payment.create({ data: { id, userId, plan: plan.id, amount: plan.stars, provider: "telegram" } });
+  const url = await tg<string>("createInvoiceLink", {
+    title: `PIGSEN ${plan.title}`,
+    description: "Безлимитный $PIG-коуч, разбор трат, все обложки целей и x2 PigCoin$.",
+    payload: id,
+    provider_token: "",
+    currency: "XTR",
+    prices: [{ label: plan.title, amount: plan.stars }],
+  });
+  return { url, id };
+}
+
+export function validSecret(header: string | null): boolean {
+  const a = Buffer.from(header ?? "");
+  const b = Buffer.from(webhookSecret());
+  return b.length > 0 && a.length === b.length && timingSafeEqual(a, b);
+}
+
+interface Update {
+  pre_checkout_query?: { id: string; currency: string; total_amount: number; invoice_payload: string };
+  message?: {
+    chat: { id: number };
+    text?: string;
+    successful_payment?: { currency: string; total_amount: number; invoice_payload: string; telegram_payment_charge_id: string };
+  };
+}
+
+export async function handleUpdate(u: Update): Promise<void> {
+  if (u.pre_checkout_query) {
+    const q = u.pre_checkout_query;
+    const p = await prisma.payment.findUnique({ where: { id: q.invoice_payload } });
+    const ok = !!p && p.status === "pending" && q.currency === "XTR" && q.total_amount === p.amount;
+    await tg("answerPreCheckoutQuery", ok ? { pre_checkout_query_id: q.id, ok: true } : { pre_checkout_query_id: q.id, ok: false, error_message: "Счёт устарел. Нажмите «Оформить» на сайте ещё раз." });
+    return;
+  }
+  const sp = u.message?.successful_payment;
+  if (sp && u.message) {
+    const p = await prisma.payment.findUnique({ where: { id: sp.invoice_payload } });
+    if (!p || sp.currency !== "XTR" || sp.total_amount < p.amount) return;
+    // Applied exactly once even if Telegram redelivers the update.
+    const claimed = await prisma.payment.updateMany({ where: { id: p.id, applied: false }, data: { applied: true, status: "succeeded", providerRef: sp.telegram_payment_charge_id } });
+    if (!claimed.count) return;
+    const until = await extendPro(p.userId, PLANS[p.plan as PlanId]?.days ?? 30);
+    await tg("sendMessage", { chat_id: u.message.chat.id, text: `Оплата прошла! PIGSEN Pro активен до ${until.toLocaleDateString("ru-RU")}. Вернитесь на сайт: страница обновится сама.` }).catch(() => {});
+    return;
+  }
+  if (u.message?.text?.startsWith("/start")) {
+    await tg("sendMessage", { chat_id: u.message.chat.id, text: "Привет! Я бот оплаты PIGSEN. Оформить Pro можно на сайте на странице «Pro и PigCoin$»." }).catch(() => {});
+  }
+}
+
+/** Points the bot's webhook at this site. */
+export async function registerWebhook(origin: string): Promise<void> {
+  await tg("setWebhook", { url: `${origin}/api/telegram/webhook`, secret_token: webhookSecret(), allowed_updates: ["message", "pre_checkout_query"] });
+}
+
+export async function paymentStatus(userId: string, id: string): Promise<string | null> {
+  const p = await prisma.payment.findFirst({ where: { id, userId }, select: { status: true } });
+  return p?.status ?? null;
+}
