@@ -35,7 +35,7 @@ Next.js 16 (App Router), React, TypeScript, Prisma + Postgres (Supabase), zod, J
 - `lib/search`: поиск по нормализованному тексту по всем материалам, курсам и урокам.
 - `proxy.ts`: проверка сессии, 401 для API, редирект для страниц, проверка Origin на изменяющих запросах.
 - Безопасность: zod-валидация на сервере, rate limiting (in-memory), markdown без HTML, секреты только в `.env`.
-- `prisma/schema.prisma`, `prisma/seed.ts`: 9 категорий, 40 материалов, 6 курсов, 21 урок.
+- `prisma/schema.prisma`, `prisma/seed.ts`: 9 категорий, 41 материал, 6 курсов, 21 урок.
 
 ## Проверки
 ```bash
