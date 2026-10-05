@@ -326,3 +326,78 @@ a { text-decoration: none; }
 .metric { padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .metric .v { font-size: 24px; font-weight: 600; letter-spacing: -.01em; line-height: 1.15; }
 @container app (max-width: 820px) { .metric { padding: 14px 16px; } .metric .v { font-size: 20px; } }
+
+/* Smart piggy bank */
+.save-hero { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px; flex-wrap: wrap; }
+.save-hero p { margin-top: 6px; font-size: 13px; }
+.save-total { font-size: 28px; font-weight: 500; letter-spacing: -.02em; display: block; margin-top: 4px; }
+.save-total .muted { font-size: 16px; }
+.goal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.goal-card { overflow: hidden; display: flex !important; flex-direction: column; }
+.goal-card-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; }
+.goal-hint { font-size: 12.5px; }
+.goal-art { position: relative; height: 132px; display: flex; align-items: center; justify-content: space-between; padding: 0 22px; color: #fff; overflow: hidden; }
+.goal-art::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 85% 15%, rgba(255,255,255,.35), transparent 45%); pointer-events: none; }
+.goal-art-ic { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; background: rgba(255,255,255,.22); backdrop-filter: blur(4px); }
+.goal-art-ic .icon { width: 28px; height: 28px; }
+.goal-jar { height: 96px; width: auto; filter: drop-shadow(0 6px 12px rgba(0,0,0,.15)); }
+.jar-fill { transition: y .8s var(--ease); }
+.goal-art-pct { position: absolute; left: 22px; bottom: 12px; font-size: 13px; font-family: var(--font-mono); background: rgba(0,0,0,.18); padding: 2px 8px; border-radius: 99px; }
+.goal-art-lg { height: 100%; min-height: 220px; border-radius: var(--r-lg); }
+.goal-art-lg .goal-jar { height: 150px; }
+.goal-art-lg .goal-art-ic { width: 64px; height: 64px; }
+.goal-hero { display: grid; grid-template-columns: minmax(220px, 300px) 1fr; gap: 22px; padding: 16px; align-items: stretch; }
+.goal-hero h1 { font-size: 28px; font-weight: 500; letter-spacing: -.03em; }
+.goal-why { font-style: italic; color: var(--ink-2); }
+@container app (max-width: 640px) { .goal-hero { grid-template-columns: 1fr; } .goal-art-lg { min-height: 170px; } }
+.goal-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.goal-form .calc-field { display: flex; flex-direction: column; gap: 6px; }
+.goal-form .calc-field > span { font-size: 13px; color: var(--ink-2); }
+.theme-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.theme-opt { border: 0; border-radius: 12px; color: #fff; padding: 10px 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; cursor: pointer; opacity: .9; outline: 2px solid transparent; outline-offset: 2px; transition: transform .15s, outline-color .15s; }
+.theme-opt:hover { transform: translateY(-1px); opacity: 1; }
+.theme-opt.is-selected { outline-color: var(--ink); opacity: 1; }
+.theme-opt .icon { width: 20px; height: 20px; }
+.spend-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.spend-form .input { flex: 1 1 160px; min-width: 0; }
+.spend-form .input:first-child { flex-basis: 220px; }
+.ledger-row { display: grid; grid-template-columns: 110px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 9px 0; }
+.ledger-row + .ledger-row { border-top: 1px solid var(--line); }
+.ledger-row .muted { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spend-res { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px dashed var(--line-2); }
+.spend-res p.muted { display: flex; gap: 8px; align-items: flex-start; }
+.spend-res p .icon { flex: none; margin-top: 3px; }
+.coach-plan { padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+.coach-challenge { display: flex; gap: 8px; align-items: flex-start; padding: 12px; border-radius: 12px; background: var(--accent-soft); color: var(--ink); }
+.coach-challenge .icon { color: var(--accent); margin-top: 2px; flex: none; }
+.celebrate { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 14px; background: linear-gradient(135deg, #fff4c2, #ffe0ec); color: #3a2a00; }
+.celebrate .muted { color: #6b5a2a; }
+.celebrate-big { font-size: 34px; animation: pop .6s var(--ease) both; }
+.celebrate .icon-btn { margin-left: auto; }
+@keyframes pop { 0% { transform: scale(.4) rotate(-20deg); } 70% { transform: scale(1.2) rotate(8deg); } 100% { transform: scale(1); } }
+
+/* Pro and PigCoin$ */
+.pro-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; align-items: start; }
+@container app (max-width: 820px) { .pro-grid { grid-template-columns: 1fr; } }
+.pro-card h2 { font-size: 24px; font-weight: 500; }
+.pro-card.is-active { box-shadow: var(--shadow-1), inset 0 0 0 2px var(--accent); }
+.perk-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.perk-list li { display: flex; gap: 8px; align-items: flex-start; }
+.perk-list li .icon { flex: none; margin-top: 3px; }
+.perk-list .icon { color: var(--accent); vertical-align: -3px; }
+.plan-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@container app (max-width: 480px) { .plan-row { grid-template-columns: 1fr; } }
+.plan-opt { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 14px; background: var(--sunken); }
+.plan-opt b { font-size: 22px; }
+.plan-opt.best { background: var(--accent-soft); }
+.plan-opt .chip { position: absolute; top: 10px; right: 10px; }
+.coins-big { font-size: 34px; font-weight: 500; }
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.shop-item { padding: 16px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.shop-item .btn { margin-top: auto; }
+.shop-ic { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
+
+/* PigCoin$ */
+.pigcoin-wrap { display: inline-flex; align-items: center; gap: 4px; vertical-align: -0.15em; }
+.pigcoin { display: inline-block; flex: none; border-radius: 50%; position: relative; background: radial-gradient(circle at 32% 28%, #5fd6a2, #0e7a52 70%); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.35), 0 1px 2px rgba(0,0,0,.25); }
+.pigcoin::after { content: ""; position: absolute; inset: 20%; background: #fff; -webkit-mask: var(--pig) center / contain no-repeat; mask: var(--pig) center / contain no-repeat; }

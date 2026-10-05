@@ -26,7 +26,7 @@ export async function proxy(req: NextRequest) {
   const userId = await verifySession(req.cookies.get(SESSION_COOKIE)?.value);
 
   if (isApi) {
-    if (pathname.startsWith("/api/auth/")) return NextResponse.next();
+    if (pathname.startsWith("/api/auth/") || pathname === "/api/billing/webhook") return NextResponse.next();
     if (!userId) return NextResponse.json({ error: "Нужно войти в аккаунт" }, { status: 401 });
     return NextResponse.next();
   }

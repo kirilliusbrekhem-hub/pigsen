@@ -27,6 +27,10 @@ model User {
   searches      SearchQuery[]
   quizAttempts  QuizAttempt[]
   ideaReviews   IdeaReview[]
+  savingsGoals  SavingsGoal[]
+  coinTxs       CoinTx[]
+  purchases     Purchase[]
+  payments      Payment[]
 }
 
 model Profile {
@@ -49,6 +53,9 @@ model Profile {
   streak            Int      @default(0)
   lastActiveAt      DateTime @default(now())
   bestStreak        Int      @default(0)
+  // Internal currency (PigCoins) balance; CoinTx is the ledger. Pro is active while proUntil is in the future.
+  coins             Int      @default(0)
+  proUntil          DateTime?
   lastActiveDay     String   @default("")
   updatedAt         DateTime @updatedAt
 }
@@ -224,6 +231,71 @@ model IdeaReview {
   idea      String
   result    String
   score     Int
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// Smart piggy bank: a goal with a running balance; entries are deposits (+) and withdrawals (-) in whole rubles.
+model SavingsGoal {
+  id         String         @id @default(cuid())
+  userId     String
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title      String
+  why        String         @default("")
+  target     Int
+  saved      Int            @default(0)
+  theme      String         @default("piggy")
+  deadline   DateTime?
+  milestones Int            @default(0) // highest 25%-step already rewarded (0–4)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  entries    SavingsEntry[]
+
+  @@index([userId, createdAt])
+}
+
+model SavingsEntry {
+  id        String      @id @default(cuid())
+  goalId    String
+  goal      SavingsGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  amount    Int
+  note      String      @default("")
+  createdAt DateTime    @default(now())
+
+  @@index([goalId, createdAt])
+}
+
+model CoinTx {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    Int
+  reason    String
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model Purchase {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId    String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, itemId])
+}
+
+// Real-money payments (YooKassa). id is the provider's payment id.
+model Payment {
+  id        String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan      String
+  amount    Int
+  status    String   @default("pending") // pending | succeeded | canceled
+  applied   Boolean  @default(false)
   createdAt DateTime @default(now())
 
   @@index([userId, createdAt])

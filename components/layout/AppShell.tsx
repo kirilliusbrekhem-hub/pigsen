@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Brand, Pig, Wordmark } from "@/components/ui/Brand";
+import { Coin } from "@/components/ui/Coin";
 import { Icon } from "@/components/ui/Icon";
 import { Orb } from "@/components/ui/Orb";
 import { Avatar } from "@/components/ui/Avatar";
@@ -13,6 +14,7 @@ interface ShellUser {
   name: string;
   avatar: string | null;
   plan: string;
+  coins: number;
 }
 
 export function AppShell({ user, savedCount, children }: { user: ShellUser; savedCount: number; children: ReactNode }) {
@@ -99,7 +101,7 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
               <span style={{ textAlign: "left", minWidth: 0 }}>
                 <b style={{ fontWeight: 540, display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{user.name}</b>
                 <span className="muted" style={{ fontSize: 12 }}>
-                  {user.plan === "free" ? "Free план" : `${user.plan} план`}
+                  {user.plan === "pro" ? "Pro" : "Free"} · {user.coins} <Coin size={12} />
                 </span>
               </span>
             </Link>

@@ -4,5 +4,6 @@ import type { XpResultDTO } from "@/types";
 export function xpMessage(xp: XpResultDTO | undefined, base: string): string {
   if (!xp || xp.gained <= 0) return base;
   const lvl = xp.leveledUp ? ` Новый уровень: ${xp.level.name}!` : "";
-  return `${base} +${xp.gained} XP.${lvl}`;
+  const coins = xp.coins ? `, +${xp.coins} PigCoin$` : "";
+  return `${base} +${xp.gained} XP${coins}.${lvl}`;
 }

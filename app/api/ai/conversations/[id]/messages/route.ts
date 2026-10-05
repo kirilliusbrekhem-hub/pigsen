@@ -1,3 +1,4 @@
+import { savingsSummary } from "@/lib/savings/service";
 import { prisma } from "@/lib/db/prisma";
 import { enforceRateLimit, handler, HttpError, parseBody, requireApiUser } from "@/lib/api/http";
 import { appendMessage, DEFAULT_TITLE, findOwnConversation } from "@/lib/ai/conversations";
@@ -34,11 +35,12 @@ export const POST = handler(async (req: Request, { params }: Ctx) => {
     await prisma.conversation.update({ where: { id: convo.id }, data: { title: titleFromQuestion(content) } });
   }
 
-  const [history, related, stats, categories] = await Promise.all([
+  const [history, related, stats, categories, savings] = await Promise.all([
     prisma.message.findMany({ where: { conversationId: convo.id, role: { in: ["user", "assistant"] } }, orderBy: { createdAt: "asc" }, take: 40 }),
     relatedFor(user.id, content),
     learningStats(user.id),
     prisma.category.findMany({ select: { slug: true, name: true } }),
+    savingsSummary(user.id),
   ]);
   const catName = new Map(categories.map((c) => [c.slug, c.name]));
   const context: AIContext = {
@@ -46,6 +48,7 @@ export const POST = handler(async (req: Request, { params }: Ctx) => {
     tone: profileTone(user.profile),
     interests: parseInterests(user.profile).map((s) => catName.get(s) ?? s),
     learningSummary: `пройдено ${stats.lessonsCompleted} из ${stats.totalLessons} уроков, начато курсов: ${stats.coursesStarted}`,
+    savingsSummary: savings,
     related: related.map((r) => ({ title: r.title, type: TYPE_LABELS[r.type].one, description: r.description, href: r.href })),
   };
   const turns: ChatTurn[] = history.map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", content: m.content }));

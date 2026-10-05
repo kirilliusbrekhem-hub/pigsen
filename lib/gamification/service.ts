@@ -55,6 +55,7 @@ export function liveStreak(streak: number, lastActiveDay: string): number {
 
 export interface XpResult {
   gained: number;
+  coins: number;
   xp: number;
   streak: number;
   level: LevelInfo;
@@ -68,11 +69,13 @@ export async function awardXp(userId: string, amount: number): Promise<XpResult>
   const streak = profile.lastActiveDay === today ? profile.streak : profile.lastActiveDay === day(-1) ? profile.streak + 1 : 1;
   const updated = await prisma.profile.update({
     where: { userId },
-    data: { xp: { increment: amount }, streak, bestStreak: Math.max(profile.bestStreak, streak), lastActiveDay: today, lastActiveAt: new Date() },
+    data: { xp: { increment: amount }, coins: { increment: Math.floor(amount / 2) }, streak, bestStreak: Math.max(profile.bestStreak, streak), lastActiveDay: today, lastActiveAt: new Date() },
   });
+  // Every XP grant also pays PigCoin$ (half the XP), recorded in the ledger.
+  if (amount >= 2) await prisma.coinTx.create({ data: { userId, amount: Math.floor(amount / 2), reason: "xp" } });
   const before = levelOf(profile.xp);
   const level = levelOf(updated.xp);
-  return { gained: amount, xp: updated.xp, streak: updated.streak, level, leveledUp: level.index > before.index };
+  return { gained: amount, coins: Math.floor(amount / 2), xp: updated.xp, streak: updated.streak, level, leveledUp: level.index > before.index };
 }
 
 export interface Badge {

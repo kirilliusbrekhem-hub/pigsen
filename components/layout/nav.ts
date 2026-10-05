@@ -9,9 +9,11 @@ export const NAV: NavItem[] = [
   { href: "/ai", label: "$PIG", icon: "ai" },
   { href: "/learn", label: "Обучение", icon: "cap" },
   { href: "/library", label: "Библиотека", icon: "book" },
+  { href: "/savings", label: "Копилка", icon: "piggy" },
   { href: "/tools", label: "Инструменты", icon: "sliders" },
   { href: "/saved", label: "Сохранённое", icon: "bookmark" },
   { href: "/search", label: "Поиск", icon: "search" },
+  { href: "/pro", label: "Pro и PigCoin$", icon: "sparkle" },
 ];
 
 export const TABS: NavItem[] = [
@@ -31,6 +33,8 @@ export const SECTION_TITLES: Record<string, string> = {
   search: "Поиск",
   profile: "Профиль",
   tools: "Инструменты",
+  savings: "Копилка",
+  pro: "Pro",
 };
 
 export const DOCK_HINTS: Record<string, string[]> = {
@@ -41,6 +45,8 @@ export const DOCK_HINTS: Record<string, string[]> = {
   search: [],
   profile: [],
   tools: ["Как проверить бизнес-идею за неделю?"],
+  savings: ["Как накопить быстрее, если доход небольшой?"],
+  pro: [],
 };
 
 export function sectionOf(pathname: string): string {

@@ -89,6 +89,7 @@ export interface ApiError {
 /** XP outcome of an action, returned by mutating endpoints that award XP. */
 export interface XpResultDTO {
   gained: number;
+  coins?: number;
   xp: number;
   streak: number;
   level: { index: number; name: string; percent: number };

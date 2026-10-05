@@ -4,8 +4,10 @@ import { content as baseContent } from "./seed-data/content";
 import { courses as baseCourses } from "./seed-data/courses";
 import { coursesExtra } from "./seed-data/courses-extra";
 import { contentExtra } from "./seed-data/content-extra";
-const content = [...baseContent, ...contentExtra];
-const courses = [...baseCourses, ...coursesExtra];
+import { contentCrypto } from "./seed-data/content-crypto";
+import { coursesCrypto } from "./seed-data/courses-crypto";
+const content = [...baseContent, ...contentExtra, ...contentCrypto];
+const courses = [...baseCourses, ...coursesExtra, ...coursesCrypto];
 import { buildSearchText } from "../lib/search/normalize";
 
 const prisma = new PrismaClient();

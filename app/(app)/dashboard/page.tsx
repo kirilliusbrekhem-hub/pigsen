@@ -55,12 +55,13 @@ export default async function DashboardPage() {
 
       <section className="tool-tabs h-scroll" aria-label="Инструменты">
         {[
-          { id: "idea", label: "Разбор идеи", desc: "$PIG оценит бизнес-идею", icon: "rocket" },
-          { id: "compound", label: "Сложный процент", desc: "Как растут вложения", icon: "trendUp" },
-          { id: "unit", label: "Юнит-экономика", desc: "LTV, CAC, окупаемость", icon: "chart" },
-          { id: "goal", label: "Цель накоплений", desc: "Когда наберётся сумма", icon: "piggy" },
+          { href: "/savings", label: "Умная копилка", desc: "Цели и $PIG-коуч", icon: "piggy" },
+          { href: "/savings#spend", label: "Что если потрачу?", desc: "Проверить покупку", icon: "wallet" },
+          { href: "/tools?tab=idea", label: "Разбор идеи", desc: "$PIG оценит бизнес-идею", icon: "rocket" },
+          { href: "/tools?tab=compound", label: "Сложный процент", desc: "Как растут вложения", icon: "trendUp" },
+          { href: "/tools?tab=unit", label: "Юнит-экономика", desc: "LTV, CAC, окупаемость", icon: "chart" },
         ].map((t) => (
-          <Link key={t.id} href={`/tools?tab=${t.id}`} className="tool-tab">
+          <Link key={t.href} href={t.href} className="tool-tab">
             <span className="ic">
               <Icon name={t.icon} />
             </span>

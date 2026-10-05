@@ -14,5 +14,6 @@ export const categories: SeedCategory[] = [
   { slug: "technology", name: "Technology", description: "Технологии, которые меняют рынки.", icon: "cpu" },
   { slug: "leadership", name: "Leadership", description: "Управление людьми, командами и решениями.", icon: "users" },
   { slug: "marketing", name: "Marketing", description: "Клиенты, бренд, рост и каналы.", icon: "megaphone" },
+  { slug: "crypto", name: "Crypto", description: "Криптовалюты, блокчейн и их риски.", icon: "coin" },
   { slug: "productivity", name: "Productivity", description: "Фокус, привычки и качество мышления.", icon: "target" },
 ];

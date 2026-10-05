@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db/prisma";
 import { awardXp, XP } from "@/lib/gamification/service";
 import type { IdeaReviewDTO } from "@/types";
 import { completeJson } from "./aiService";
+import { FREE_LIMITS, isPro } from "@/lib/billing/plan";
 
 const ResultSchema = z.object({
   score: z.number().int().min(1).max(10),
@@ -46,18 +47,21 @@ function fallbackReview(idea: string): IdeaReviewDTO {
 }
 
 export async function reviewIdea(userId: string, idea: string) {
-  const ai = await completeJson(SYSTEM, idea, (raw) => {
+  const since = new Date();
+  since.setUTCHours(0, 0, 0, 0);
+  const today = await prisma.ideaReview.count({ where: { userId, createdAt: { gte: since } } });
+  // Free plan: a few AI reviews a day, then the rule-based review. Pro: unlimited.
+  const profile = await prisma.profile.findUnique({ where: { userId }, select: { proUntil: true } });
+  const useAi = isPro(profile) || today < FREE_LIMITS.ideaPerDay;
+  const ai = !useAi ? null : await completeJson(SYSTEM, idea, (raw) => {
     const r = ResultSchema.safeParse(raw);
     return r.success ? r.data : null;
   });
   const result: IdeaReviewDTO = ai ?? fallbackReview(idea);
   // XP once per UTC day, so repeated reviews can't be farmed.
-  const since = new Date();
-  since.setUTCHours(0, 0, 0, 0);
-  const today = await prisma.ideaReview.count({ where: { userId, createdAt: { gte: since } } });
   const saved = await prisma.ideaReview.create({ data: { userId, idea, result: JSON.stringify(result), score: result.score } });
   const xp = await awardXp(userId, today === 0 ? XP.ideaReview : 0);
-  return { id: saved.id, result, xp, demo: !ai };
+  return { id: saved.id, result, xp, demo: !ai, limited: !useAi };
 }
 
 export async function listIdeaReviews(userId: string, take = 5) {

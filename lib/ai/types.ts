@@ -18,6 +18,8 @@ export interface AIContext {
   tone: AiTone;
   interests: string[];
   learningSummary: string;
+  /** The user's savings goals, so $PIG can coach with real numbers. */
+  savingsSummary?: string;
   related: RelatedMaterial[];
 }
 

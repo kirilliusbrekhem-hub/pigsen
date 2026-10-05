@@ -83,7 +83,7 @@ await p.locator("a[href^='/learn/']").first().click();
 await p.locator("a.ms-link, a[href^='/learn/'][href*='/']").last().click().catch(() => {});
 await p.waitForTimeout(800);
 await p.close();
-const userPages = await crawl(ctx, "пользователь", ["/dashboard", "/ai", "/learn", "/library", "/saved", "/search", "/search?q=стартап", "/search?q=zzzzqqq", "/tools", "/profile", "/learn/nope", "/library/nope", "/ai/nope"], (u) => u === "/logout");
+const userPages = await crawl(ctx, "пользователь", ["/dashboard", "/ai", "/learn", "/library", "/saved", "/search", "/search?q=стартап", "/search?q=zzzzqqq", "/tools", "/savings", "/savings/nope", "/pro", "/profile", "/learn/nope", "/library/nope", "/ai/nope"], (u) => u === "/logout");
 
 // 3. Phone width, top-level pages
 const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, storageState: await ctx.storageState() });
