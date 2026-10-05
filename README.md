@@ -15,6 +15,7 @@ npm run dev               # http://localhost:3000
 
 ### $PIG: реальный AI или демо
 - Нет ключей: работает встроенный mock-провайдер, ответы помечены как демо.
+- `YANDEX_API_KEY` и `YANDEX_FOLDER_ID` заданы: ответы стримятся из YandexGPT (`YANDEX_MODEL`, по умолчанию `yandexgpt-lite/latest`, при перегрузке `yandexgpt/latest`). Имеет приоритет над остальными.
 - `GEMINI_API_KEY` задан: ответы стримятся из Google Gemini (`GEMINI_MODEL`; по умолчанию облегчённая `gemini-3.8-flash-lite`, при ошибке или перегрузке автоматически `gemini-3.8-flash`). Ключ берётся на aistudio.google.com/apikey.
 - `ANTHROPIC_API_KEY` задан (и нет ключа Gemini): ответы стримятся из Claude (`ANTHROPIC_MODEL`, по умолчанию `claude-opus-5-5`). Ключ живёт только на сервере.
 

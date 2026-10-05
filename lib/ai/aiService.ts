@@ -2,6 +2,7 @@ import "server-only";
 import { createAnthropicProvider } from "./providers/anthropic";
 import { createGeminiProvider } from "./providers/gemini";
 import { mockProvider } from "./providers/mock";
+import { createYandexProvider } from "./providers/yandex";
 import { buildSystemPrompt } from "./prompts";
 import type { AIContext, AIProvider, ChatTurn } from "./types";
 
@@ -10,10 +11,12 @@ let cached: AIProvider | null = null;
 /** Picks the provider from the environment. API keys never leave the server. */
 export function getAIProvider(): AIProvider {
   if (cached) return cached;
-  // First configured key wins: Gemini, then Anthropic, otherwise the labeled demo provider.
+  // First configured key wins: YandexGPT, Gemini, then Anthropic, otherwise the labeled demo provider.
+  const yandex = process.env.YANDEX_API_KEY?.trim();
+  const folder = process.env.YANDEX_FOLDER_ID?.trim();
   const gemini = process.env.GEMINI_API_KEY?.trim();
   const anthropic = process.env.ANTHROPIC_API_KEY?.trim();
-  cached = gemini ? createGeminiProvider(gemini) : anthropic ? createAnthropicProvider(anthropic) : mockProvider;
+  cached = yandex && folder ? createYandexProvider(yandex, folder) : gemini ? createGeminiProvider(gemini) : anthropic ? createAnthropicProvider(anthropic) : mockProvider;
   return cached;
 }
 
