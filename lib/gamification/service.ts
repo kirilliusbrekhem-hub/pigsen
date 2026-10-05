@@ -68,7 +68,7 @@ export async function awardXp(userId: string, amount: number): Promise<XpResult>
   const streak = profile.lastActiveDay === today ? profile.streak : profile.lastActiveDay === day(-1) ? profile.streak + 1 : 1;
   const updated = await prisma.profile.update({
     where: { userId },
-    data: { xp: { increment: amount }, streak, lastActiveDay: today, lastActiveAt: new Date() },
+    data: { xp: { increment: amount }, streak, bestStreak: Math.max(profile.bestStreak, streak), lastActiveDay: today, lastActiveAt: new Date() },
   });
   const before = levelOf(profile.xp);
   const level = levelOf(updated.xp);
@@ -102,7 +102,7 @@ export async function getGameStats(userId: string): Promise<GameStats> {
 
 async function loadGameStats(userId: string): Promise<GameStats> {
   const [profile, lessons, perfectQuiz, quizzes, saved, convos, ideas, courses] = await Promise.all([
-    prisma.profile.findUnique({ where: { userId }, select: { xp: true, streak: true, lastActiveDay: true } }),
+    prisma.profile.findUnique({ where: { userId }, select: { xp: true, streak: true, bestStreak: true, lastActiveDay: true } }),
     prisma.progress.count({ where: { userId, status: "completed" } }),
     prisma.quizAttempt.findFirst({ where: { userId, completedAt: { not: null }, score: { gt: 0 } }, select: { score: true, total: true }, orderBy: { score: "desc" } }),
     prisma.quizAttempt.count({ where: { userId, completedAt: { not: null } } }),
@@ -114,7 +114,7 @@ async function loadGameStats(userId: string): Promise<GameStats> {
   const doneByCourse = await prisma.lesson.groupBy({ by: ["courseId"], where: { progress: { some: { userId, status: "completed" } } }, _count: { _all: true } });
   const xp = profile?.xp ?? 0;
   const streak = liveStreak(profile?.streak ?? 0, profile?.lastActiveDay ?? "");
-  const bestStreak = profile?.streak ?? 0;
+  const bestStreak = Math.max(profile?.bestStreak ?? 0, streak);
   const courseDone = courses.some((c) => c._count.lessons > 0 && doneByCourse.some((d) => d.courseId === c.id && d._count._all >= c._count.lessons));
   const perfect = !!perfectQuiz && perfectQuiz.score === perfectQuiz.total;
 

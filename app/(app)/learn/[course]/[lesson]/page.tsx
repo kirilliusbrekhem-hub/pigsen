@@ -9,7 +9,8 @@ import { prisma } from "@/lib/db/prisma";
 import { Icon } from "@/components/ui/Icon";
 import { ProgressBar } from "@/components/ui/Ring";
 import { requireUser } from "@/lib/auth/session";
-import { getLesson, startLesson } from "@/lib/learning/service";
+import { getLesson } from "@/lib/learning/service";
+import { Track } from "@/components/ui/Track";
 
 export const metadata: Metadata = { title: "Урок" };
 
@@ -18,13 +19,13 @@ export default async function LessonPage({ params }: { params: Promise<{ course:
   const { course: courseSlug, lesson: lessonSlug } = await params;
   const data = await getLesson(user.id, courseSlug, lessonSlug);
   if (!data) notFound();
-  if (data.lesson.status === "not_started") await startLesson(user.id, data.lesson.id);
   const { course, lessons, lesson, prev, next } = data;
   const courseHref = `/learn/${course.slug}`;
   const passedQuiz = (await prisma.quizAttempt.count({ where: { userId: user.id, lessonId: lesson.id, completedAt: { not: null } } })) > 0;
 
   return (
     <>
+      {lesson.status === "not_started" && <Track kind="lesson" id={lesson.id} />}
       <SetCrumb title={course.title} />
       <section className="page-head">
         <div>

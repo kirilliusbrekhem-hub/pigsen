@@ -1,7 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 import { categories } from "./seed-data/categories";
-import { content } from "./seed-data/content";
-import { courses } from "./seed-data/courses";
+import { content as baseContent } from "./seed-data/content";
+import { courses as baseCourses } from "./seed-data/courses";
+import { coursesExtra } from "./seed-data/courses-extra";
+import { contentExtra } from "./seed-data/content-extra";
+const content = [...baseContent, ...contentExtra];
+const courses = [...baseCourses, ...coursesExtra];
 import { buildSearchText } from "../lib/search/normalize";
 
 const prisma = new PrismaClient();

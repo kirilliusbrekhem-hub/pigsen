@@ -8,7 +8,8 @@ import { SaveButton } from "@/components/content/SaveButton";
 import { Icon } from "@/components/ui/Icon";
 import { requireUser } from "@/lib/auth/session";
 import { formatDuration, TYPE_LABELS } from "@/lib/content/mappers";
-import { getContentBySlug, recordView, relatedContent } from "@/lib/content/service";
+import { getContentBySlug, relatedContent } from "@/lib/content/service";
+import { Track } from "@/components/ui/Track";
 
 export const metadata: Metadata = { title: "Материал" };
 
@@ -20,13 +21,13 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
   const item = await getContentBySlug(user.id, slug);
   if (!item) notFound();
   if (item.type === "course") redirect(item.href);
-  await recordView(user.id, item.id);
   const related = await relatedContent(user.id, item, 3);
   const t = TYPE_LABELS[item.type];
   const published = new Date(item.publishedAt).toLocaleDateString("ru-RU", { year: "numeric", month: "long", ...(item.type === "book" ? {} : { day: "numeric" }) });
 
   return (
     <>
+      <Track kind="view" id={item.id} />
       <SetCrumb title={item.title} />
       <section className="page-head">
         <div style={{ minWidth: 0 }}>

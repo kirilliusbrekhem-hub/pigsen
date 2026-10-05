@@ -12,10 +12,11 @@ const log = (step, msg = "ok") => console.log(`✓ ${step}${msg === "ok" ? "" : 
 
 function watch(page, label) {
   page.on("console", (m) => {
-    if (m.type() === "error") problems.push(`[${label}] console: ${m.text()}`);
+    if (m.type() === "error" && !m.text().includes("401 (Unauthorized)")) problems.push(`[${label}] console: ${m.text()}`);
   });
   page.on("pageerror", (e) => problems.push(`[${label}] pageerror: ${e.message}`));
   page.on("response", (r) => {
+    if (r.status() === 401 && !r.url().includes("/api/auth/login")) problems.push(`[${label}] HTTP 401 ${r.url()}`);
     if (r.status() >= 500) problems.push(`[${label}] HTTP ${r.status()} ${r.url()}`);
   });
 }
@@ -160,7 +161,7 @@ async function desktopScenario() {
   await page.goto(BASE + "/learn/osnovy-predprinimatelstva");
   await page.getByText("1 из 4 пройдено").waitFor();
   await page.goto(BASE + "/learn");
-  await page.getByText("1 из 14 уроков").waitFor();
+  await page.getByText("1 из 21 уроков").waitFor();
   await page.goto(BASE + "/dashboard");
   const pct = await page.locator(".hero-stats .big").innerText();
   if (pct.replace(/\D/g, "") === "0") problems.push("dashboard progress still 0%");

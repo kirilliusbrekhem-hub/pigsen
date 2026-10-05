@@ -91,7 +91,9 @@ export async function submitQuiz(userId: string, attemptId: string, answers: num
   const earlier = await prisma.quizAttempt.count({ where: { userId, lessonId: attempt.lessonId, completedAt: { not: null } } });
   const firstTime = earlier === 0;
   const gained = firstTime ? score * XP.quizCorrect : 0;
-  await prisma.quizAttempt.update({ where: { id: attempt.id }, data: { score, xpAwarded: gained, completedAt: new Date() } });
+  // Atomic claim: a double submit can't finish the same attempt (and pay XP) twice.
+  const claimed = await prisma.quizAttempt.updateMany({ where: { id: attempt.id, completedAt: null }, data: { score, xpAwarded: gained, completedAt: new Date() } });
+  if (claimed.count === 0) return { error: "done" as const };
   const xp: XpResult = await awardXp(userId, gained);
   return { score, total: questions.length, results, xp, firstTime };
 }

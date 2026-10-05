@@ -48,6 +48,7 @@ model Profile {
   xp                Int      @default(0)
   streak            Int      @default(0)
   lastActiveAt      DateTime @default(now())
+  bestStreak        Int      @default(0)
   lastActiveDay     String   @default("")
   updatedAt         DateTime @updatedAt
 }
