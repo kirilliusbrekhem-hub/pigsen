@@ -14,8 +14,8 @@ export const FREE_LIMITS = {
 } as const;
 
 export const PLANS = {
-  month: { id: "month", title: "Pro на месяц", price: 299, days: 30 },
-  year: { id: "year", title: "Pro на год", price: 2490, days: 365 },
+  month: { id: "month", title: "Pro на месяц", price: 299, stars: Number(process.env.STARS_MONTH) || 250, days: 30 },
+  year: { id: "year", title: "Pro на год", price: 2490, stars: Number(process.env.STARS_YEAR) || 2000, days: 365 },
 } as const;
 export type PlanId = keyof typeof PLANS;
 
