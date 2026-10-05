@@ -77,6 +77,13 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
               <BuyPlan plan="year" label={pro ? "Продлить на год" : "Оформить на год"} enabled={enabled} />
             </div>
           </div>
+          {stars && (
+            <ol className="pay-steps">
+              <li>Нажмите «Оформить»: откроется Telegram со счётом от бота PIGSEN.</li>
+              <li>Нажмите «Оплатить». Нет звёзд? Telegram сам предложит купить их картой.</li>
+              <li>Вернитесь сюда: Pro включится автоматически за пару секунд.</li>
+            </ol>
+          )}
           <span className="muted" style={{ fontSize: 12 }}>
             {stars ? "Оплата звёздами в Telegram: картой из любой страны или через App Store / Google Play." : "Оплата через ЮKassa."} Без автосписаний: Pro просто заканчивается в срок.
           </span>
