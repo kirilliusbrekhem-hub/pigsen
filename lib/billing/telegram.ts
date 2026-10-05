@@ -37,6 +37,8 @@ export async function createStarsInvoice(userId: string, planId: PlanId): Promis
     provider_token: "",
     currency: "XTR",
     prices: [{ label: plan.title, amount: plan.stars }],
+    // Monthly plan is a Telegram Stars subscription: Telegram charges again every 30 days until the user cancels.
+    ...(plan.id === "month" ? { subscription_period: 2_592_000 } : {}),
   });
   return { url, id };
 }
@@ -52,7 +54,14 @@ interface Update {
   message?: {
     chat: { id: number };
     text?: string;
-    successful_payment?: { currency: string; total_amount: number; invoice_payload: string; telegram_payment_charge_id: string };
+    successful_payment?: {
+      currency: string;
+      total_amount: number;
+      invoice_payload: string;
+      telegram_payment_charge_id: string;
+      is_recurring?: boolean;
+      is_first_recurring?: boolean;
+    };
   };
 }
 
@@ -60,7 +69,8 @@ export async function handleUpdate(u: Update): Promise<void> {
   if (u.pre_checkout_query) {
     const q = u.pre_checkout_query;
     const p = await prisma.payment.findUnique({ where: { id: q.invoice_payload } });
-    const ok = !!p && p.status === "pending" && q.currency === "XTR" && q.total_amount === p.amount;
+    // A subscription's renewals reuse the original payload, so an already-paid monthly payment is still valid.
+    const ok = !!p && (p.status === "pending" || p.plan === "month") && q.currency === "XTR" && q.total_amount === p.amount;
     await tg("answerPreCheckoutQuery", ok ? { pre_checkout_query_id: q.id, ok: true } : { pre_checkout_query_id: q.id, ok: false, error_message: "Счёт устарел. Нажмите «Оформить» на сайте ещё раз." });
     return;
   }
@@ -68,11 +78,20 @@ export async function handleUpdate(u: Update): Promise<void> {
   if (sp && u.message) {
     const p = await prisma.payment.findUnique({ where: { id: sp.invoice_payload } });
     if (!p || sp.currency !== "XTR" || sp.total_amount < p.amount) return;
-    // Applied exactly once even if Telegram redelivers the update.
-    const claimed = await prisma.payment.updateMany({ where: { id: p.id, applied: false }, data: { applied: true, status: "succeeded", providerRef: sp.telegram_payment_charge_id } });
-    if (!claimed.count) return;
+    let fresh: boolean;
+    if (sp.is_recurring && !sp.is_first_recurring) {
+      // Monthly renewal: one row per Telegram charge, so a redelivered update can't extend Pro twice.
+      fresh = await prisma.payment
+        .create({ data: { id: `tgr_${sp.telegram_payment_charge_id}`.slice(0, 120), userId: p.userId, plan: p.plan, amount: sp.total_amount, status: "succeeded", applied: true, provider: "telegram", providerRef: sp.telegram_payment_charge_id } })
+        .then(() => true, () => false);
+    } else {
+      // First payment: applied exactly once even if Telegram redelivers the update.
+      const claimed = await prisma.payment.updateMany({ where: { id: p.id, applied: false }, data: { applied: true, status: "succeeded", providerRef: sp.telegram_payment_charge_id } });
+      fresh = claimed.count > 0;
+    }
+    if (!fresh) return;
     const until = await extendPro(p.userId, PLANS[p.plan as PlanId]?.days ?? 30);
-    await tg("sendMessage", { chat_id: u.message.chat.id, text: `Оплата прошла! PIGSEN Pro активен до ${until.toLocaleDateString("ru-RU")}. Вернитесь на сайт: страница обновится сама.` }).catch(() => {});
+    await tg("sendMessage", { chat_id: u.message.chat.id, text: `Оплата прошла! PIGSEN Pro активен до ${until.toLocaleDateString("ru-RU")}.${p.plan === "month" ? " Подписка продлевается каждый месяц, отменить можно в Telegram: Настройки → Мои звёзды." : ""} Вернитесь на сайт: страница обновится сама.` }).catch(() => {});
     return;
   }
   if (u.message?.text?.startsWith("/start")) {

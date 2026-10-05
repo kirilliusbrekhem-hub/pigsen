@@ -67,8 +67,8 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
           <div className="plan-row">
             <div className="plan-opt">
               <b className="num">{price(PLANS.month)}</b>
-              <span className="muted">в месяц</span>
-              <BuyPlan plan="month" label={pro ? "Продлить на месяц" : "Оформить на месяц"} enabled={enabled} />
+              <span className="muted">{stars ? "в месяц, подписка" : "в месяц"}</span>
+              <BuyPlan plan="month" label={pro ? "Продлить на месяц" : stars ? "Оформить подписку" : "Оформить на месяц"} enabled={enabled} />
             </div>
             <div className="plan-opt best">
               <span className="chip">−30%</span>
@@ -85,7 +85,7 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
             </ol>
           )}
           <span className="muted" style={{ fontSize: 12 }}>
-            {stars ? "Оплата звёздами в Telegram: картой из любой страны или через App Store / Google Play." : "Оплата через ЮKassa."} Без автосписаний: Pro просто заканчивается в срок.
+            {stars ? "Оплата звёздами в Telegram: картой из любой страны или через App Store / Google Play." : "Оплата через ЮKassa."} {stars ? "Месячная подписка продлевается сама, отменить можно в Telegram: Настройки → Мои звёзды. Год оплачивается один раз." : "Без автосписаний: Pro просто заканчивается в срок."}
           </span>
         </section>
 
