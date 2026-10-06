@@ -31,6 +31,9 @@ npm run dev               # http://localhost:3000
 - **PigCoin$**: половина XP, +5 за взнос в день, +25 за этап цели, +10 за отказ от импульсной покупки. Тратятся в магазине (`/pro`): премиум-обложки, Pro на 3 дня. Все начисления в журнале `CoinTx`.
 - **Pro** (299 ₽/мес, 2 490 ₽/год): безлимит коуча, разборов трат и идей, неограниченное число целей, все обложки, x2 PigCoin$. Оплата звёздами Telegram (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, бот подключается открытием `/api/telegram/setup?key=…`; цены 250 ⭐ и 2000 ⭐, меняются через `STARS_MONTH`/`STARS_YEAR`) или через ЮKassa (`YOOKASSA_SHOP_ID`, `YOOKASSA_SECRET_KEY`), webhook `POST /api/billing/webhook`; статус платежа всегда перепроверяется запросом к API ЮKassa. Free: 3 цели, 3 совета коуча, 5 разборов трат и 3 разбора идей в день.
 
+## Админка
+`/admin` открыта только для email из `ADMIN_EMAILS`; остальным показывается «страница не найдена». Статистика (пользователи, активность, Pro, выручка, $PIG, копилка), пользователи (поиск, выдача и отключение Pro, начисление и списание PigCoin$, блокировка), платежи и редактор материалов библиотеки. Изменённые или удалённые в админке материалы сид больше не трогает.
+
 ## Стек
 Next.js 16 (App Router), React, TypeScript, Prisma + Postgres (Supabase), zod, JWT-сессия в httpOnly cookie (jose + bcrypt).
 
@@ -50,7 +53,7 @@ npm run lint && npm run typecheck && npm run build
 npm start -- -p 3100
 CHROMIUM_PATH=/path/to/chromium BASE_URL=http://localhost:3100 npm run e2e
 ```
-`e2e` проходит весь сценарий из 15 шагов, `node scripts/e2e-savings.mjs` проверяет копилку, коуча, PigCoin$ и Pro, `node scripts/e2e-boom.mjs` проверяет XP, квизы, инструменты и факт дня, плюс auth, защиту API, мобильную (390px) и планшетную (834px) вёрстку.
+`e2e` проходит весь сценарий из 15 шагов, `node scripts/mobile-audit.mjs` ищет вылезающие за экран элементы на всех страницах при 360 и 390px, `node scripts/e2e-savings.mjs` проверяет копилку, коуча, PigCoin$ и Pro, `node scripts/e2e-boom.mjs` проверяет XP, квизы, инструменты и факт дня, плюс auth, защиту API, мобильную (390px) и планшетную (834px) вёрстку.
 
 ## Известные ограничения
 - Внешние ссылки в сидах не проверены вживую (сеть была закрыта), сомнительные заменены на `null`.

@@ -82,6 +82,7 @@ export interface ShopItemView {
   price: number;
   icon: string;
   owned: boolean;
+  includedInPro?: boolean;
 }
 
 export function Shop({ items, coins }: { items: ShopItemView[]; coins: number }) {
@@ -111,7 +112,11 @@ export function Shop({ items, coins }: { items: ShopItemView[]; coins: number })
           <span className="muted" style={{ fontSize: 13 }}>
             {i.description}
           </span>
-          {i.owned ? (
+          {i.includedInPro ? (
+            <span className="pos" style={{ fontSize: 13 }}>
+              <Icon name="sparkle" size="sm" /> Входит в ваш Pro
+            </span>
+          ) : i.owned ? (
             <span className="pos" style={{ fontSize: 13 }}>
               <Icon name="check" size="sm" /> Уже ваше
             </span>

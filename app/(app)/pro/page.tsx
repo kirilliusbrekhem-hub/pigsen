@@ -116,7 +116,7 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
           <span className="label">Магазин</span>
           <h2 style={{ fontSize: 20, fontWeight: 500 }}>Потратить PigCoin$</h2>
         </div>
-        <Shop coins={coins} items={SHOP.map((i) => ({ id: i.id, title: i.title, description: i.description, price: i.price, icon: i.icon, owned: !i.repeatable && (owned.has(i.id) || (pro && i.id.startsWith("theme-"))) }))} />
+        <Shop coins={coins} items={SHOP.map((i) => ({ id: i.id, title: i.title, description: i.description, price: i.price, icon: i.icon, owned: !i.repeatable && owned.has(i.id), includedInPro: pro && !i.repeatable && !owned.has(i.id) }))} />
       </section>
     </div>
   );

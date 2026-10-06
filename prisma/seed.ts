@@ -45,6 +45,10 @@ async function main() {
       categoryId: cat(item.category),
       searchText: buildSearchText(item.title, item.description, item.author, item.tags.join(" "), item.body),
     };
+    // Items edited or deleted in the admin panel are not overwritten or recreated by the seed.
+    const existing = await prisma.contentItem.findUnique({ where: { slug: item.slug }, select: { adminEdited: true } });
+    if (existing?.adminEdited) continue;
+    if (!existing && (await prisma.deletedSlug.findUnique({ where: { slug: item.slug } }))) continue;
     await prisma.contentItem.upsert({ where: { slug: item.slug }, update: data, create: { slug: item.slug, ...data } });
   }
 

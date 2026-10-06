@@ -31,7 +31,7 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  if (userId && (AUTH_PAGES.has(pathname) || pathname === "/")) {
+  if (userId && (AUTH_PAGES.has(pathname) || pathname === "/") && !req.nextUrl.searchParams.has("gone")) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
   if (!userId && !PUBLIC_PAGES.has(pathname)) {

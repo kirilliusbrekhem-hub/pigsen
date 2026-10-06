@@ -11,6 +11,7 @@ export const POST = handler(async (req: Request) => {
   if (!user || !(await verifyPassword(password, user.passwordHash))) {
     throw new HttpError(401, "Неверный email или пароль");
   }
+  if (user.blocked) throw new HttpError(403, "Аккаунт заблокирован. Напишите в поддержку.");
   await prisma.profile.upsert({ where: { userId: user.id }, update: { lastActiveAt: new Date() }, create: { userId: user.id } });
   await startSession(user.id);
   return json({ id: user.id, name: user.name });

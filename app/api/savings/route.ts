@@ -27,7 +27,7 @@ export const POST = handler(async (req: Request) => {
     target: b.target,
     theme: b.theme,
     deadline: b.deadline ? new Date(`${b.deadline}T23:59:59Z`) : null,
-    initial: Math.min(b.initial, b.target * 10),
+    initial: Math.min(b.initial, b.target * 10, 1_000_000_000),
   });
   return json({ goal }, 201);
 });

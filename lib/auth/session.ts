@@ -31,10 +31,12 @@ export const getSessionUserId = cache(async (): Promise<string | null> => {
 export const getCurrentUser = cache(async () => {
   const id = await getSessionUserId();
   if (!id) return null;
-  return prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { id },
-    select: { id: true, email: true, name: true, createdAt: true, profile: true },
+    select: { id: true, email: true, name: true, createdAt: true, blocked: true, profile: true },
   });
+  // A blocked account is treated as signed out everywhere.
+  return user && !user.blocked ? user : null;
 });
 
 export type CurrentUser = NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;
@@ -42,6 +44,7 @@ export type CurrentUser = NonNullable<Awaited<ReturnType<typeof getCurrentUser>>
 /** For server components: the signed-in user, or a redirect to /login. */
 export async function requireUser(): Promise<CurrentUser> {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  // A valid cookie with no usable account (blocked/deleted): the proxy lets ?gone=1 through, avoiding a /login ⇄ /dashboard loop.
+  if (!user) redirect((await getSessionUserId()) ? "/login?gone=1" : "/login");
   return user;
 }

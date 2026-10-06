@@ -1,6 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/db/prisma";
-import { isPro, startOfUtcDay } from "@/lib/billing/plan";
+import { isPro } from "@/lib/billing/plan";
+import { HttpError } from "@/lib/api/http";
 
 /** PigCoin$: earned for learning and saving, spent in the shop. Every change goes through the CoinTx ledger. */
 export const COINS = {
@@ -20,10 +21,20 @@ export async function addCoins(userId: string, amount: number, reason: string): 
 
 /** Pays a reward at most once per UTC day for a given reason prefix. */
 export async function addDailyCoins(userId: string, amount: number, reason: string): Promise<number> {
-  const already = await prisma.coinTx.count({ where: { userId, reason, createdAt: { gte: startOfUtcDay() } } });
-  if (already) return 0;
   const profile = await prisma.profile.findUnique({ where: { userId }, select: { proUntil: true } });
-  return addCoins(userId, isPro(profile) && reason === "deposit" ? amount * 2 : amount, reason);
+  const value = isPro(profile) && reason === "deposit" ? amount * 2 : amount;
+  const dayKey = `${reason}:${new Date().toISOString().slice(0, 10)}`;
+  try {
+    await prisma.$transaction([
+      prisma.dailyClaim.create({ data: { userId, key: dayKey } }),
+      prisma.coinTx.create({ data: { userId, amount: value, reason } }),
+      prisma.profile.update({ where: { userId }, data: { coins: { increment: value } } }),
+    ]);
+    return value;
+  } catch (e) {
+    if ((e as { code?: string }).code === "P2002") return 0; // already paid today
+    throw e;
+  }
 }
 
 /** Atomically spends coins; returns false if the balance is too low. */
@@ -62,15 +73,25 @@ export async function buyItem(userId: string, itemId: string): Promise<{ ok: tru
     const owned = await prisma.purchase.findUnique({ where: { userId_itemId: { userId, itemId } } });
     if (owned) return { ok: false, error: "Уже куплено" };
   }
-  if (!(await spendCoins(userId, item.price, `shop:${item.id}`))) return { ok: false, error: "Не хватает PigCoin$" };
   if (item.repeatable) {
+    if (!(await spendCoins(userId, item.price, `shop:${item.id}`))) return { ok: false, error: "Не хватает PigCoin$" };
     await extendPro(userId, 3);
   } else {
-    await prisma.purchase.create({ data: { userId, itemId } }).catch(async (e) => {
-      // A concurrent duplicate purchase: refund.
-      await addCoins(userId, item.price, `refund:${item.id}`);
+    // Spend and record ownership in one transaction: a double click can't charge twice.
+    try {
+      const ok = await prisma.$transaction(async (tx) => {
+        await tx.purchase.create({ data: { userId, itemId } });
+        const r = await tx.profile.updateMany({ where: { userId, coins: { gte: item.price } }, data: { coins: { decrement: item.price } } });
+        if (!r.count) throw new HttpError(402, "Не хватает PigCoin$");
+        await tx.coinTx.create({ data: { userId, amount: -item.price, reason: `shop:${item.id}` } });
+        return true;
+      });
+      if (!ok) return { ok: false, error: "Не хватает PigCoin$" };
+    } catch (e) {
+      if ((e as { code?: string }).code === "P2002") return { ok: false, error: "Уже куплено" };
+      if (e instanceof HttpError) return { ok: false, error: e.message };
       throw e;
-    });
+    }
   }
   const p = await prisma.profile.findUnique({ where: { userId }, select: { coins: true } });
   return { ok: true, coins: p?.coins ?? 0 };

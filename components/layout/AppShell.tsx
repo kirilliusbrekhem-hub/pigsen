@@ -15,6 +15,7 @@ interface ShellUser {
   avatar: string | null;
   plan: string;
   coins: number;
+  admin?: boolean;
 }
 
 export function AppShell({ user, savedCount, children }: { user: ShellUser; savedCount: number; children: ReactNode }) {
@@ -28,6 +29,16 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
   const [dock, setDock] = useState("");
   const [query, setQuery] = useState("");
   const [crumb, setCrumb] = useState<string | null>(null);
+  const [more, setMore] = useState(false);
+  const navItems = user.admin ? [...NAV, { href: "/admin", label: "Админка", icon: "shield" }] : NAV;
+  const moreItems = [...navItems.filter((n) => !TABS.some((t) => t.href === n.href)), { href: "/profile", label: "Профиль", icon: "user" }];
+
+  // Close the mobile menu on navigation.
+  const [lastPath, setLastPath] = useState(pathname);
+  if (lastPath !== pathname) {
+    setLastPath(pathname);
+    setMore(false);
+  }
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -74,7 +85,7 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
             <Brand sub />
           </Link>
           <nav className="nav">
-            {NAV.map((n) =>
+            {navItems.map((n) =>
               n.href === "/ai" ? (
                 <Link key={n.href} href={n.href} className={`nav-item ai-item ${active(n.href) ? "is-active" : ""}`} aria-current={active(n.href) ? "page" : undefined}>
                   <Orb className="orb-sm" />
@@ -212,8 +223,41 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
               </Link>
             ),
           )}
+          <button type="button" className={`tb ${more || moreItems.some((m) => active(m.href)) ? "is-active" : ""}`} onClick={() => setMore(true)} aria-haspopup="dialog" aria-expanded={more}>
+            <Icon name="grid" />
+            <span>Ещё</span>
+          </button>
         </nav>
+
       </div>
+        {more && (
+          <div className="overlay sheet-menu" role="dialog" aria-modal="true" aria-label="Все разделы">
+            <div className="scrim" onClick={() => setMore(false)} />
+            <div className="modal">
+              <div className="sheet-grab" />
+              <div className="modal-head">
+                <h2>Все разделы</h2>
+                <button className="icon-btn" onClick={() => setMore(false)} aria-label="Закрыть">
+                  <Icon name="close" />
+                </button>
+              </div>
+              <div className="modal-body">
+                <div className="more-grid">
+                  {moreItems.map((m) => (
+                    <Link key={m.href} href={m.href} className={`more-item ${active(m.href) ? "is-active" : ""}`}>
+                      <Icon name={m.icon} />
+                      <span>{m.label}</span>
+                      {m.href === "/saved" && savedCount > 0 && <span className="count">{savedCount}</span>}
+                    </Link>
+                  ))}
+                </div>
+                <div className="more-foot muted">
+                  {user.plan === "pro" ? "Pro" : "Free"} · {user.coins} <Coin size={14} /> PigCoin$
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
     </div>
     </CrumbContext.Provider>
   );

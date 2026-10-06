@@ -20,8 +20,7 @@ export const TABS: NavItem[] = [
   { href: "/dashboard", label: "Главная", icon: "home" },
   { href: "/learn", label: "Обучение", icon: "cap" },
   { href: "/ai", label: "$PIG", icon: "ai" },
-  { href: "/library", label: "Библиотека", icon: "book" },
-  { href: "/saved", label: "Сохранённое", icon: "bookmark" },
+  { href: "/savings", label: "Копилка", icon: "piggy" },
 ];
 
 export const SECTION_TITLES: Record<string, string> = {
@@ -35,6 +34,7 @@ export const SECTION_TITLES: Record<string, string> = {
   tools: "Инструменты",
   savings: "Копилка",
   pro: "Pro",
+  admin: "Админка",
 };
 
 export const DOCK_HINTS: Record<string, string[]> = {
@@ -47,6 +47,7 @@ export const DOCK_HINTS: Record<string, string[]> = {
   tools: ["Как проверить бизнес-идею за неделю?"],
   savings: ["Как накопить быстрее, если доход небольшой?"],
   pro: [],
+  admin: [],
 };
 
 export function sectionOf(pathname: string): string {

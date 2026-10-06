@@ -1,7 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/db/prisma";
 import { COINS, addCoins, addDailyCoins, ownedItems } from "@/lib/coins/service";
-import { FREE_LIMITS, isPro } from "@/lib/billing/plan";
+import { FREE_LIMITS, isPro, startOfUtcDay } from "@/lib/billing/plan";
 import { HttpError } from "@/lib/api/http";
 import { THEMES } from "./themes";
 
@@ -52,7 +52,7 @@ export async function createGoal(userId: string, input: { title: string; why: st
   const goal = await prisma.savingsGoal.create({
     data: { userId, title: input.title, why: input.why, target: input.target, theme: input.theme, deadline: input.deadline },
   });
-  if (input.initial > 0) return (await addEntry(userId, goal.id, input.initial, "Стартовый взнос")).goal;
+  if (input.initial > 0) return (await addEntry(userId, goal.id, Math.min(input.initial, MAX_SAVED), "Стартовый взнос", true)).goal;
   return goal;
 }
 
@@ -63,7 +63,9 @@ export async function updateGoal(userId: string, id: string, data: { title?: str
     const profile = await prisma.profile.findUnique({ where: { userId }, select: { proUntil: true } });
     if (!(await availableThemes(userId, isPro(profile))).has(data.theme)) throw new HttpError(403, "Эта обложка доступна в Pro или в магазине за PigCoin$");
   }
-  return prisma.savingsGoal.update({ where: { id }, data });
+  const target = data.target ?? goal.target;
+  const milestones = Math.min(goal.milestones, Math.min(4, Math.floor((goal.saved / target) * 4)));
+  return prisma.savingsGoal.update({ where: { id }, data: { ...data, milestones } });
 }
 
 export async function deleteGoal(userId: string, id: string) {
@@ -71,26 +73,45 @@ export async function deleteGoal(userId: string, id: string) {
   if (!r.count) throw new HttpError(404, "Цель не найдена");
 }
 
-/** Deposit (+) or withdrawal (-). Pays daily coins for deposits and a bonus for each new 25% milestone. */
-export async function addEntry(userId: string, goalId: string, amount: number, note: string) {
+const MAX_SAVED = 1_500_000_000; // stays well inside Postgres INT
+const MILESTONE_MIN_AGE_MS = 3 * 86_400_000; // no milestone coins on a goal created minutes ago
+const MILESTONES_PER_DAY = 2;
+
+/**
+ * Deposit (+) or withdrawal (-). Pays daily coins for deposits and a bonus for each new 25% milestone.
+ * `opening` marks the starting amount entered when the goal is created: it never earns milestone coins.
+ */
+export async function addEntry(userId: string, goalId: string, amount: number, note: string, opening = false) {
   const goal = await getGoal(userId, goalId);
   if (!goal) throw new HttpError(404, "Цель не найдена");
-  if (amount < 0 && goal.saved + amount < 0) throw new HttpError(422, "Нельзя снять больше, чем накоплено");
-  const [, updated] = await prisma.$transaction([
-    prisma.savingsEntry.create({ data: { goalId, amount, note } }),
-    prisma.savingsGoal.update({ where: { id: goalId }, data: { saved: { increment: amount } } }),
-  ]);
+  // The balance guard runs inside the UPDATE, so parallel withdrawals can't push it below zero.
+  const updated = await prisma.$transaction(async (tx) => {
+    const r = await tx.savingsGoal.updateMany({
+      where: { id: goalId, userId, saved: amount < 0 ? { gte: -amount } : { lte: MAX_SAVED - amount } },
+      data: { saved: { increment: amount } },
+    });
+    if (!r.count) throw new HttpError(422, amount < 0 ? "Нельзя снять больше, чем накоплено" : "Слишком большая сумма в копилке");
+    await tx.savingsEntry.create({ data: { goalId, amount, note } });
+    return tx.savingsGoal.findUniqueOrThrow({ where: { id: goalId } });
+  });
   let coins = 0;
   let milestone: number | null = null;
-  if (amount > 0) {
+  const step = Math.min(4, Math.floor((updated.saved / updated.target) * 4));
+  if (opening) {
+    // Count the starting amount as already-reached milestones, without paying for them.
+    if (step > updated.milestones) await prisma.savingsGoal.update({ where: { id: goalId }, data: { milestones: step } });
+  } else if (amount > 0) {
     coins += await addDailyCoins(userId, COINS.dailyDeposit, "deposit");
-    const step = Math.min(4, Math.floor((updated.saved / updated.target) * 4));
     if (step > updated.milestones) {
       // Claim atomically so two parallel deposits can't both pay the same milestone.
       const claimed = await prisma.savingsGoal.updateMany({ where: { id: goalId, milestones: { lt: step } }, data: { milestones: step } });
       if (claimed.count) {
-        coins += await addCoins(userId, COINS.milestone * (step - updated.milestones), `milestone:${goalId}:${step}`);
         milestone = step * 25;
+        // Coins only for goals older than 3 days and at most twice a day, so create/delete loops can't farm them.
+        const paidToday = await prisma.coinTx.count({ where: { userId, reason: { startsWith: "milestone:" }, createdAt: { gte: startOfUtcDay() } } });
+        if (Date.now() - goal.createdAt.getTime() >= MILESTONE_MIN_AGE_MS && paidToday < MILESTONES_PER_DAY) {
+          coins += await addCoins(userId, COINS.milestone, `milestone:${goalId}:${step}`);
+        }
       }
     }
   }

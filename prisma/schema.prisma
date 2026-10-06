@@ -19,6 +19,7 @@ model User {
   name          String
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+  blocked       Boolean        @default(false)
   profile       Profile?
   progress      Progress[]
   savedItems    SavedItem[]
@@ -88,6 +89,8 @@ model ContentItem {
   featured    Boolean       @default(false)
   trending    Int           @default(0) // editorial "hot topic" weight
   searchText  String        @default("") // lowercased title+description+tags+author for search
+  // Set when an admin edits the item: the build-time seed then leaves it alone.
+  adminEdited Boolean       @default(false)
   createdAt   DateTime      @default(now())
   categoryId  String
   category    Category      @relation(fields: [categoryId], references: [id])
@@ -301,4 +304,19 @@ model Payment {
   createdAt DateTime @default(now())
 
   @@index([userId, createdAt])
+}
+
+// Seeded library items an admin deleted, so the next build doesn't bring them back.
+model DeletedSlug {
+  slug      String   @id
+  createdAt DateTime @default(now())
+}
+
+// Once-a-day reward claims ("reason:YYYY-MM-DD"); the primary key makes the daily limit race-proof.
+model DailyClaim {
+  userId    String
+  key       String
+  createdAt DateTime @default(now())
+
+  @@id([userId, key])
 }

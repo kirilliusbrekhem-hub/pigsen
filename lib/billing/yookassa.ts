@@ -61,7 +61,7 @@ export async function syncPayment(id: string): Promise<"succeeded" | "pending" |
   const res = await fetch(`${API}/${encodeURIComponent(id)}`, { headers: { authorization: auth() } });
   if (!res.ok) return "unknown";
   const p = (await res.json()) as YkPayment;
-  if (p.status === "succeeded" && p.paid && Number(p.amount.value) >= local.amount) {
+  if (p.status === "succeeded" && p.paid && p.amount.currency === "RUB" && Number(p.amount.value) >= local.amount) {
     const claimed = await prisma.payment.updateMany({ where: { id, applied: false }, data: { applied: true, status: "succeeded" } });
     if (claimed.count) await extendPro(local.userId, PLANS[local.plan as PlanId]?.days ?? 30);
     return "succeeded";

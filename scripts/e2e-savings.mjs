@@ -97,6 +97,14 @@ async function run(viewport, tag) {
   await shot("list");
   log(`[${tag}] Лимит целей на Free`);
 
+  // Admin panel is invisible to regular users
+  await page.goto(BASE + "/admin");
+  await page.getByText("Страница не найдена").waitFor();
+  if (await page.getByText("Пользователей").count()) problems.push(`[${tag}] /admin shows stats to non-admin`);
+  const admApi = await page.request.post(BASE + "/api/admin/content", { data: {} });
+  if (admApi.status() !== 404) problems.push(`[${tag}] /api/admin for non-admin → ${admApi.status()}`);
+  log(`[${tag}] Админка закрыта для обычных пользователей`);
+
   // Crypto course is in the catalogue
   await page.goto(BASE + "/learn");
   await page.getByText("Криптовалюты: основы и риски").first().waitFor();
