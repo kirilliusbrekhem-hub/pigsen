@@ -8,6 +8,7 @@ import { CourseCard } from "@/components/learning/CourseCard";
 import { Icon } from "@/components/ui/Icon";
 import { ProPromo } from "@/components/pro/ProPromo";
 import { isPro } from "@/lib/billing/plan";
+import { InvitePromo } from "@/components/growth/InvitePromo";
 import { DailyBonus } from "@/components/dashboard/DailyBonus";
 import { Orb } from "@/components/ui/Orb";
 import { EmptyState } from "@/components/ui/States";
@@ -60,6 +61,7 @@ export default async function DashboardPage() {
       <GameStrip game={game} fact={factOfTheDay()} />
 
       {!pro && <ProPromo place="dashboard" />}
+      <InvitePromo />
 
       <section className="tool-tabs h-scroll" aria-label="Инструменты">
         {[

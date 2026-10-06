@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { ErrorBox } from "@/components/ui/States";
 import { api, ApiClientError, errorMessage } from "@/lib/client/api";
@@ -19,6 +19,13 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const rawRef = mode === "register" ? params.get("ref") : null;
+  const ref = rawRef && /^[a-z0-9]{10,40}$/i.test(rawRef) ? rawRef : null;
+
+  // Remember the inviter for 30 days, so the bonus survives leaving and coming back later.
+  useEffect(() => {
+    if (ref) document.cookie = `pigsen_ref=${encodeURIComponent(ref)}; Max-Age=${30 * 86400}; Path=/; SameSite=Lax`;
+  }, [ref]);
 
   function validate(): Record<string, string> {
     const e: Record<string, string> = {};
@@ -36,7 +43,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
     if (Object.keys(e).length) return;
     setLoading(true);
     try {
-      await api(`/api/auth/${mode}`, { method: "POST", body: mode === "register" ? values : { email: values.email, password: values.password } });
+      await api(`/api/auth/${mode}`, { method: "POST", body: mode === "register" ? { ...values, ...(ref ? { ref } : {}) } : { email: values.email, password: values.password } });
       router.replace(mode === "register" ? "/onboarding" : safeNext(params.get("next")));
       router.refresh();
     } catch (err) {
@@ -73,6 +80,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
         <span className="label">{mode === "register" ? "Регистрация" : "Вход"}</span>
         <h1>{mode === "register" ? "Создайте аккаунт PIGSEN" : "С возвращением"}</h1>
       </div>
+      {ref && <p className="growth-ref-note">Вас пригласил друг: после регистрации получите 200 PigCoin$.</p>}
       {formError && <ErrorBox message={formError} />}
       {mode === "register" && field("name", "Имя", "text", "name")}
       {field("email", "Email", "email", "email")}

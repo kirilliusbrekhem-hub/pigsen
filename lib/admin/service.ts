@@ -176,3 +176,64 @@ export async function deleteContent(id: string) {
     prisma.deletedSlug.upsert({ where: { slug: item.slug }, update: {}, create: { slug: item.slug } }),
   ]);
 }
+
+// ---------- Growth charts (last 30 days, UTC days) ----------
+
+const dayKey = (d: Date) => d.toISOString().slice(0, 10);
+
+export async function growthStats() {
+  const DAYS = 30;
+  const since = new Date(day(DAYS - 1).toISOString().slice(0, 10) + "T00:00:00Z");
+  const keys = Array.from({ length: DAYS }, (_, i) => dayKey(new Date(since.getTime() + i * 86_400_000)));
+  // Prisma stores UTC in timestamp(3) without tz, so to_char gives the UTC day. Distinct (user, day) activity from real events: lessons, views, $PIG questions, coin ledger.
+  const activity = await prisma.$queryRaw<{ userId: string; d: string }[]>`
+    SELECT DISTINCT "userId", to_char(t, 'YYYY-MM-DD') AS d FROM (
+      SELECT "userId", "updatedAt" AS t FROM "Progress" WHERE "updatedAt" >= ${since}
+      UNION ALL SELECT "userId", "createdAt" FROM "ContentView" WHERE "createdAt" >= ${since}
+      UNION ALL SELECT c."userId", m."createdAt" FROM "Message" m JOIN "Conversation" c ON c.id = m."conversationId" WHERE m.role = 'user' AND m."createdAt" >= ${since}
+      UNION ALL SELECT "userId", "createdAt" FROM "CoinTx" WHERE "createdAt" >= ${since}
+    ) a`;
+  const [users, payments, coinRows, refTotal, refActive, reviews] = await Promise.all([
+    prisma.user.findMany({ where: { createdAt: { gte: since } }, select: { id: true, createdAt: true } }),
+    prisma.payment.findMany({ where: { createdAt: { gte: since }, OR: [{ status: "succeeded" }, { applied: true }] }, select: { createdAt: true } }),
+    prisma.coinTx.findMany({ where: { createdAt: { gte: since }, amount: { gt: 0 }, reason: { not: "admin" } }, select: { createdAt: true, amount: true } }),
+    prisma.referral.count(),
+    prisma.referral.count({ where: { rewarded: true } }),
+    prisma.review.groupBy({ by: ["status"], _count: true }),
+  ]);
+  const series = (fill: (m: Map<string, number>) => void) => {
+    const m = new Map(keys.map((k) => [k, 0]));
+    fill(m);
+    return keys.map((k) => ({ day: k, value: m.get(k) ?? 0 }));
+  };
+  const bump = (m: Map<string, number>, k: string, n = 1) => m.has(k) && m.set(k, (m.get(k) ?? 0) + n);
+
+  const activeByUser = new Map<string, Set<string>>();
+  for (const a of activity) {
+    if (!activeByUser.has(a.userId)) activeByUser.set(a.userId, new Set());
+    activeByUser.get(a.userId)!.add(a.d);
+  }
+  // Retention for the cohort registered 8–30 days ago (all have a full week behind them).
+  const cohort = users.filter((u) => u.createdAt < day(8));
+  let d1 = 0, d7 = 0;
+  for (const u of cohort) {
+    const days = activeByUser.get(u.id);
+    if (!days) continue;
+    const base = new Date(dayKey(u.createdAt) + "T00:00:00Z").getTime();
+    const off = (n: number) => dayKey(new Date(base + n * 86_400_000));
+    if (days.has(off(1))) d1++;
+    if ([1, 2, 3, 4, 5, 6, 7].some((n) => days.has(off(n)))) d7++;
+  }
+  const pct = (n: number) => (cohort.length ? Math.round((n / cohort.length) * 100) : 0);
+  const reviewCount = (s: string) => reviews.find((r) => r.status === s)?._count ?? 0;
+
+  return {
+    signups: series((m) => users.forEach((u) => bump(m, dayKey(u.createdAt)))),
+    active: series((m) => activity.forEach((a) => bump(m, a.d))),
+    purchases: series((m) => payments.forEach((p) => bump(m, dayKey(p.createdAt)))),
+    coinsEarned: series((m) => coinRows.forEach((c) => bump(m, dayKey(c.createdAt), c.amount))),
+    retention: { cohort: cohort.length, d1: pct(d1), d7: pct(d7) },
+    referrals: { total: refTotal, activated: refActive },
+    reviews: { pending: reviewCount("pending"), approved: reviewCount("approved"), rejected: reviewCount("rejected") },
+  };
+}

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { SavingsHome } from "@/components/savings/SavingsHome";
 import { requireUser } from "@/lib/auth/session";
 import { isPro, limitsFor } from "@/lib/billing/plan";
+import { PushToggle } from "@/components/push/PushToggle";
+import { vapidPublicKey } from "@/lib/push/config";
 import { ProPromo } from "@/components/pro/ProPromo";
 import { availableThemes, listGoals } from "@/lib/savings/service";
 import { quoteOfTheDay } from "@/lib/savings/themes";
@@ -25,7 +27,7 @@ export default async function SavingsPage() {
         </div>
       </section>
       {!pro && <ProPromo place="savings" note={`На вашем плане до ${limitsFor(user.profile).goals} целей, у вас ${goals.length}.`} />}
-      <SavingsHome goals={views} themes={[...themes]} canCreate={goals.length < limitsFor(user.profile).goals} quote={quote} />
+      <SavingsHome goals={views} themes={[...themes]} canCreate={goals.length < limitsFor(user.profile).goals} quote={quote} push={<PushToggle publicKey={vapidPublicKey()} />} />
     </>
   );
 }

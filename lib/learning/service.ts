@@ -1,5 +1,6 @@
 import "server-only";
 import type { Category, Course, Lesson, Progress } from "@prisma/client";
+import { activateReferral } from "@/lib/growth/referral";
 import { prisma } from "@/lib/db/prisma";
 import { toCategoryDTO } from "@/lib/content/mappers";
 import { getSavedIds } from "@/lib/content/saved";
@@ -106,7 +107,12 @@ export async function setLessonCompleted(userId: string, lessonId: string, compl
     update: completed ? { status: "completed", completedAt: before?.completedAt ?? new Date() } : { status: "in_progress" },
     create: { userId, lessonId, status: completed ? "completed" : "in_progress", completedAt: completed ? new Date() : null },
   });
-  return { progress, firstCompletion: completed && !everCompleted };
+  const firstCompletion = completed && !everCompleted;
+  if (firstCompletion) {
+    // A completed lesson activates a pending referral (idempotent); never block lesson completion on it.
+    await activateReferral(userId).catch((e) => console.error("[referral] activate failed", e));
+  }
+  return { progress, firstCompletion };
 }
 
 export async function learningStats(userId: string) {

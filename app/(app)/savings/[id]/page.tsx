@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { GoalArt } from "@/components/savings/GoalArt";
+import { GoalCover } from "@/components/savings/GoalCover";
+import { GoalImageEdit } from "@/components/savings/GoalImage";
 import { Coach, GoalActions, GoalDanger, GoalNumbers } from "@/components/savings/GoalDetail";
 import { SpendCheck } from "@/components/savings/SpendCheck";
 import { Icon } from "@/components/ui/Icon";
@@ -26,7 +27,10 @@ export default async function GoalPage({ params }: { params: Promise<{ id: strin
         <Icon name="back" size="sm" /> Все цели
       </Link>
       <section className="goal-hero card">
-        <GoalArt theme={goal.theme} percent={view.percent} size="lg" title={goal.title} />
+        <div className="stack" style={{ gap: 8, minWidth: 0 }}>
+          <GoalCover imageUrl={view.imageUrl} theme={goal.theme} percent={view.percent} size="lg" title={goal.title} />
+          <GoalImageEdit goalId={goal.id} hasImage={!!goal.image} />
+        </div>
         <div className="stack" style={{ gap: 10 }}>
           <span className="label">Цель{goal.deadline ? ` · до ${dateRu(goal.deadline)}` : ""}</span>
           <h1>{goal.title}</h1>

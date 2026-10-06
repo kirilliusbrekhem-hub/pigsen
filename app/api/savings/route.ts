@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { enforceRateLimit, handler, json, parseBody, requireApiUser } from "@/lib/api/http";
 import { createGoal, listGoals } from "@/lib/savings/service";
+import { GoalImageField, checkGoalImage } from "@/lib/savings/image";
 import { sanitizeText } from "@/lib/validation/schemas";
 
 const GoalInput = z.object({
@@ -10,6 +11,7 @@ const GoalInput = z.object({
   theme: z.string().max(20).default("piggy"),
   deadline: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Дата в формате ГГГГ-ММ-ДД").nullable().default(null),
   initial: z.number().int().min(0).max(1_000_000_000).default(0),
+  image: GoalImageField,
 });
 
 export const GET = handler(async () => {
@@ -27,6 +29,7 @@ export const POST = handler(async (req: Request) => {
     target: b.target,
     theme: b.theme,
     deadline: b.deadline ? new Date(`${b.deadline}T23:59:59Z`) : null,
+    image: b.image ? checkGoalImage(b.image) : null,
     initial: Math.min(b.initial, b.target * 10, 1_000_000_000),
   });
   return json({ goal }, 201);

@@ -24,6 +24,10 @@ const REASONS: Record<string, string> = {
   "daily-pro": "Pro-бонус",
   "shop:boost-chat": "+10 вопросов $PIG",
   "shop:streak-freeze": "Заморозка серии",
+  "referral-welcome": "Бонус за приглашение",
+  referral: "Друг прошёл первый урок",
+  "referral-milestone": "Бонус за 5 друзей",
+  review: "Награда за отзыв",
 };
 const reasonLabel = (r: string) => REASONS[r] ?? (r.startsWith("milestone:") ? "Этап цели" : r.startsWith("shop:") ? "Покупка в магазине" : r.startsWith("refund:") ? "Возврат" : "Начисление");
 

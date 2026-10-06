@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { requireAdmin } from "@/lib/admin/auth";
-import { adminStats } from "@/lib/admin/service";
+import { MiniChart } from "@/components/growth/MiniChart";
+import { adminStats, growthStats } from "@/lib/admin/service";
 import { rub } from "@/lib/client/format";
 
 export const metadata: Metadata = { title: "Админка", robots: { index: false } };
 
 export default async function AdminPage() {
   await requireAdmin();
-  const s = await adminStats();
+  const [s, g] = await Promise.all([adminStats(), growthStats()]);
   const peak = Math.max(1, ...s.signups.map((d) => d.count));
   const tiles = [
     { k: "Пользователей", v: s.users, d: `+${s.users7} за 7 дней` },
@@ -19,6 +20,10 @@ export default async function AdminPage() {
     { k: "Цели в копилке", v: s.goals, d: `накоплено ${rub(s.goalsSaved)}` },
     { k: "Пройдено уроков", v: s.lessonsDone, d: `${s.saved} сохранений` },
     { k: "PigCoin$ на руках", v: s.coins, d: `${s.blocked} заблокировано` },
+    { k: "Удержание D1", v: `${g.retention.d1}%`, d: `когорта ${g.retention.cohort} (8–30 дней назад)` },
+    { k: "Удержание D7", v: `${g.retention.d7}%`, d: "вернулись в течение недели" },
+    { k: "Рефералы", v: g.referrals.total, d: `${g.referrals.activated} прошли урок` },
+    { k: "Отзывы", v: g.reviews.pending, d: `на проверке · ${g.reviews.approved} одобр. · ${g.reviews.rejected} откл.` },
   ];
   return (
     <div className="stack" style={{ gap: 20 }}>
@@ -44,6 +49,12 @@ export default async function AdminPage() {
           ))}
         </div>
       </section>
+      <div className="growth-charts">
+        <MiniChart title="Новые пользователи, 30 дней" data={g.signups} />
+        <MiniChart title="Активные пользователи в день" data={g.active} kind="line" />
+        <MiniChart title="Покупки Pro в день" data={g.purchases} />
+        <MiniChart title="PigCoin$ заработано в день" data={g.coinsEarned} kind="line" />
+      </div>
     </div>
   );
 }

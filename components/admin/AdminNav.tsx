@@ -5,6 +5,7 @@ const TABS = [
   { href: "/admin/users", label: "Пользователи" },
   { href: "/admin/payments", label: "Платежи" },
   { href: "/admin/content", label: "Материалы" },
+  { href: "/admin/reviews", label: "Отзывы" },
 ];
 
 export function AdminNav({ active, title }: { active: string; title: string }) {

@@ -6,6 +6,8 @@ import { InterestsForm } from "@/components/profile/InterestsForm";
 import { PersonalForm } from "@/components/profile/PersonalForm";
 import { SecurityForm } from "@/components/profile/SecurityForm";
 import { SettingsForm } from "@/components/profile/SettingsForm";
+import { PushToggle } from "@/components/push/PushToggle";
+import { vapidPublicKey } from "@/lib/push/config";
 import { Icon } from "@/components/ui/Icon";
 import { EmptyState } from "@/components/ui/States";
 import { requireUser } from "@/lib/auth/session";
@@ -60,6 +62,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
           {sec === "progress" && <ProgressSection userId={user.id} />}
           {sec === "saved" && <SavedSection userId={user.id} />}
           {sec === "history" && <HistorySection userId={user.id} />}
+          {sec === "settings" && <PushToggle publicKey={vapidPublicKey()} />}
           {sec === "settings" && (
             <SettingsForm
               initial={{

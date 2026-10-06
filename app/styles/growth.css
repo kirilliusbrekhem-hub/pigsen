@@ -1,1 +1,27 @@
-/* growth */
+/* growth: referrals, reviews, admin charts */
+.growth-ref-note { margin: 0; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 12%, transparent); font-size: 14px; }
+.growth-link-url { display: block; padding: 10px 12px; border-radius: 10px; background: var(--bg-2, rgba(127,127,127,.1)); font-size: 13px; overflow-wrap: anywhere; word-break: break-all; }
+.growth-link-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.growth-link-actions .btn { flex: 1 1 auto; }
+.growth-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.growth-stats > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.growth-stats b { font-size: 22px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
+.growth-rules { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; line-height: 1.5; }
+.growth-stars { display: flex; gap: 4px; }
+.growth-stars button { font-size: 28px; line-height: 1; background: none; border: 0; padding: 2px; cursor: pointer; color: var(--ink-3, #bbb); }
+.growth-stars button.on { color: #f5b301; }
+.growth-stars button:disabled { cursor: default; }
+.growth-mod { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.growth-review-head { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; min-width: 0; }
+.growth-review-head a { overflow-wrap: anywhere; }
+.growth-review-text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.growth-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 12px; }
+.growth-chart { min-width: 0; }
+.growth-chart-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; }
+.growth-chart-head .muted { font-size: 12px; }
+.growth-chart svg { width: 100%; height: 120px; display: block; overflow: visible; }
+.growth-chart-bar { fill: var(--accent); }
+.growth-chart-line { fill: none; stroke: var(--accent); stroke-width: 2; }
+.growth-chart-dot { fill: var(--accent); }
+.growth-chart-axis { stroke: var(--line, rgba(127,127,127,.3)); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.growth-chart-x { display: flex; justify-content: space-between; font-size: 11px; }

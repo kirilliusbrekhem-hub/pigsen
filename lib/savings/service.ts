@@ -42,7 +42,7 @@ export async function availableThemes(userId: string, pro: boolean): Promise<Set
   return new Set(THEMES.filter((t) => !t.premium || pro || owned.has(`theme-${t.id}`)).map((t) => t.id));
 }
 
-export async function createGoal(userId: string, input: { title: string; why: string; target: number; theme: string; deadline: Date | null; initial: number }) {
+export async function createGoal(userId: string, input: { title: string; why: string; target: number; theme: string; deadline: Date | null; initial: number; image?: string | null }) {
   const profile = await prisma.profile.findUnique({ where: { userId }, select: { proUntil: true, liteUntil: true } });
   const pro = isPro(profile);
   const maxGoals = limitsFor(profile).goals;
@@ -51,13 +51,13 @@ export async function createGoal(userId: string, input: { title: string; why: st
   }
   if (!(await availableThemes(userId, pro)).has(input.theme)) throw new HttpError(403, "Эта обложка доступна в Pro или в магазине за PigCoin$");
   const goal = await prisma.savingsGoal.create({
-    data: { userId, title: input.title, why: input.why, target: input.target, theme: input.theme, deadline: input.deadline },
+    data: { userId, title: input.title, why: input.why, target: input.target, theme: input.theme, deadline: input.deadline, image: input.image ?? null },
   });
   if (input.initial > 0) return (await addEntry(userId, goal.id, Math.min(input.initial, MAX_SAVED), "Стартовый взнос", true)).goal;
   return goal;
 }
 
-export async function updateGoal(userId: string, id: string, data: { title?: string; why?: string; target?: number; theme?: string; deadline?: Date | null }) {
+export async function updateGoal(userId: string, id: string, data: { title?: string; why?: string; target?: number; theme?: string; deadline?: Date | null; image?: string | null }) {
   const goal = await getGoal(userId, id);
   if (!goal) throw new HttpError(404, "Цель не найдена");
   if (data.theme && data.theme !== goal.theme) {

@@ -11,6 +11,10 @@ export const NAV: NavItem[] = [
   { href: "/library", label: "Библиотека", icon: "book" },
   { href: "/savings", label: "Копилка", icon: "piggy" },
   { href: "/tools", label: "Инструменты", icon: "sliders" },
+  { href: "/leaderboard", label: "Лидерборд", icon: "chart" },
+  { href: "/community", label: "Комьюнити", icon: "users" },
+  { href: "/challenges", label: "Челленджи", icon: "target" },
+  { href: "/invite", label: "Пригласить", icon: "link" },
   { href: "/saved", label: "Сохранённое", icon: "bookmark" },
   { href: "/search", label: "Поиск", icon: "search" },
   { href: "/pro", label: "Pro и PigCoin$", icon: "sparkle" },
@@ -35,6 +39,10 @@ export const SECTION_TITLES: Record<string, string> = {
   savings: "Копилка",
   pro: "Pro",
   admin: "Админка",
+  leaderboard: "Лидерборд",
+  community: "Комьюнити",
+  challenges: "Челленджи",
+  invite: "Пригласить",
 };
 
 export const DOCK_HINTS: Record<string, string[]> = {
@@ -48,6 +56,10 @@ export const DOCK_HINTS: Record<string, string[]> = {
   savings: ["Как накопить быстрее, если доход небольшой?"],
   pro: [],
   admin: [],
+  leaderboard: [],
+  community: ["Как найти партнёра для бизнеса?"],
+  challenges: ["Помоги выбрать челлендж под мои цели"],
+  invite: [],
 };
 
 export function sectionOf(pathname: string): string {

@@ -14,6 +14,7 @@ import { Track } from "@/components/ui/Track";
 import { PremiumLock, ProChip } from "@/components/pro/PremiumLock";
 import { isPro } from "@/lib/billing/plan";
 import { lessonLocked } from "@/lib/learning/premium";
+import { LessonChallenge } from "@/components/social/LessonChallenge";
 
 export const metadata: Metadata = { title: "Урок" };
 
@@ -65,6 +66,7 @@ export default async function LessonPage({ params }: { params: Promise<{ course:
             </div>
           </article>
           {!locked && <LessonQuiz lessonId={lesson.id} passedBefore={passedQuiz} />}
+          {!locked && <LessonChallenge courseSlug={course.slug} />}
         </div>
 
         <aside className="reader-side">

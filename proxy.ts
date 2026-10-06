@@ -26,7 +26,7 @@ export async function proxy(req: NextRequest) {
   const userId = await verifySession(req.cookies.get(SESSION_COOKIE)?.value);
 
   if (isApi) {
-    if (pathname.startsWith("/api/auth/") || pathname === "/api/billing/webhook" || pathname.startsWith("/api/telegram/")) return NextResponse.next();
+    if (pathname.startsWith("/api/auth/") || pathname === "/api/billing/webhook" || pathname.startsWith("/api/telegram/") || pathname.startsWith("/api/cron/")) return NextResponse.next();
     if (!userId) return NextResponse.json({ error: "Нужно войти в аккаунт" }, { status: 401 });
     return NextResponse.next();
   }
@@ -43,5 +43,5 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.png|icon\.png.*|pig.png|robots.txt).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.png|icon\.png.*|pig.png|sw.js|robots.txt).*)"],
 };

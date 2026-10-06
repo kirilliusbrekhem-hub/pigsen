@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { enforceRateLimit, handler, json, parseBody, requireApiUser } from "@/lib/api/http";
 import { deleteGoal, updateGoal } from "@/lib/savings/service";
+import { GoalImageField, checkGoalImage } from "@/lib/savings/image";
 import { sanitizeText } from "@/lib/validation/schemas";
 
 const Patch = z.object({
@@ -9,6 +10,7 @@ const Patch = z.object({
   target: z.number().int().min(100).max(1_000_000_000).optional(),
   theme: z.string().max(20).optional(),
   deadline: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+  image: GoalImageField,
 });
 
 export const PATCH = handler(async (req: Request, { params }: { params: Promise<{ id: string }> }) => {
@@ -21,6 +23,7 @@ export const PATCH = handler(async (req: Request, { params }: { params: Promise<
     ...(b.why !== undefined && { why: sanitizeText(b.why) }),
     ...(b.target !== undefined && { target: b.target }),
     ...(b.theme !== undefined && { theme: b.theme }),
+    ...(b.image !== undefined && { image: b.image ? checkGoalImage(b.image) : null }),
     ...(b.deadline !== undefined && { deadline: b.deadline ? new Date(`${b.deadline}T23:59:59Z`) : null }),
   });
   return json({ goal });

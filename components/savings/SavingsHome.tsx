@@ -8,7 +8,8 @@ import { useToast } from "@/components/ui/Toast";
 import { api, errorMessage } from "@/lib/client/api";
 import { dateRu, rub } from "@/lib/client/format";
 import { THEMES } from "@/lib/savings/themes";
-import { GoalArt } from "./GoalArt";
+import { GoalCover } from "./GoalCover";
+import { GoalImagePicker } from "./GoalImage";
 import { SpendCheck } from "./SpendCheck";
 
 export interface GoalView {
@@ -18,13 +19,14 @@ export interface GoalView {
   target: number;
   saved: number;
   theme: string;
+  imageUrl: string | null;
   deadline: string | null;
   percent: number;
   needPerMonth: number | null;
   eta: string | null;
 }
 
-export function SavingsHome({ goals, themes, canCreate, quote }: { goals: GoalView[]; themes: string[]; canCreate: boolean; quote: string }) {
+export function SavingsHome({ goals, themes, canCreate, quote, push }: { goals: GoalView[]; themes: string[]; canCreate: boolean; quote: string; push?: React.ReactNode }) {
   const [open, setOpen] = useState(goals.length === 0);
   const total = goals.reduce((s, g) => s + g.saved, 0);
   return (
@@ -40,13 +42,15 @@ export function SavingsHome({ goals, themes, canCreate, quote }: { goals: GoalVi
         </Button>
       </div>
 
+      {push}
+
       {open && (canCreate ? <NewGoalForm themes={themes} onDone={() => setOpen(false)} /> : <LimitNote />)}
 
       {goals.length > 0 && (
         <div className="goal-grid">
           {goals.map((g) => (
             <Link key={g.id} href={`/savings/${g.id}`} className="card goal-card clickable">
-              <GoalArt theme={g.theme} percent={g.percent} title={g.title} />
+              <GoalCover imageUrl={g.imageUrl} theme={g.theme} percent={g.percent} title={g.title} why={g.why} />
               <div className="goal-card-body">
                 <b>{g.title}</b>
                 <span className="num">
@@ -95,6 +99,7 @@ function NewGoalForm({ themes, onDone }: { themes: string[]; onDone: () => void 
   const [initial, setInitial] = useState("");
   const [deadline, setDeadline] = useState("");
   const [theme, setTheme] = useState("piggy");
+  const [image, setImage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -105,7 +110,7 @@ function NewGoalForm({ themes, onDone }: { themes: string[]; onDone: () => void 
     try {
       const r = await api<{ goal: { id: string } }>("/api/savings", {
         method: "POST",
-        body: { title, why, target: Math.round(Number(target) || 0), initial: Math.round(Number(initial) || 0), theme, deadline: deadline || null },
+        body: { title, why, target: Math.round(Number(target) || 0), initial: Math.round(Number(initial) || 0), theme, deadline: deadline || null, image },
       });
       toast.show("Цель создана! $PIG уже готов помочь.");
       onDone();
@@ -148,7 +153,12 @@ function NewGoalForm({ themes, onDone }: { themes: string[]; onDone: () => void 
         <input className="input" value={why} onChange={(e) => setWhy(e.target.value)} placeholder="Хочу впервые свозить родителей на море" maxLength={300} />
       </label>
       <div className="stack" style={{ gap: 8 }}>
-        <span className="label">Обложка</span>
+        <span className="label">Картинка мечты</span>
+        <GoalImagePicker value={image} onChange={setImage} />
+        {errors.image && <small className="neg">{errors.image}</small>}
+      </div>
+      <div className="stack" style={{ gap: 8 }}>
+        <span className="label">{image ? "Обложка (если убрать картинку)" : "Обложка"}</span>
         <div className="theme-pick">
           {THEMES.map((t) => {
             const locked = !themes.includes(t.id);
