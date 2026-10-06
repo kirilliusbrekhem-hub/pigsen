@@ -16,6 +16,8 @@ export interface SeedCourse {
   category: string;
   tags: string[];
   lessons: SeedLesson[];
+  /** Exclusive: only the first lesson is open without Pro. */
+  premium?: boolean;
 }
 
 export const courses: SeedCourse[] = [

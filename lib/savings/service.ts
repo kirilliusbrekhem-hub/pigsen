@@ -1,7 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/db/prisma";
 import { COINS, addCoins, addDailyCoins, ownedItems } from "@/lib/coins/service";
-import { FREE_LIMITS, isPro, startOfUtcDay } from "@/lib/billing/plan";
+import { isPro, limitsFor, startOfUtcDay } from "@/lib/billing/plan";
 import { HttpError } from "@/lib/api/http";
 import { THEMES } from "./themes";
 
@@ -43,10 +43,11 @@ export async function availableThemes(userId: string, pro: boolean): Promise<Set
 }
 
 export async function createGoal(userId: string, input: { title: string; why: string; target: number; theme: string; deadline: Date | null; initial: number }) {
-  const profile = await prisma.profile.findUnique({ where: { userId }, select: { proUntil: true } });
+  const profile = await prisma.profile.findUnique({ where: { userId }, select: { proUntil: true, liteUntil: true } });
   const pro = isPro(profile);
-  if (!pro && (await prisma.savingsGoal.count({ where: { userId } })) >= FREE_LIMITS.goals) {
-    throw new HttpError(402, `На бесплатном плане до ${FREE_LIMITS.goals} целей. Оформите Pro или удалите старую цель.`);
+  const maxGoals = limitsFor(profile).goals;
+  if ((await prisma.savingsGoal.count({ where: { userId } })) >= maxGoals) {
+    throw new HttpError(402, `На вашем плане до ${maxGoals} целей. С Pro целей сколько угодно, или удалите старую цель.`);
   }
   if (!(await availableThemes(userId, pro)).has(input.theme)) throw new HttpError(403, "Эта обложка доступна в Pro или в магазине за PigCoin$");
   const goal = await prisma.savingsGoal.create({

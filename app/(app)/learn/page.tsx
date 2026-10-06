@@ -5,6 +5,8 @@ import { CourseCard } from "@/components/learning/CourseCard";
 import { Icon } from "@/components/ui/Icon";
 import { EmptyState } from "@/components/ui/States";
 import { requireUser } from "@/lib/auth/session";
+import { isPro } from "@/lib/billing/plan";
+import { ProPromo } from "@/components/pro/ProPromo";
 import { listCategories } from "@/lib/content/service";
 import { learningHistory, learningStats, listCoursesWithProgress } from "@/lib/learning/service";
 
@@ -39,6 +41,7 @@ export default async function LearnPage({ searchParams }: { searchParams: Promis
         </div>
       </section>
 
+      {!isPro(user.profile) && <ProPromo place="learn" />}
       <section className="kpis" aria-label="Прогресс">
         {metrics.map((m) => (
           <div key={m.k} className="card metric">

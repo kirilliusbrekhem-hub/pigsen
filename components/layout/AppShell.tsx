@@ -15,6 +15,7 @@ interface ShellUser {
   avatar: string | null;
   plan: string;
   coins: number;
+  title?: string;
   admin?: boolean;
 }
 
@@ -103,6 +104,11 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
             )}
           </nav>
           <div className="side-foot">
+            {user.plan !== "pro" && (
+              <Link href="/pro" className="btn btn-accent btn-sm btn-block" data-testid="side-pro">
+                <Icon name="sparkle" size="sm" /> {user.plan === "lite" ? "Пробный Pro: перейти на полный" : "Перейти на Pro"}
+              </Link>
+            )}
             <div className="trust-note">
               <Icon name="shield" />
               <span>$PIG объясняет и подсказывает. Решения всегда остаются за вами.</span>
@@ -112,8 +118,9 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
               <span style={{ textAlign: "left", minWidth: 0 }}>
                 <b style={{ fontWeight: 540, display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{user.name}</b>
                 <span className="muted" style={{ fontSize: 12 }}>
-                  {user.plan === "pro" ? "Pro" : "Free"} · {user.coins} <Coin size={12} />
+                  {user.plan === "pro" ? <span className="pro-badge">Pro</span> : user.plan === "lite" ? "Пробный Pro" : "Free"} · {user.coins} <Coin size={12} />
                 </span>
+                {user.title && <span className="title-chip">{user.title}</span>}
               </span>
             </Link>
           </div>
@@ -252,7 +259,7 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
                   ))}
                 </div>
                 <div className="more-foot muted">
-                  {user.plan === "pro" ? "Pro" : "Free"} · {user.coins} <Coin size={14} /> PigCoin$
+                  {user.plan === "pro" ? <span className="pro-badge">Pro</span> : user.plan === "lite" ? "Пробный Pro" : <Link href="/pro">Free · перейти на Pro</Link>} · {user.coins} <Coin size={14} /> PigCoin$
                 </div>
               </div>
             </div>

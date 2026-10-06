@@ -1,4 +1,5 @@
 import "server-only";
+import { assertLessonAccess } from "./premium";
 import { z } from "zod";
 import { completeJson } from "@/lib/ai/aiService";
 import { prisma } from "@/lib/db/prisma";
@@ -71,6 +72,7 @@ async function generate(lessonId: string): Promise<QuizQuestion[]> {
 }
 
 export async function startQuiz(userId: string, lessonId: string) {
+  await assertLessonAccess(userId, lessonId);
   const exists = await prisma.lesson.findUnique({ where: { id: lessonId }, select: { id: true } });
   if (!exists) return null;
   const questions = await generate(lessonId);

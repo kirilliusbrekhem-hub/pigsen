@@ -161,7 +161,7 @@ async function desktopScenario() {
   await page.goto(BASE + "/learn/osnovy-predprinimatelstva");
   await page.getByText("1 из 4 пройдено").waitFor();
   await page.goto(BASE + "/learn");
-  await page.getByText("1 из 25 уроков").waitFor();
+  await page.getByText("1 из 45 уроков").waitFor();
   await page.goto(BASE + "/dashboard");
   const pct = await page.locator(".hero-stats .big").innerText();
   if (pct.replace(/\D/g, "") === "0") problems.push("dashboard progress still 0%");

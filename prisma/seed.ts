@@ -6,8 +6,10 @@ import { coursesExtra } from "./seed-data/courses-extra";
 import { contentExtra } from "./seed-data/content-extra";
 import { contentCrypto } from "./seed-data/content-crypto";
 import { coursesCrypto } from "./seed-data/courses-crypto";
-const content = [...baseContent, ...contentExtra, ...contentCrypto];
-const courses = [...baseCourses, ...coursesExtra, ...coursesCrypto];
+import { coursesPremium } from "./seed-data/courses-premium";
+import { contentPremium } from "./seed-data/content-premium";
+const content = [...baseContent, ...contentExtra, ...contentCrypto, ...contentPremium];
+const courses = [...baseCourses, ...coursesExtra, ...coursesCrypto, ...coursesPremium];
 import { buildSearchText } from "../lib/search/normalize";
 
 const prisma = new PrismaClient();
@@ -42,6 +44,7 @@ async function main() {
       tags: item.tags.join(","),
       featured: item.featured ?? false,
       trending: item.trending ?? 0,
+      premium: item.premium ?? false,
       categoryId: cat(item.category),
       searchText: buildSearchText(item.title, item.description, item.author, item.tags.join(" "), item.body),
     };
@@ -67,7 +70,8 @@ async function main() {
       readingTime: minutes,
       tags: c.tags.join(","),
       featured: order === 0,
-      trending: 3,
+      trending: c.premium ? 8 : 3,
+      premium: c.premium ?? false,
       categoryId: cat(c.category),
       searchText: buildSearchText(c.title, c.description, c.tags.join(" "), ...c.lessons.map((l) => l.title)),
     };

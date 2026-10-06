@@ -21,7 +21,7 @@ export function ContentCard({ item, reason }: { item: ContentCardDTO; reason?: s
           <Icon name={t.icon} />
         </span>
         <span className="kind">
-          {t.one} · {item.category.name}
+          {t.one} · {item.category.name} {item.premium && <span className="pro-badge">Pro</span>}
         </span>
       </div>
       <div className="body">
@@ -53,7 +53,7 @@ export function ContentRow({ item, right }: { item: ContentCardDTO; right?: Reac
       <Link href={item.href} style={{ minWidth: 0, color: "inherit" }}>
         <span className="t">{item.title}</span>
         <span className="s">
-          {TYPE_LABELS[item.type].one} · {item.category.name} · {item.author}
+          {TYPE_LABELS[item.type].one} · {item.category.name} · {item.author} {item.premium && <span className="pro-badge">Pro</span>}
         </span>
       </Link>
       {right ?? <SaveButton id={item.id} saved={item.saved} />}

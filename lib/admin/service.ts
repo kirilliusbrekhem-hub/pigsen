@@ -121,6 +121,7 @@ export interface ContentInput {
   readingTime: number;
   tags: string[];
   featured: boolean;
+  premium: boolean;
   trending: number;
 }
 
@@ -144,6 +145,7 @@ async function dataFor(input: ContentInput) {
     readingTime: input.readingTime,
     tags: input.tags.map((t) => t.toLowerCase()).join(","),
     featured: input.featured,
+    premium: input.premium,
     trending: input.trending,
     categoryId: category.id,
     searchText: buildSearchText(input.title, input.description, input.author, input.tags.join(" "), input.body),

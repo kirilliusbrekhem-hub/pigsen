@@ -15,14 +15,14 @@ export default async function AdminContentEdit({ params }: { params: Promise<{ i
   const categories = await prisma.category.findMany({ orderBy: { order: "asc" }, select: { slug: true, name: true } });
   let initial: ContentFormValue;
   if (id === "new") {
-    initial = { title: "", description: "", body: "", type: "article", category: categories[0]?.slug ?? "business", author: "Редакция PIGSEN", source: "PIGSEN", url: "", readingTime: 5, tags: "", featured: false, trending: 0 };
+    initial = { title: "", description: "", body: "", type: "article", category: categories[0]?.slug ?? "business", author: "Редакция PIGSEN", source: "PIGSEN", url: "", readingTime: 5, tags: "", featured: false, premium: false, trending: 0 };
   } else {
     const c = await prisma.contentItem.findUnique({ where: { id }, include: { category: { select: { slug: true } } } });
     if (!c || c.type === "course") notFound();
     initial = {
       id: c.id, slug: c.slug, title: c.title, description: c.description, body: c.body ?? "",
       type: c.type as ContentFormValue["type"], category: c.category.slug, author: c.author, source: c.source,
-      url: c.url ?? "", readingTime: c.readingTime, tags: c.tags.split(",").filter(Boolean).join(", "), featured: c.featured, trending: c.trending,
+      url: c.url ?? "", readingTime: c.readingTime, tags: c.tags.split(",").filter(Boolean).join(", "), featured: c.featured, premium: c.premium, trending: c.trending,
     };
   }
   return (

@@ -462,3 +462,33 @@ button.tb { background: none; border: 0; font-family: inherit; cursor: pointer; 
   .admin-form .row .input { width: 80px !important; }
 }
 .h-scroll { scroll-padding-inline: 16px; }
+
+/* ---------- Pro upsell ---------- */
+.pro-promo{display:flex;align-items:center;gap:14px;padding:16px 18px;text-decoration:none;color:inherit;background:linear-gradient(120deg,color-mix(in srgb,var(--accent) 16%,var(--surface,#fff)),var(--surface,#fff) 70%);border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);margin:4px 0 16px}
+.pro-promo:hover{border-color:var(--accent)}
+.pro-promo-ic{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--accent);color:#fff}
+.pro-promo-body{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;font-size:13px}
+.pro-promo-body b{font-size:15px;font-weight:560}
+.pro-promo-note{color:var(--accent);font-weight:540}
+.pro-promo-cta{flex:none}
+@media (max-width:560px){.pro-promo{flex-wrap:wrap}.pro-promo-cta{width:100%;justify-content:center}}
+.compare{width:100%;border-collapse:collapse;font-size:14px}
+.compare th,.compare td{padding:9px 8px;border-bottom:1px solid var(--line,rgba(0,0,0,.08));text-align:center}
+.compare th:first-child,.compare td:first-child{text-align:left}
+.compare .col-pro{background:color-mix(in srgb,var(--accent) 10%,transparent);font-weight:560}
+.compare-wrap{overflow-x:auto}
+.pro-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;background:linear-gradient(120deg,#f5c542,#e8a317);color:#3a2600;font-size:12px;font-weight:600}
+.title-chip{display:inline-block;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--accent-2,#7c5cff) 18%,transparent);font-size:12px;font-weight:540}
+.bonus-card{display:flex;align-items:center;gap:10px;padding:12px 16px;margin-bottom:12px}
+.chat-quota{font-size:12px;color:var(--ink-3,#888);text-align:center;padding:0 0 6px}
+.chat-quota a{color:var(--accent);font-weight:540}
+.shop-item{position:relative}
+.shop-item.is-hot{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.shop-hot{position:absolute;top:10px;right:10px;background:var(--accent);color:#fff}
+.pro-hero-price{font-size:14px}
+.premium-lock{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:28px 20px;margin-top:8px;border-top:1px dashed var(--line);background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--accent) 8%,transparent))}
+.premium-lock-ic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:var(--accent);color:#fff}
+.premium-lock p{max-width:420px;font-size:14px}
+.teaser-fade{position:relative;max-height:340px;overflow:hidden}
+.teaser-fade::after{content:"";position:absolute;inset:auto 0 0 0;height:120px;background:linear-gradient(transparent,var(--surface))}
+.premium-note{margin-top:18px;padding:12px 14px;border-radius:12px;background:color-mix(in srgb,var(--accent) 10%,transparent);font-size:14px}.premium-note a{color:var(--accent);font-weight:560}

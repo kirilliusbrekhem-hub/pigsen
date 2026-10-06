@@ -1,17 +1,40 @@
 import "server-only";
 
+type PlanProfile = { proUntil: Date | null; liteUntil?: Date | null } | null | undefined;
+
 /** Pro is active while proUntil is in the future. */
-export function isPro(profile: { proUntil: Date | null } | null | undefined): boolean {
+export function isPro(profile: PlanProfile): boolean {
   return !!profile?.proUntil && profile.proUntil.getTime() > Date.now();
 }
 
-/** Daily allowances on the free plan; Pro is unlimited (still rate-limited per minute). */
-export const FREE_LIMITS = {
-  goals: 3,
-  coachPerDay: 3,
-  spendAiPerDay: 5,
-  ideaPerDay: 3,
-} as const;
+/** Pro trial bought for PigCoin$: raised limits, but not full Pro. */
+export function isLite(profile: PlanProfile): boolean {
+  return !isPro(profile) && !!profile?.liteUntil && profile.liteUntil.getTime() > Date.now();
+}
+
+export type Tier = "free" | "lite" | "pro";
+export function tierOf(profile: PlanProfile): Tier {
+  return isPro(profile) ? "pro" : isLite(profile) ? "lite" : "free";
+}
+
+export type LimitKind = "chat" | "coach" | "spend" | "idea";
+export interface Limits {
+  goals: number;
+  chat: number;
+  coach: number;
+  spend: number;
+  idea: number;
+}
+
+/** Daily allowances per tier; Pro is unlimited (still rate-limited per minute). */
+export const LIMITS: Record<Tier, Limits> = {
+  free: { goals: 2, chat: 7, coach: 1, spend: 2, idea: 1 },
+  lite: { goals: 5, chat: 25, coach: 5, spend: 10, idea: 5 },
+  pro: { goals: Infinity, chat: Infinity, coach: Infinity, spend: Infinity, idea: Infinity },
+};
+export const FREE_LIMITS = LIMITS.free;
+
+export const limitsFor = (profile: PlanProfile): Limits => LIMITS[tierOf(profile)];
 
 export const PLANS = {
   month: { id: "month", title: "Pro на месяц", price: 299, stars: Number(process.env.STARS_MONTH) || 250, days: 30 },
@@ -20,12 +43,30 @@ export const PLANS = {
 export type PlanId = keyof typeof PLANS;
 
 export const PRO_PERKS = [
-  "Безлимитные советы $PIG-коуча по накоплениям",
-  "$PIG разбирает каждую трату «что если потрачу»",
-  "Сколько угодно целей в копилке",
-  "Все премиум-обложки целей",
+  "Эксклюзивные курсы и материалы: финплан, инвестиции, запуск бизнеса, переговоры",
+  "Безлимитный чат с $PIG (на Free 7 вопросов в день)",
+  "Безлимитный $PIG-коуч и разбор трат «что если потрачу»",
   "Безлимитный разбор бизнес-идей",
-  "x2 PigCoin$ за взносы в копилку",
+  "Сколько угодно целей в копилке (на Free 2)",
+  "x2 PigCoin$ за всё: уроки, квизы, взносы",
+  "+30 PigCoin$ каждый день просто за вход",
+  "Серия не сгорает, если пропустил один день",
+  "Скидка 50% в магазине и все обложки бесплатно",
+  "Золотой значок Pro в профиле",
+];
+
+/** Rows for the Free / trial / Pro comparison table. */
+export const COMPARE: { label: string; free: string; lite: string; pro: string }[] = [
+  { label: "Эксклюзивные курсы и материалы", free: "превью", lite: "превью", pro: "✓" },
+  { label: "Вопросы $PIG в день", free: "7", lite: "25", pro: "∞" },
+  { label: "Советы коуча в день", free: "1", lite: "5", pro: "∞" },
+  { label: "«Что если потрачу» в день", free: "2", lite: "10", pro: "∞" },
+  { label: "Разбор идей в день", free: "1", lite: "5", pro: "∞" },
+  { label: "Цели в копилке", free: "2", lite: "5", pro: "∞" },
+  { label: "PigCoin$ за обучение", free: "x1", lite: "x1", pro: "x2" },
+  { label: "Ежедневный бонус", free: "до 30", lite: "до 30", pro: "до 60" },
+  { label: "Защита серии", free: "—", lite: "—", pro: "✓" },
+  { label: "Скидка в магазине", free: "—", lite: "—", pro: "50%" },
 ];
 
 export function startOfUtcDay(): Date {

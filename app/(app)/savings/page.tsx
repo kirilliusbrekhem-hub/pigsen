@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { SavingsHome } from "@/components/savings/SavingsHome";
 import { requireUser } from "@/lib/auth/session";
-import { FREE_LIMITS, isPro } from "@/lib/billing/plan";
+import { isPro, limitsFor } from "@/lib/billing/plan";
+import { ProPromo } from "@/components/pro/ProPromo";
 import { availableThemes, listGoals } from "@/lib/savings/service";
 import { quoteOfTheDay } from "@/lib/savings/themes";
 import { toView } from "@/lib/savings/view";
@@ -23,7 +24,8 @@ export default async function SavingsPage() {
           <p>Ставьте цели, откладывайте понемногу и проверяйте покупки: $PIG подскажет, как дойти до мечты быстрее. За взносы начисляются PigCoin$.</p>
         </div>
       </section>
-      <SavingsHome goals={views} themes={[...themes]} canCreate={pro || goals.length < FREE_LIMITS.goals} quote={quote} />
+      {!pro && <ProPromo place="savings" note={`На вашем плане до ${limitsFor(user.profile).goals} целей, у вас ${goals.length}.`} />}
+      <SavingsHome goals={views} themes={[...themes]} canCreate={goals.length < limitsFor(user.profile).goals} quote={quote} />
     </>
   );
 }

@@ -1,3 +1,4 @@
+import { consumeAllowance } from "@/lib/billing/limits";
 import { savingsSummary } from "@/lib/savings/service";
 import { prisma } from "@/lib/db/prisma";
 import { enforceRateLimit, handler, HttpError, parseBody, requireApiUser } from "@/lib/api/http";
@@ -30,7 +31,11 @@ export const POST = handler(async (req: Request, { params }: Ctx) => {
 
   // Idempotent retry: if the last message is this same unanswered question, reuse it.
   const last = await prisma.message.findFirst({ where: { conversationId: convo.id }, orderBy: { createdAt: "desc" } });
-  const userMsg = last && last.role === "user" && last.content === content ? last : await appendMessage(convo.id, "user", content);
+  const retry = last && last.role === "user" && last.content === content;
+  if (!retry && !(await consumeAllowance(user.id, "chat"))) {
+    throw new HttpError(402, "Вопросы $PIG на сегодня закончились. В Pro чат без лимитов, или возьмите +10 вопросов в магазине за PigCoin$ (раздел Pro).");
+  }
+  const userMsg = retry ? last : await appendMessage(convo.id, "user", content);
   if (convo.title === DEFAULT_TITLE) {
     await prisma.conversation.update({ where: { id: convo.id }, data: { title: titleFromQuestion(content) } });
   }

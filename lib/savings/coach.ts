@@ -1,23 +1,12 @@
 import "server-only";
 import { z } from "zod";
 import { completeJson } from "@/lib/ai/aiService";
-import { FREE_LIMITS, isPro, startOfUtcDay } from "@/lib/billing/plan";
+import { consumeAllowance } from "@/lib/billing/limits";
 import { addDailyCoins, COINS } from "@/lib/coins/service";
-import { prisma } from "@/lib/db/prisma";
 import { HttpError } from "@/lib/api/http";
 import { getGoal, goalStats } from "./service";
 
 const rub = (n: number) => `${Math.round(n).toLocaleString("ru-RU")} ₽`;
-
-/** Usage counter for daily free allowances, kept in the coin ledger with amount 0. */
-async function consumeAllowance(userId: string, kind: string, limit: number): Promise<boolean> {
-  const profile = await prisma.profile.findUnique({ where: { userId }, select: { proUntil: true } });
-  if (isPro(profile)) return true;
-  const used = await prisma.coinTx.count({ where: { userId, reason: `use:${kind}`, createdAt: { gte: startOfUtcDay() } } });
-  if (used >= limit) return false;
-  await prisma.coinTx.create({ data: { userId, amount: 0, reason: `use:${kind}` } });
-  return true;
-}
 
 // ---------- Coach ----------
 
@@ -57,7 +46,7 @@ export async function coachAdvice(userId: string, goalId: string): Promise<Coach
   const goal = await getGoal(userId, goalId);
   if (!goal) throw new HttpError(404, "Цель не найдена");
   const s = await goalStats(goal);
-  const allowed = await consumeAllowance(userId, "coach", FREE_LIMITS.coachPerDay);
+  const allowed = await consumeAllowance(userId, "coach");
   if (!allowed) return { ...fallbackCoach(goal.title, s), demo: true };
   const prompt = `Цель: «${goal.title}». Зачем: ${goal.why || "не указано"}.
 Нужно: ${rub(goal.target)}. Накоплено: ${rub(goal.saved)} (${s.percent}%). Осталось: ${rub(s.left)}.
@@ -106,7 +95,7 @@ export async function checkSpend(userId: string, amount: number, item: string, g
   const base = { amount, percentOfGoal, delayDays, goalTitle: goal?.title ?? null, future5, future10 };
 
   const facts = `Покупка: ${item || "не указана"} за ${rub(amount)}.${goal ? ` Цель: «${goal.title}», осталось накопить ${rub(s!.left)}; трата = ${percentOfGoal}% цели${delayDays ? `, отодвинет цель примерно на ${delayDays} дн.` : ""}.` : " Цели не выбрано."} Если вложить под 8% годовых, через 10 лет было бы около ${rub(future10)}.`;
-  const allowed = await consumeAllowance(userId, "spend", FREE_LIMITS.spendAiPerDay);
+  const allowed = await consumeAllowance(userId, "spend");
   const ai = allowed
     ? await completeJson(SPEND_SYSTEM, facts, (raw) => {
         const r = SpendSchema.safeParse(raw);

@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/db/prisma";
+import { isPro } from "@/lib/billing/plan";
 
 export const XP = {
   lessonCompleted: 20,
@@ -49,8 +50,8 @@ function day(deltaDays = 0): string {
 }
 
 /** A streak stays alive if the user was active today or yesterday. */
-export function liveStreak(streak: number, lastActiveDay: string): number {
-  return lastActiveDay === day(0) || lastActiveDay === day(-1) ? streak : 0;
+export function liveStreak(streak: number, lastActiveDay: string, shielded = false): number {
+  return lastActiveDay === day(0) || lastActiveDay === day(-1) || (shielded && lastActiveDay === day(-2)) ? streak : 0;
 }
 
 export interface XpResult {
@@ -66,16 +67,29 @@ export interface XpResult {
 export async function awardXp(userId: string, amount: number): Promise<XpResult> {
   const profile = await prisma.profile.upsert({ where: { userId }, update: {}, create: { userId } });
   const today = day(0);
-  const streak = profile.lastActiveDay === today ? profile.streak : profile.lastActiveDay === day(-1) ? profile.streak + 1 : 1;
+  const pro = isPro(profile);
+  // One missed day is forgiven for Pro, or by spending a streak freeze bought in the shop.
+  const missedOne = profile.lastActiveDay === day(-2) && profile.streak > 0 && (pro || profile.streakFreezes > 0);
+  const useFreeze = missedOne && !pro;
+  const streak = profile.lastActiveDay === today ? profile.streak : profile.lastActiveDay === day(-1) || missedOne ? profile.streak + 1 : 1;
+  // Every XP grant also pays PigCoin$ equal to the XP (x2 on Pro), recorded in the ledger.
+  const coins = amount * (pro ? 2 : 1);
   const updated = await prisma.profile.update({
     where: { userId },
-    data: { xp: { increment: amount }, coins: { increment: Math.floor(amount / 2) }, streak, bestStreak: Math.max(profile.bestStreak, streak), lastActiveDay: today, lastActiveAt: new Date() },
+    data: {
+      xp: { increment: amount },
+      coins: { increment: coins },
+      streak,
+      bestStreak: Math.max(profile.bestStreak, streak),
+      lastActiveDay: today,
+      lastActiveAt: new Date(),
+      ...(useFreeze ? { streakFreezes: { decrement: 1 } } : {}),
+    },
   });
-  // Every XP grant also pays PigCoin$ (half the XP), recorded in the ledger.
-  if (amount >= 2) await prisma.coinTx.create({ data: { userId, amount: Math.floor(amount / 2), reason: "xp" } });
+  if (coins > 0) await prisma.coinTx.create({ data: { userId, amount: coins, reason: "xp" } });
   const before = levelOf(profile.xp);
   const level = levelOf(updated.xp);
-  return { gained: amount, coins: Math.floor(amount / 2), xp: updated.xp, streak: updated.streak, level, leveledUp: level.index > before.index };
+  return { gained: amount, coins, xp: updated.xp, streak: updated.streak, level, leveledUp: level.index > before.index };
 }
 
 export interface Badge {
@@ -105,7 +119,7 @@ export async function getGameStats(userId: string): Promise<GameStats> {
 
 async function loadGameStats(userId: string): Promise<GameStats> {
   const [profile, lessons, perfectQuiz, quizzes, saved, convos, ideas, courses] = await Promise.all([
-    prisma.profile.findUnique({ where: { userId }, select: { xp: true, streak: true, bestStreak: true, lastActiveDay: true } }),
+    prisma.profile.findUnique({ where: { userId }, select: { xp: true, streak: true, bestStreak: true, lastActiveDay: true, proUntil: true, streakFreezes: true } }),
     prisma.progress.count({ where: { userId, status: "completed" } }),
     prisma.quizAttempt.findFirst({ where: { userId, completedAt: { not: null }, score: { gt: 0 } }, select: { score: true, total: true }, orderBy: { score: "desc" } }),
     prisma.quizAttempt.count({ where: { userId, completedAt: { not: null } } }),
@@ -116,7 +130,7 @@ async function loadGameStats(userId: string): Promise<GameStats> {
   ]);
   const doneByCourse = await prisma.lesson.groupBy({ by: ["courseId"], where: { progress: { some: { userId, status: "completed" } } }, _count: { _all: true } });
   const xp = profile?.xp ?? 0;
-  const streak = liveStreak(profile?.streak ?? 0, profile?.lastActiveDay ?? "");
+  const streak = liveStreak(profile?.streak ?? 0, profile?.lastActiveDay ?? "", isPro(profile) || (profile?.streakFreezes ?? 0) > 0);
   const bestStreak = Math.max(profile?.bestStreak ?? 0, streak);
   const courseDone = courses.some((c) => c._count.lessons > 0 && doneByCourse.some((d) => d.courseId === c.id && d._count._all >= c._count.lessons));
   const perfect = !!perfectQuiz && perfectQuiz.score === perfectQuiz.total;

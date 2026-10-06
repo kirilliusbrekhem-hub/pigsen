@@ -12,7 +12,9 @@ export function CourseCard({ course }: { course: CourseProgressDTO }) {
       <div className="top">
         <Ring percent={course.percent} />
         <div style={{ minWidth: 0 }}>
-          <h3>{course.title}</h3>
+          <h3>
+            {course.title} {course.premium && <span className="pro-badge">Pro</span>}
+          </h3>
           <div className="sub">
             {course.category.name} · {LEVELS[course.level] ?? course.level} · {course.totalLessons} уроков
           </div>

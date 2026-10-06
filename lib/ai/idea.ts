@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db/prisma";
 import { awardXp, XP } from "@/lib/gamification/service";
 import type { IdeaReviewDTO } from "@/types";
 import { completeJson } from "./aiService";
-import { FREE_LIMITS, isPro } from "@/lib/billing/plan";
+import { usage } from "@/lib/billing/limits";
 
 const ResultSchema = z.object({
   score: z.number().int().min(1).max(10),
@@ -50,9 +50,8 @@ export async function reviewIdea(userId: string, idea: string) {
   const since = new Date();
   since.setUTCHours(0, 0, 0, 0);
   const today = await prisma.ideaReview.count({ where: { userId, createdAt: { gte: since } } });
-  // Free plan: a few AI reviews a day, then the rule-based review. Pro: unlimited.
-  const profile = await prisma.profile.findUnique({ where: { userId }, select: { proUntil: true } });
-  const useAi = isPro(profile) || today < FREE_LIMITS.ideaPerDay;
+  // Free and trial plans: a few AI reviews a day, then the rule-based review. Pro: unlimited.
+  const useAi = (await usage(userId, "idea")).left > 0;
   const ai = !useAi ? null : await completeJson(SYSTEM, idea, (raw) => {
     const r = ResultSchema.safeParse(raw);
     return r.success ? r.data : null;

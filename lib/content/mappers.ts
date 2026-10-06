@@ -30,6 +30,7 @@ export function toContentCard(item: ContentItem & { category: Category }, savedI
     category: toCategoryDTO(item.category),
     saved: savedIds.has(item.id),
     href: contentHref(item),
+    premium: item.premium,
   };
 }
 

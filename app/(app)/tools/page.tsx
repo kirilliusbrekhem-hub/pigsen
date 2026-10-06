@@ -3,6 +3,8 @@ import { CompoundCalc, GoalCalc, UnitCalc } from "@/components/tools/Calculators
 import { IdeaReview } from "@/components/tools/IdeaReview";
 import { ToolsTabs } from "@/components/tools/ToolsTabs";
 import { requireUser } from "@/lib/auth/session";
+import { isPro } from "@/lib/billing/plan";
+import { ProPromo } from "@/components/pro/ProPromo";
 import { listIdeaReviews } from "@/lib/ai/idea";
 
 export const metadata: Metadata = { title: "Инструменты" };
@@ -20,6 +22,7 @@ export default async function ToolsPage({ searchParams }: { searchParams: Promis
           <p>Калькуляторы для денег и бизнеса и разбор идеи от $PIG. Любой результат можно обсудить с $PIG.</p>
         </div>
       </section>
+      {!isPro(user.profile) && <ProPromo place="tools" />}
       <ToolsTabs
         key={tab ?? "default"}
         initial={tab}

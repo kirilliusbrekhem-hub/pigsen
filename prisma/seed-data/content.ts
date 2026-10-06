@@ -17,6 +17,8 @@ export interface SeedContent {
   readingTime: number;
   tags: string[];
   featured?: boolean;
+  /** Exclusive: full text only for Pro. */
+  premium?: boolean;
   trending?: number;
 }
 

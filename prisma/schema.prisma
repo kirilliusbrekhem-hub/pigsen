@@ -57,6 +57,10 @@ model Profile {
   // Internal currency (PigCoins) balance; CoinTx is the ledger. Pro is active while proUntil is in the future.
   coins             Int      @default(0)
   proUntil          DateTime?
+  // Pro trial bought for PigCoin$: raised limits, not full Pro
+  liteUntil         DateTime?
+  streakFreezes     Int      @default(0)
+  title             String   @default("")
   lastActiveDay     String   @default("")
   updatedAt         DateTime @updatedAt
 }
@@ -91,6 +95,8 @@ model ContentItem {
   searchText  String        @default("") // lowercased title+description+tags+author for search
   // Set when an admin edits the item: the build-time seed then leaves it alone.
   adminEdited Boolean       @default(false)
+  // Exclusive material: full text (or lessons after the first) only for Pro
+  premium     Boolean       @default(false)
   createdAt   DateTime      @default(now())
   categoryId  String
   category    Category      @relation(fields: [categoryId], references: [id])

@@ -83,6 +83,9 @@ export interface ShopItemView {
   icon: string;
   owned: boolean;
   includedInPro?: boolean;
+  /** Original price when a Pro discount applies. */
+  fullPrice?: number;
+  hot?: boolean;
 }
 
 export function Shop({ items, coins }: { items: ShopItemView[]; coins: number }) {
@@ -92,8 +95,8 @@ export function Shop({ items, coins }: { items: ShopItemView[]; coins: number })
   async function buy(id: string, title: string) {
     setBusy(id);
     try {
-      await api("/api/shop/buy", { method: "POST", body: { itemId: id } });
-      toast.show(`Куплено: ${title}`);
+      const r = await api<{ message?: string }>("/api/shop/buy", { method: "POST", body: { itemId: id } });
+      toast.show(r.message ?? `Куплено: ${title}`);
       router.refresh();
     } catch (err) {
       toast.show(errorMessage(err), { kind: "err" });
@@ -104,7 +107,8 @@ export function Shop({ items, coins }: { items: ShopItemView[]; coins: number })
   return (
     <div className="shop-grid">
       {items.map((i) => (
-        <div key={i.id} className="card shop-item">
+        <div key={i.id} className={`card shop-item ${i.hot ? "is-hot" : ""}`}>
+          {i.hot && <span className="chip shop-hot">Хит</span>}
           <span className="shop-ic">
             <Icon name={i.icon} />
           </span>
@@ -122,7 +126,7 @@ export function Shop({ items, coins }: { items: ShopItemView[]; coins: number })
             </span>
           ) : (
             <Button variant={coins >= i.price ? "primary" : "secondary"} size="sm" onClick={() => buy(i.id, i.title)} loading={busy === i.id} disabled={coins < i.price}>
-              {i.price} <Coin size={14} />
+              {i.fullPrice && <s className="muted">{i.fullPrice}</s>} {i.price} <Coin size={14} />
             </Button>
           )}
         </div>

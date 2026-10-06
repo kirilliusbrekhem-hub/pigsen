@@ -6,6 +6,9 @@ import { Greeting } from "@/components/dashboard/Greeting";
 import { ContentRow } from "@/components/content/ContentCard";
 import { CourseCard } from "@/components/learning/CourseCard";
 import { Icon } from "@/components/ui/Icon";
+import { ProPromo } from "@/components/pro/ProPromo";
+import { isPro } from "@/lib/billing/plan";
+import { DailyBonus } from "@/components/dashboard/DailyBonus";
 import { Orb } from "@/components/ui/Orb";
 import { EmptyState } from "@/components/ui/States";
 import { prisma } from "@/lib/db/prisma";
@@ -32,6 +35,7 @@ export default async function DashboardPage() {
     prisma.conversation.count({ where: { userId: user.id } }),
     getGameStats(user.id),
   ]);
+  const pro = isPro(user.profile);
   const weekLessons = activity.slice(-7).reduce((s, d) => s + d.count, 0);
   const coursesInProgress = courses.filter((c) => c.started && c.percent < 100);
   const continueCourses = [...courses].sort((a, b) => Number(b.started && b.percent < 100) - Number(a.started && a.percent < 100)).slice(0, 2);
@@ -51,7 +55,11 @@ export default async function DashboardPage() {
         <Greeting name={firstName} />
       </section>
 
+      <DailyBonus pro={pro} />
+
       <GameStrip game={game} fact={factOfTheDay()} />
+
+      {!pro && <ProPromo place="dashboard" />}
 
       <section className="tool-tabs h-scroll" aria-label="Инструменты">
         {[

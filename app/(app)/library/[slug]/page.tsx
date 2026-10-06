@@ -10,6 +10,8 @@ import { requireUser } from "@/lib/auth/session";
 import { formatDuration, TYPE_LABELS } from "@/lib/content/mappers";
 import { getContentBySlug, relatedContent } from "@/lib/content/service";
 import { Track } from "@/components/ui/Track";
+import { PremiumLock, ProChip } from "@/components/pro/PremiumLock";
+import { isPro } from "@/lib/billing/plan";
 
 export const metadata: Metadata = { title: "Материал" };
 
@@ -22,6 +24,7 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
   if (!item) notFound();
   if (item.type === "course") redirect(item.href);
   const related = await relatedContent(user.id, item, 3);
+  const locked = !!item.premium && !isPro(user.profile);
   const t = TYPE_LABELS[item.type];
   const published = new Date(item.publishedAt).toLocaleDateString("ru-RU", { year: "numeric", month: "long", ...(item.type === "book" ? {} : { day: "numeric" }) });
 
@@ -32,7 +35,7 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
       <section className="page-head">
         <div style={{ minWidth: 0 }}>
           <span className="label">
-            {t.one} · {item.category.name}
+            {t.one} · {item.category.name} {item.premium && <ProChip />}
           </span>
           <h1>{item.title}</h1>
           <p>{item.description}</p>
@@ -59,7 +62,18 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
             <span className="label" style={{ display: "block", marginBottom: 14 }}>
               Конспект PIGSEN
             </span>
-            {item.body ? <Markdown>{item.body}</Markdown> : <p className="muted">Конспект для этого материала готовится.</p>}
+            {locked ? (
+              <>
+                <div className="teaser-fade">
+                  <Markdown>{(item.body ?? "").split("\n## ").slice(0, 2).join("\n## ")}</Markdown>
+                </div>
+                <PremiumLock />
+              </>
+            ) : item.body ? (
+              <Markdown>{item.body}</Markdown>
+            ) : (
+              <p className="muted">Конспект для этого материала готовится.</p>
+            )}
           </div>
           {item.tags.length > 0 && (
             <div className="reader-foot" style={{ justifyContent: "flex-start", gap: 6 }}>

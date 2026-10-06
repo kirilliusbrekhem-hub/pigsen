@@ -4,8 +4,9 @@ import { prisma } from "@/lib/db/prisma";
 import { toCategoryDTO } from "@/lib/content/mappers";
 import { getSavedIds } from "@/lib/content/saved";
 import type { CourseProgressDTO } from "@/types";
+import { assertLessonAccess } from "./premium";
 
-type CourseWithLessons = Course & { category: Category; lessons: Array<Lesson & { progress: Progress[] }> };
+type CourseWithLessons = Course & { category: Category; contentItem?: { premium: boolean } | null; lessons: Array<Lesson & { progress: Progress[] }> };
 
 function toCourseProgress(c: CourseWithLessons, saved: Set<string>): CourseProgressDTO {
   const lessons = [...c.lessons].sort((a, b) => a.order - b.order);
@@ -27,11 +28,13 @@ function toCourseProgress(c: CourseWithLessons, saved: Set<string>): CourseProgr
     started: lessons.some((l) => l.progress.length > 0),
     contentItemId: c.contentItemId,
     saved: c.contentItemId ? saved.has(c.contentItemId) : false,
+    premium: !!c.contentItem?.premium,
   };
 }
 
 const courseInclude = (userId: string) => ({
   category: true,
+  contentItem: { select: { premium: true } },
   lessons: { include: { progress: { where: { userId } } }, orderBy: { order: "asc" as const } },
 });
 
@@ -94,6 +97,7 @@ export async function startLesson(userId: string, lessonId: string) {
 export async function setLessonCompleted(userId: string, lessonId: string, completed: boolean) {
   const lesson = await prisma.lesson.findUnique({ where: { id: lessonId }, select: { id: true } });
   if (!lesson) return null;
+  await assertLessonAccess(userId, lessonId);
   const before = await prisma.progress.findUnique({ where: { userId_lessonId: { userId, lessonId } }, select: { completedAt: true, status: true } });
   // completedAt survives un-completing, so re-completing a lesson never pays XP twice.
   const everCompleted = !!before?.completedAt;

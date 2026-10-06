@@ -81,8 +81,8 @@ async function run(viewport, tag) {
   await page.goto(BASE + "/pro");
   await page.getByText("Ваш баланс").waitFor();
   await page.getByText("Магазин").first().waitFor();
-  const buy = await page.request.post(BASE + "/api/shop/buy", { data: { itemId: "pro-3d" } });
-  if (buy.status() !== 402) problems.push(`[${tag}] pro-3d without coins → ${buy.status()}`);
+  const buy = await page.request.post(BASE + "/api/shop/buy", { data: { itemId: "pro-trial" } });
+  if (buy.status() !== 402) problems.push(`[${tag}] pro-trial without coins → ${buy.status()}`);
   const pay = await page.request.post(BASE + "/api/billing/checkout", { data: { plan: "month" } });
   if (pay.status() !== 503) problems.push(`[${tag}] checkout without keys → ${pay.status()}`);
   await shot("pro");

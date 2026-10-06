@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
@@ -28,9 +29,11 @@ interface Props {
   initialMessages: ChatMessage[];
   initialQuestion: string | null;
   firstName: string;
+  /** Today's free questions; null on Pro (unlimited). */
+  quota?: { left: number; limit: number } | null;
 }
 
-export function AIChat({ conversations: initialList, conversationId, initialMessages, initialQuestion, firstName }: Props) {
+export function AIChat({ conversations: initialList, conversationId, initialMessages, initialQuestion, firstName, quota = null }: Props) {
   const router = useRouter();
   const toast = useToast();
   const [list, setList] = useState(initialList);
@@ -41,6 +44,7 @@ export function AIChat({ conversations: initialList, conversationId, initialMess
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const autoAsked = useRef(false);
+  const [left, setLeft] = useState(quota?.left ?? null);
 
   const [prevInitialList, setPrevInitialList] = useState(initialList);
   if (prevInitialList !== initialList) {
@@ -68,6 +72,7 @@ export function AIChat({ conversations: initialList, conversationId, initialMess
       const q = raw.trim().slice(0, MAX);
       if (!q || busy) return;
       setInput("");
+      if (!retry) setLeft((n) => (n === null ? n : Math.max(0, n - 1)));
       let id = activeId;
       try {
         if (!id) {
@@ -172,15 +177,27 @@ export function AIChat({ conversations: initialList, conversationId, initialMess
               <ErrorBox
                 message={error.message}
                 action={
-                  <button className="btn btn-danger btn-sm" onClick={() => ask(error.question, true)}>
-                    Повторить
-                  </button>
+                  error.message.includes("Pro") ? (
+                    <Link className="btn btn-accent btn-sm" href="/pro">
+                      Открыть Pro
+                    </Link>
+                  ) : (
+                    <button className="btn btn-danger btn-sm" onClick={() => ask(error.question, true)}>
+                      Повторить
+                    </button>
+                  )
                 }
               />
             )}
           </div>
         </div>
         <div className="composer-wrap">
+          {left !== null && quota && (
+            <div className="chat-quota" data-testid="chat-quota">
+              {left > 0 ? `Осталось ${left} из ${quota.limit} вопросов на сегодня.` : "Вопросы на сегодня закончились."}{" "}
+              <Link href="/pro">Безлимит в Pro</Link>
+            </div>
+          )}
           <form
             className="composer"
             onSubmit={(e) => {

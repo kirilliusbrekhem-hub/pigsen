@@ -20,5 +20,6 @@ export const ContentSchema = z.object({
   readingTime: z.number().int().min(1).max(2000),
   tags: z.array(z.string().trim().min(1).max(40)).max(12).default([]),
   featured: z.boolean().default(false),
+  premium: z.boolean().default(false),
   trending: z.number().int().min(0).max(10).default(0),
 });

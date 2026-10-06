@@ -19,6 +19,7 @@ export interface ContentFormValue {
   readingTime: number;
   tags: string;
   featured: boolean;
+  premium: boolean;
   trending: number;
 }
 
@@ -53,6 +54,7 @@ export function ContentForm({ initial, categories }: { initial: ContentFormValue
       readingTime: Math.max(1, Math.round(Number(v.readingTime) || 1)),
       tags: v.tags.split(",").map((t) => t.trim()).filter(Boolean),
       featured: v.featured,
+      premium: v.premium,
       trending: Math.max(0, Math.min(10, Math.round(Number(v.trending) || 0))),
     };
     try {
@@ -148,6 +150,9 @@ export function ContentForm({ initial, categories }: { initial: ContentFormValue
       <div className="row" style={{ gap: 18, flexWrap: "wrap" }}>
         <label className="row" style={{ gap: 8 }}>
           <input type="checkbox" checked={v.featured} onChange={(e) => set("featured", e.target.checked)} /> Рекомендуемый
+        </label>
+        <label className="row" style={{ gap: 6 }}>
+          <input type="checkbox" checked={v.premium} onChange={(e) => set("premium", e.target.checked)} /> Только для Pro
         </label>
         <label className="row" style={{ gap: 8 }}>
           Популярность (0–10)

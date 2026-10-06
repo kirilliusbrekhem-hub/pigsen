@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { handler, HttpError, json, requireApiUser } from "@/lib/api/http";
 import { getContentBySlug, recordView } from "@/lib/content/service";
+import { hasPremiumAccess } from "@/lib/learning/premium";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -10,6 +11,7 @@ export const GET = handler(async (_req: Request, { params }: Ctx) => {
   const { id } = await params;
   const item = await getContentBySlug(user.id, id);
   if (!item) throw new HttpError(404, "Материал не найден");
+  if (item.premium && !(await hasPremiumAccess(user.id))) return json({ ...item, body: null, locked: true });
   return json(item);
 });
 

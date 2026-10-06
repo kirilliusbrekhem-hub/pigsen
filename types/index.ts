@@ -30,6 +30,7 @@ export interface ContentCardDTO {
   category: CategoryDTO;
   saved: boolean;
   href: string;
+  premium?: boolean;
 }
 
 export interface RecommendationDTO {
@@ -54,6 +55,7 @@ export interface CourseProgressDTO {
   started: boolean;
   contentItemId: string | null;
   saved: boolean;
+  premium?: boolean;
 }
 
 export interface ConversationSummaryDTO {

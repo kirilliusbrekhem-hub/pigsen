@@ -8,6 +8,8 @@ import { Icon } from "@/components/ui/Icon";
 import { Ring } from "@/components/ui/Ring";
 import { requireUser } from "@/lib/auth/session";
 import { getCourseWithProgress } from "@/lib/learning/service";
+import { isPro } from "@/lib/billing/plan";
+import { lessonLocked } from "@/lib/learning/premium";
 
 export async function generateMetadata({ params }: { params: Promise<{ course: string }> }): Promise<Metadata> {
   const { course } = await params;
@@ -20,6 +22,7 @@ export default async function CoursePage({ params }: { params: Promise<{ course:
   const data = await getCourseWithProgress(user.id, slug);
   if (!data) notFound();
   const { course, lessons } = data;
+  const pro = isPro(user.profile);
   const next = lessons.find((l) => l.status !== "completed") ?? lessons[0];
   const cta = course.percent === 100 ? "Повторить курс" : course.started ? "Продолжить" : "Начать обучение";
 
@@ -30,7 +33,7 @@ export default async function CoursePage({ params }: { params: Promise<{ course:
         <Ring percent={course.percent} size={132} stroke={9} large />
         <div style={{ minWidth: 0 }}>
           <span className="label">
-            {course.category.name} · {LEVELS[course.level] ?? course.level}
+            {course.category.name} · {LEVELS[course.level] ?? course.level} {course.premium && <span className="pro-badge">Pro</span>}
           </span>
           <h1 style={{ marginTop: 6 }}>{course.title}</h1>
           <p className="ink2" style={{ marginTop: 8, maxWidth: "62ch" }}>
@@ -38,6 +41,7 @@ export default async function CoursePage({ params }: { params: Promise<{ course:
           </p>
           <div className="row muted" style={{ marginTop: 10, gap: 14, flexWrap: "wrap", fontSize: 13 }}>
             <span>{course.totalLessons} уроков</span>
+            {course.premium && !pro && <Link href="/pro">Эксклюзив Pro: первый урок бесплатно</Link>}
             <span>≈ {course.totalMinutes} мин</span>
             <span>
               {course.completedLessons} из {course.totalLessons} пройдено
@@ -70,7 +74,7 @@ export default async function CoursePage({ params }: { params: Promise<{ course:
                 <span className="s">{l.summary}</span>
               </span>
               <span className="muted mono" style={{ fontSize: 11.5 }}>
-                {l.durationMin} мин
+                {lessonLocked(!!course.premium, l.order, pro) ? <Icon name="lock" size="sm" /> : `${l.durationMin} мин`}
               </span>
             </Link>
           ))}

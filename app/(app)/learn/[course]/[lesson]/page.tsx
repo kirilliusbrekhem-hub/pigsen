@@ -11,6 +11,9 @@ import { ProgressBar } from "@/components/ui/Ring";
 import { requireUser } from "@/lib/auth/session";
 import { getLesson } from "@/lib/learning/service";
 import { Track } from "@/components/ui/Track";
+import { PremiumLock, ProChip } from "@/components/pro/PremiumLock";
+import { isPro } from "@/lib/billing/plan";
+import { lessonLocked } from "@/lib/learning/premium";
 
 export const metadata: Metadata = { title: "Урок" };
 
@@ -21,16 +24,18 @@ export default async function LessonPage({ params }: { params: Promise<{ course:
   if (!data) notFound();
   const { course, lessons, lesson, prev, next } = data;
   const courseHref = `/learn/${course.slug}`;
+  const pro = isPro(user.profile);
+  const locked = lessonLocked(!!course.premium, lesson.order, pro);
   const passedQuiz = (await prisma.quizAttempt.count({ where: { userId: user.id, lessonId: lesson.id, completedAt: { not: null } } })) > 0;
 
   return (
     <>
-      {lesson.status === "not_started" && <Track kind="lesson" id={lesson.id} />}
+      {lesson.status === "not_started" && !locked && <Track kind="lesson" id={lesson.id} />}
       <SetCrumb title={course.title} />
       <section className="page-head">
         <div>
           <span className="label">
-            Урок {lesson.order} из {lessons.length} · {lesson.durationMin} мин
+            Урок {lesson.order} из {lessons.length} · {lesson.durationMin} мин {course.premium && <ProChip />}
           </span>
           <h1>{lesson.title}</h1>
           <p>{lesson.summary}</p>
@@ -41,7 +46,12 @@ export default async function LessonPage({ params }: { params: Promise<{ course:
         <div className="stack" style={{ minWidth: 0, gap: 20 }}>
           <article className="card" style={{ overflow: "hidden" }}>
             <div className="reader-main">
-              <Markdown>{lesson.body}</Markdown>
+              {locked ? <PremiumLock what="урок" /> : <Markdown>{lesson.body}</Markdown>}
+              {!locked && course.premium && !pro && (
+                <p className="premium-note">
+                  Это бесплатный первый урок эксклюзивного курса. Остальные уроки открыты в <Link href="/pro">PIGSEN Pro</Link>.
+                </p>
+              )}
             </div>
             <div className="reader-foot">
               {prev ? (
@@ -51,10 +61,10 @@ export default async function LessonPage({ params }: { params: Promise<{ course:
               ) : (
                 <span />
               )}
-              <CompleteLessonButton lessonId={lesson.id} completed={lesson.status === "completed"} nextHref={next ? `${courseHref}/${next.slug}` : null} courseHref={courseHref} isLast={!next} />
+              {!locked && <CompleteLessonButton lessonId={lesson.id} completed={lesson.status === "completed"} nextHref={next ? `${courseHref}/${next.slug}` : null} courseHref={courseHref} isLast={!next} />}
             </div>
           </article>
-          <LessonQuiz lessonId={lesson.id} passedBefore={passedQuiz} />
+          {!locked && <LessonQuiz lessonId={lesson.id} passedBefore={passedQuiz} />}
         </div>
 
         <aside className="reader-side">
@@ -78,6 +88,7 @@ export default async function LessonPage({ params }: { params: Promise<{ course:
                 >
                   <i />
                   <span>{l.title}</span>
+                  {lessonLocked(!!course.premium, l.order, pro) && <Icon name="lock" size="sm" />}
                 </Link>
               ))}
             </div>
