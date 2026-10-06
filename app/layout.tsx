@@ -5,6 +5,9 @@ import { ToastProvider } from "@/components/ui/Toast";
 import { getCurrentUser } from "@/lib/auth/session";
 import { profileTheme } from "@/lib/profile/service";
 import "./globals.css";
+import "./styles/growth.css";
+import "./styles/social.css";
+import "./styles/savings-push.css";
 
 export const metadata: Metadata = {
   title: { default: "PIGSEN", template: "%s · PIGSEN" },

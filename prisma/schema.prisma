@@ -32,6 +32,12 @@ model User {
   coinTxs       CoinTx[]
   purchases     Purchase[]
   payments      Payment[]
+  invitedBy     Referral?      @relation("invitee")
+  invites       Referral[]     @relation("inviter")
+  review        Review?
+  challenges    ChallengeDone[]
+  posts         CommunityPost[]
+  pushSubs      PushSub[]
 }
 
 model Profile {
@@ -257,6 +263,7 @@ model SavingsGoal {
   theme      String         @default("piggy")
   deadline   DateTime?
   milestones Int            @default(0) // highest 25%-step already rewarded (0–4)
+  image      String? // user's motivation picture, small data URL
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
   entries    SavingsEntry[]
@@ -325,4 +332,67 @@ model DailyClaim {
   createdAt DateTime @default(now())
 
   @@id([userId, key])
+}
+
+/// Invite: inviter is rewarded once the invitee is activated (first completed lesson).
+model Referral {
+  id        String   @id @default(cuid())
+  inviterId String
+  inviter   User     @relation("inviter", fields: [inviterId], references: [id], onDelete: Cascade)
+  inviteeId String   @unique
+  invitee   User     @relation("invitee", fields: [inviteeId], references: [id], onDelete: Cascade)
+  rewarded  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([inviterId, createdAt])
+}
+
+/// One review per user; paid in PigCoin$ and Pro days after admin approval.
+model Review {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int
+  text      String
+  status    String   @default("pending") // pending | approved | rejected
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Offline challenge completed by a user (challenges are defined in code).
+model ChallengeDone {
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challengeId String
+  note        String   @default("")
+  createdAt   DateTime @default(now())
+
+  @@id([userId, challengeId])
+}
+
+/// Pro community feed: top-level posts and replies (parentId).
+model CommunityPost {
+  id        String          @id @default(cuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  text      String
+  parentId  String?
+  parent    CommunityPost?  @relation("replies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   CommunityPost[] @relation("replies")
+  createdAt DateTime        @default(now())
+
+  @@index([parentId, createdAt])
+}
+
+/// Web Push subscription of a browser.
+model PushSub {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
