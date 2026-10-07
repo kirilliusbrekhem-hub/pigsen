@@ -4,22 +4,64 @@ export interface NavItem {
   icon: string;
 }
 
-export const NAV: NavItem[] = [
+export interface NavGroup {
+  id: string;
+  label: string;
+  icon: string;
+  items: NavItem[];
+  /** Open by default when the user has no stored preference. */
+  defaultOpen?: boolean;
+}
+
+export type NavEntry = NavItem | NavGroup;
+
+export function isGroup(e: NavEntry): e is NavGroup {
+  return "items" in e;
+}
+
+/** Sidebar structure: top-level links and collapsible groups. */
+export const NAV_TREE: NavEntry[] = [
   { href: "/dashboard", label: "Главная", icon: "home" },
   { href: "/ai", label: "$PIG", icon: "ai" },
-  { href: "/learn", label: "Обучение", icon: "cap" },
-  { href: "/library", label: "Библиотека", icon: "book" },
-  { href: "/savings", label: "Копилка", icon: "piggy" },
-  { href: "/tools", label: "Инструменты", icon: "sliders" },
-  { href: "/leaderboard", label: "Лидерборд", icon: "chart" },
-  { href: "/community", label: "Комьюнити", icon: "users" },
-  { href: "/messages", label: "Сообщения", icon: "message" },
-  { href: "/challenges", label: "Челленджи", icon: "target" },
-  { href: "/invite", label: "Пригласить", icon: "link" },
-  { href: "/saved", label: "Сохранённое", icon: "bookmark" },
-  { href: "/search", label: "Поиск", icon: "search" },
+  {
+    id: "learn",
+    label: "Обучение",
+    icon: "cap",
+    defaultOpen: true,
+    items: [
+      { href: "/learn", label: "Курсы", icon: "cap" },
+      { href: "/library", label: "Библиотека", icon: "book" },
+      { href: "/challenges", label: "Челленджи", icon: "target" },
+      { href: "/saved", label: "Сохранённое", icon: "bookmark" },
+    ],
+  },
+  {
+    id: "money",
+    label: "Деньги",
+    icon: "piggy",
+    items: [
+      { href: "/savings", label: "Копилка", icon: "piggy" },
+      { href: "/tools", label: "Инструменты", icon: "sliders" },
+    ],
+  },
+  {
+    id: "community",
+    label: "Сообщество",
+    icon: "users",
+    items: [
+      { href: "/community", label: "Лента", icon: "users" },
+      { href: "/messages", label: "Сообщения", icon: "message" },
+      { href: "/leaderboard", label: "Лидерборд", icon: "chart" },
+      { href: "/invite", label: "Пригласить друга", icon: "link" },
+    ],
+  },
   { href: "/pro", label: "Pro и PigCoin$", icon: "sparkle" },
 ];
+
+export const ADMIN_ITEM: NavItem = { href: "/admin", label: "Админка", icon: "shield" };
+
+/** Flat list of every sidebar link (kept for compatibility). */
+export const NAV: NavItem[] = NAV_TREE.flatMap((e) => (isGroup(e) ? e.items : [e]));
 
 export const TABS: NavItem[] = [
   { href: "/dashboard", label: "Главная", icon: "home" },

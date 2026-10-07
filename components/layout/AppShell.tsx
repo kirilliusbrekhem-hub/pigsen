@@ -7,7 +7,7 @@ import { Coin } from "@/components/ui/Coin";
 import { Icon } from "@/components/ui/Icon";
 import { Orb } from "@/components/ui/Orb";
 import { Avatar } from "@/components/ui/Avatar";
-import { DOCK_HINTS, NAV, SECTION_TITLES, TABS, sectionOf } from "./nav";
+import { ADMIN_ITEM, DOCK_HINTS, NAV_TREE, SECTION_TITLES, TABS, isGroup, sectionOf, type NavGroup, type NavItem } from "./nav";
 import { CrumbContext } from "./crumb";
 
 interface ShellUser {
@@ -31,8 +31,49 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
   const [query, setQuery] = useState("");
   const [crumb, setCrumb] = useState<string | null>(null);
   const [more, setMore] = useState(false);
-  const navItems = user.admin ? [...NAV, { href: "/admin", label: "Админка", icon: "shield" }] : NAV;
-  const moreItems = [...navItems.filter((n) => !TABS.some((t) => t.href === n.href)), { href: "/profile", label: "Профиль", icon: "user" }];
+  const navTree = user.admin ? [...NAV_TREE, ADMIN_ITEM] : NAV_TREE;
+  const navGroups = navTree.filter(isGroup);
+  const moreTop: NavItem[] = [
+    ...navTree.filter((e): e is NavItem => !isGroup(e) && !TABS.some((t) => t.href === e.href)),
+    { href: "/profile", label: "Профиль", icon: "user" },
+  ];
+  const moreItems: NavItem[] = [...navGroups.flatMap((g) => g.items), ...moreTop];
+  const groupHas = (g: NavGroup, sec: string) => g.items.some((i) => sectionOf(i.href) === sec);
+
+  // Collapsible sidebar groups: default / stored state, auto-open for the current route.
+  const [open, setOpen] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(NAV_TREE.filter(isGroup).map((g) => [g.id, !!g.defaultOpen || groupHas(g, section)])),
+  );
+  const [openPath, setOpenPath] = useState(pathname);
+  if (openPath !== pathname) {
+    setOpenPath(pathname);
+    const g = navGroups.find((x) => groupHas(x, section));
+    if (g && !open[g.id]) setOpen({ ...open, [g.id]: true });
+  }
+  useEffect(() => {
+    let stored: Record<string, boolean> | null = null;
+    try {
+      stored = JSON.parse(localStorage.getItem("pigsen.nav.groups") || "null");
+    } catch {}
+    if (!stored || typeof stored !== "object") return;
+    const s = stored;
+    const sec = sectionOf(window.location.pathname);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate from storage after mount
+    setOpen((prev) => {
+      const next = { ...prev };
+      for (const g of NAV_TREE.filter(isGroup)) {
+        if (typeof s[g.id] === "boolean") next[g.id] = s[g.id] || groupHas(g, sec);
+      }
+      return next;
+    });
+  }, []);
+  function toggleGroup(id: string) {
+    const next = { ...open, [id]: !open[id] };
+    setOpen(next);
+    try {
+      localStorage.setItem("pigsen.nav.groups", JSON.stringify(next));
+    } catch {}
+  }
 
   // Close the mobile menu on navigation.
   const [lastPath, setLastPath] = useState(pathname);
@@ -89,6 +130,44 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
   }
 
   const active = (href: string) => sectionOf(href) === section;
+
+  function badges(href: string) {
+    return (
+      <>
+        {href === "/saved" && savedCount > 0 && <span className="count">{savedCount}</span>}
+        {href === "/messages" && unread > 0 && <span className="count dm-count">{unread}</span>}
+      </>
+    );
+  }
+
+  function renderLink(n: NavItem, sub = false) {
+    const on = active(n.href);
+    if (n.href === "/ai")
+      return (
+        <Link key={n.href} href={n.href} className={`nav-item ai-item ${on ? "is-active" : ""}`} aria-current={on ? "page" : undefined}>
+          <Orb className="orb-sm" />
+          $PIG
+          <kbd>⌘K</kbd>
+        </Link>
+      );
+    return (
+      <Link key={n.href} href={n.href} className={`nav-item ${sub ? "nav-sub" : ""} ${on ? "is-active" : ""}`} aria-current={on ? "page" : undefined}>
+        {!sub && <Icon name={n.icon} />}
+        {n.label}
+        {badges(n.href)}
+      </Link>
+    );
+  }
+
+  function moreLink(m: NavItem) {
+    return (
+      <Link key={m.href} href={m.href} className={`more-item ${active(m.href) ? "is-active" : ""}`}>
+        <Icon name={m.icon} />
+        <span>{m.label}</span>
+        {badges(m.href)}
+      </Link>
+    );
+  }
   const today = new Intl.DateTimeFormat("ru-RU", { weekday: "short", day: "numeric", month: "short" }).format(new Date());
   const parentHref = "/" + pathname.split("/").filter(Boolean).slice(0, -1).join("/");
   const title = SECTION_TITLES[section] ?? "PIGSEN";
@@ -102,23 +181,31 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
             <Brand sub />
           </Link>
           <nav className="nav">
-            {navItems.map((n) =>
-              n.href === "/ai" ? (
-                <Link key={n.href} href={n.href} className={`nav-item ai-item ${active(n.href) ? "is-active" : ""}`} aria-current={active(n.href) ? "page" : undefined}>
-                  <Orb className="orb-sm" />
-                  $PIG
-                  <kbd>⌘K</kbd>
-                </Link>
-              ) : (
-                <Link key={n.href} href={n.href} className={`nav-item ${active(n.href) ? "is-active" : ""}`} aria-current={active(n.href) ? "page" : undefined}>
-                  <Icon name={n.icon} />
-                  {n.label}
-                  {n.href === "/saved" && savedCount > 0 && <span className="count">{savedCount}</span>}
-                  {n.href === "/messages" && unread > 0 && <span className="count dm-count">{unread}</span>}
-                  {n.href === "/search" && <kbd>/</kbd>}
-                </Link>
-              ),
-            )}
+            {navTree.map((e) => {
+              if (!isGroup(e)) return renderLink(e);
+              const isOpen = !!open[e.id];
+              const hasActive = groupHas(e, section);
+              const dot = e.items.some((i) => i.href === "/messages") && unread > 0;
+              return (
+                <div key={e.id} className={`nav-group ${isOpen ? "is-open" : ""}`}>
+                  <button
+                    type="button"
+                    className={`nav-item nav-group-head ${hasActive && !isOpen ? "has-active" : ""}`}
+                    aria-expanded={isOpen}
+                    aria-controls={`nav-g-${e.id}`}
+                    onClick={() => toggleGroup(e.id)}
+                  >
+                    <Icon name={e.icon} />
+                    {e.label}
+                    {dot && <span className="nav-dot" aria-label="Есть непрочитанные" />}
+                    <Icon name="chev" size="sm" className="nav-chev" />
+                  </button>
+                  <div className="nav-group-body" id={`nav-g-${e.id}`} inert={!isOpen}>
+                    <div className="nav-group-inner">{e.items.map((i) => renderLink(i, true))}</div>
+                  </div>
+                </div>
+              );
+            })}
           </nav>
           <div className="side-foot">
             {user.plan !== "pro" && (
@@ -272,16 +359,16 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
                 </button>
               </div>
               <div className="modal-body">
-                <div className="more-grid">
-                  {moreItems.map((m) => (
-                    <Link key={m.href} href={m.href} className={`more-item ${active(m.href) ? "is-active" : ""}`}>
-                      <Icon name={m.icon} />
-                      <span>{m.label}</span>
-                      {m.href === "/saved" && savedCount > 0 && <span className="count">{savedCount}</span>}
-                      {m.href === "/messages" && unread > 0 && <span className="count dm-count">{unread}</span>}
-                    </Link>
-                  ))}
-                </div>
+                {navGroups.map((g) => (
+                  <section key={g.id} className="more-sec" aria-labelledby={`more-h-${g.id}`}>
+                    <h3 className="more-h" id={`more-h-${g.id}`}>{g.label}</h3>
+                    <div className="more-grid">{g.items.map(moreLink)}</div>
+                  </section>
+                ))}
+                <section className="more-sec" aria-labelledby="more-h-etc">
+                  <h3 className="more-h" id="more-h-etc">Аккаунт</h3>
+                  <div className="more-grid">{moreTop.map(moreLink)}</div>
+                </section>
                 <div className="more-foot muted">
                   {user.plan === "pro" ? <span className="pro-badge">Pro</span> : user.plan === "lite" ? "Пробный Pro" : <Link href="/pro">Free · перейти на Pro</Link>} · {user.coins} <Coin size={14} /> PigCoin$
                 </div>

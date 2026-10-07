@@ -143,7 +143,7 @@ async function desktopScenario() {
   log("10. Открыть Saved");
 
   // 11. Start learning
-  await page.locator(".sidebar").getByRole("link", { name: "Обучение" }).click();
+  await page.locator(".sidebar").getByRole("link", { name: "Курсы" }).click();
   await page.waitForURL("**/learn");
   await page.getByRole("link", { name: /Основы предпринимательства/ }).first().click();
   await page.waitForURL("**/learn/osnovy-predprinimatelstva");

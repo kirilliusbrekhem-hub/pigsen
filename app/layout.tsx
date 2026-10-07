@@ -9,6 +9,8 @@ import "./globals.css";
 import "./styles/growth.css";
 import "./styles/social.css";
 import "./styles/savings-push.css";
+import "./styles/landing.css";
+import "./styles/nav.css";
 
 export const metadata: Metadata = {
   title: { default: "PIGSEN", template: "%s · PIGSEN" },
