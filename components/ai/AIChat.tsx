@@ -192,6 +192,7 @@ export function AIChat({ conversations: initialList, conversationId, initialMess
           </div>
         </div>
         <div className="composer-wrap">
+          <p className="ai-disclaimer">$PIG — ИИ и может ошибаться. Это не финансовая консультация, решения принимайте сами.</p>
           {left !== null && quota && (
             <div className="chat-quota" data-testid="chat-quota">
               {left > 0 ? `Осталось ${left} из ${quota.limit} вопросов на сегодня.` : "Вопросы на сегодня закончились."}{" "}

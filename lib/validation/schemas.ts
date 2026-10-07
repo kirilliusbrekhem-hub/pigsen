@@ -7,6 +7,7 @@ export const registerSchema = z.object({
   name: trimmed(60).min(2, "Минимум 2 символа"),
   email: z.string().trim().toLowerCase().email("Некорректный email").max(120),
   password: z.string().min(8, "Минимум 8 символов").max(128),
+  accept: z.literal(true, { message: "Подтвердите возраст и согласие с правилами" }),
 });
 
 export const loginSchema = z.object({

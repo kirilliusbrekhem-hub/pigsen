@@ -1,3 +1,4 @@
+import { Disclaimer, RISKY_CATEGORIES } from "@/components/legal/Disclaimer";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -48,6 +49,7 @@ export default async function LessonPage({ params }: { params: Promise<{ course:
           <article className="card" style={{ overflow: "hidden" }}>
             <div className="reader-main">
               {locked ? <PremiumLock what="урок" /> : <Markdown>{lesson.body}</Markdown>}
+              <Disclaimer kind={RISKY_CATEGORIES.has(course.category.slug) ? "invest" : "general"} compact={!RISKY_CATEGORIES.has(course.category.slug)} />
               {!locked && course.premium && !pro && (
                 <p className="premium-note">
                   Это бесплатный первый урок эксклюзивного курса. Остальные уроки открыты в <Link href="/pro">PIGSEN Pro</Link>.

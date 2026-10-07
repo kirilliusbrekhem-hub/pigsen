@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, verifySession } from "@/lib/auth/token";
 
-const PUBLIC_PAGES = new Set(["/", "/login", "/register"]);
+const PUBLIC_PAGES = new Set(["/", "/login", "/register", "/terms", "/privacy", "/offer", "/rules"]);
 const AUTH_PAGES = new Set(["/login", "/register"]);
 const MUTATING = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 

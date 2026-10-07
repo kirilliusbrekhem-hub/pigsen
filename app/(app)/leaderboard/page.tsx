@@ -44,7 +44,7 @@ export default async function LeaderboardPage() {
         <div>
           <span className="label">Неделя {week.key.split("-W")[1]} · {fmtDay(week.start)} – {fmtDay(last)}</span>
           <h1>Лидерборд недели</h1>
-          <p>Очки = XP за неделю: 20 за каждый новый пройденный урок и XP за квизы. Рейтинг обнуляется в понедельник (UTC), призы получают участники с Pro.</p>
+          <p>Очки = XP за неделю: 20 за каждый новый пройденный урок и XP за квизы. Рейтинг обнуляется в понедельник (UTC), призы получают участники с Pro. <a href="/rules">Правила лидерборда</a>.</p>
         </div>
       </section>
 

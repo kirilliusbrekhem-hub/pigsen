@@ -1,3 +1,4 @@
+import { Disclaimer } from "@/components/legal/Disclaimer";
 import type { Metadata } from "next";
 import { SavingsHome } from "@/components/savings/SavingsHome";
 import { requireUser } from "@/lib/auth/session";
@@ -28,6 +29,7 @@ export default async function SavingsPage() {
       </section>
       {!pro && <ProPromo place="savings" note={`На вашем плане до ${limitsFor(user.profile).goals} целей, у вас ${goals.length}.`} />}
       <SavingsHome goals={views} themes={[...themes]} canCreate={goals.length < limitsFor(user.profile).goals} quote={quote} push={<PushToggle publicKey={vapidPublicKey()} />} />
+      <Disclaimer kind="ai" compact />
     </>
   );
 }

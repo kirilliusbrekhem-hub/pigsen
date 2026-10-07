@@ -19,6 +19,9 @@ export default async function InvitePage() {
         <div>
           <span className="label">Бонусы</span>
           <h1>Пригласи друга</h1>
+          <p>
+            Награды начисляются в PigCoin$ и днями Pro. <a href="/rules">Правила рефералов и отзывов</a>.
+          </p>
         </div>
       </div>
 

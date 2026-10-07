@@ -113,6 +113,12 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
               <Icon name="shield" />
               <span>$PIG объясняет и подсказывает. Решения всегда остаются за вами.</span>
             </div>
+            <nav className="site-legal" aria-label="Документы">
+              <Link href="/terms">Условия</Link>
+              <Link href="/privacy">Конфиденциальность</Link>
+              <Link href="/offer">Оплата и возвраты</Link>
+              <Link href="/rules">Правила</Link>
+            </nav>
             <Link href="/profile" className={`me ${section === "profile" ? "is-active" : ""}`}>
               <Avatar name={user.name} src={user.avatar} />
               <span style={{ textAlign: "left", minWidth: 0 }}>
@@ -261,6 +267,12 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
                 <div className="more-foot muted">
                   {user.plan === "pro" ? <span className="pro-badge">Pro</span> : user.plan === "lite" ? "Пробный Pro" : <Link href="/pro">Free · перейти на Pro</Link>} · {user.coins} <Coin size={14} /> PigCoin$
                 </div>
+                <nav className="site-legal" aria-label="Документы" style={{ justifyContent: "center", marginTop: 10 }}>
+                  <Link href="/terms">Условия</Link>
+                  <Link href="/privacy">Конфиденциальность</Link>
+                  <Link href="/offer">Оплата</Link>
+                  <Link href="/rules">Правила</Link>
+                </nav>
               </div>
             </div>
           </div>

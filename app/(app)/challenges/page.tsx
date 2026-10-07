@@ -1,3 +1,4 @@
+import { Disclaimer, RISKY_CATEGORIES } from "@/components/legal/Disclaimer";
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth/session";
 import { isPro } from "@/lib/billing/plan";
@@ -27,6 +28,7 @@ export default async function ChallengesPage() {
           <span className="muted">из {CHALLENGES.length} выполнено</span>
         </div>
       </section>
+      <Disclaimer kind="challenge" />
       {!pro && <ProPromo place="challenges" note={`На Free доступны ${FREE_CHALLENGES} челленджа.`} />}
       <ChallengeList done={doneMap} pro={pro} />
     </>

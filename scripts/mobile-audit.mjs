@@ -19,6 +19,7 @@ await page.goto(BASE + "/register");
 await page.getByLabel("Имя").fill("Мобильный Тестер Длинноимённый");
 await page.getByLabel("Email").fill(email);
 await page.getByLabel("Пароль").fill("supersecret1");
+  await page.getByLabel(/Мне есть 18/).check();
 await page.getByRole("button", { name: "Зарегистрироваться" }).click();
 await page.waitForURL("**/onboarding");
 await page.screenshot({ path: `${SHOTS}/onboarding.png`, fullPage: true });

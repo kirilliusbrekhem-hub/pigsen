@@ -1,3 +1,4 @@
+import { Disclaimer } from "@/components/legal/Disclaimer";
 import type { Metadata } from "next";
 import { CompoundCalc, GoalCalc, UnitCalc } from "@/components/tools/Calculators";
 import { IdeaReview } from "@/components/tools/IdeaReview";
@@ -33,6 +34,7 @@ export default async function ToolsPage({ searchParams }: { searchParams: Promis
           { id: "goal", label: "Цель накоплений", icon: "piggy", desc: "Когда наберётся сумма", node: <GoalCalc /> },
         ]}
       />
+      <Disclaimer kind="ai" compact />
     </>
   );
 }

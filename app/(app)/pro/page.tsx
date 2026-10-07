@@ -101,6 +101,7 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
             </ol>
           )}
           <span className="muted" style={{ fontSize: 12 }}>
+            Оформляя Pro, вы принимаете <a href="/offer">условия оплаты и возвратов</a>. PigCoin$ — бонусные баллы без денежной стоимости, см. <a href="/rules">правила</a>.{" "}
             {stars ? "Оплата звёздами в Telegram: картой из любой страны или через App Store / Google Play." : "Оплата через ЮKassa."} {stars ? "Месячная подписка продлевается сама, отменить можно в Telegram: Настройки → Мои звёзды. Год оплачивается один раз." : "Без автосписаний: Pro просто заканчивается в срок."}
           </span>
         </section>

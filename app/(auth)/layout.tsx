@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Pig, Wordmark } from "@/components/ui/Brand";
 import { Icon } from "@/components/ui/Icon";
 
@@ -21,7 +22,15 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <span><Icon name="check" />Рекомендации под ваши интересы</span>
         </div>
       </aside>
-      <main className="auth-form">{children}</main>
+      <main className="auth-form">
+        {children}
+        <nav className="site-legal" aria-label="Документы" style={{ justifyContent: "center", marginTop: 16 }}>
+          <Link href="/terms">Условия</Link>
+          <Link href="/privacy">Конфиденциальность</Link>
+          <Link href="/offer">Оплата и возвраты</Link>
+          <Link href="/rules">Правила</Link>
+        </nav>
+      </main>
     </div>
   );
 }

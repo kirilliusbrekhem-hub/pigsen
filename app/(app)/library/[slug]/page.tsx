@@ -1,3 +1,4 @@
+import { Disclaimer, RISKY_CATEGORIES } from "@/components/legal/Disclaimer";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -74,6 +75,9 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
             ) : (
               <p className="muted">Конспект для этого материала готовится.</p>
             )}
+          </div>
+          <div style={{ padding: "0 24px" }}>
+            <Disclaimer kind={RISKY_CATEGORIES.has(item.category.slug) ? "invest" : "general"} compact={!RISKY_CATEGORIES.has(item.category.slug)} />
           </div>
           {item.tags.length > 0 && (
             <div className="reader-foot" style={{ justifyContent: "flex-start", gap: 6 }}>

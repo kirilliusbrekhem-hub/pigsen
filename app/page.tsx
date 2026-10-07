@@ -53,6 +53,17 @@ export default function Landing() {
           </div>
         ))}
       </section>
+      <footer className="stack" style={{ gap: 8, alignItems: "center", padding: "24px 16px 40px", textAlign: "center" }}>
+        <p className="muted" style={{ fontSize: 12, maxWidth: 640 }}>
+          PIGSEN — образовательная платформа. Материалы и ответы $PIG не являются индивидуальной инвестиционной, финансовой, налоговой или юридической рекомендацией. Инвестиции связаны с риском потери денег. Сервис для пользователей 18+.
+        </p>
+        <nav className="site-legal" aria-label="Документы" style={{ justifyContent: "center" }}>
+          <Link href="/terms">Условия использования</Link>
+          <Link href="/privacy">Политика конфиденциальности</Link>
+          <Link href="/offer">Оплата и возвраты</Link>
+          <Link href="/rules">Правила</Link>
+        </nav>
+      </footer>
     </div>
   );
 }

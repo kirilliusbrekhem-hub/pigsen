@@ -60,6 +60,7 @@ async function desktopScenario() {
   await page.getByLabel("Имя").fill("Кирилл Тестов");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Пароль").fill("supersecret1");
+  await page.getByLabel(/Мне есть 18/).check();
   await shot(page, "02-register");
   await page.getByRole("button", { name: "Зарегистрироваться" }).click();
   await page.waitForURL("**/onboarding");

@@ -66,6 +66,7 @@ await p.goto(BASE + "/register");
 await p.getByLabel("Имя").fill("Краулер Тест");
 await p.getByLabel("Email").fill(`crawl+${Date.now()}@pigsen.test`);
 await p.getByLabel("Пароль").fill("supersecret1");
+  await p.getByLabel(/Мне есть 18/).check();
 await p.getByRole("button", { name: "Зарегистрироваться" }).click();
 await p.waitForURL("**/onboarding");
 await p.getByRole("button", { name: /^Startups/ }).click();

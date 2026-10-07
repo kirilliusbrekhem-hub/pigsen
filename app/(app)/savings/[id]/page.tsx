@@ -1,3 +1,4 @@
+import { Disclaimer } from "@/components/legal/Disclaimer";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -69,6 +70,7 @@ export default async function GoalPage({ params }: { params: Promise<{ id: strin
           </div>
         )}
       </section>
+      <Disclaimer kind="ai" compact />
       <GoalDanger goalId={goal.id} />
     </div>
   );

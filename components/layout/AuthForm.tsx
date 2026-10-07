@@ -19,6 +19,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [accept, setAccept] = useState(false);
   const rawRef = mode === "register" ? params.get("ref") : null;
   const ref = rawRef && /^[a-z0-9]{10,40}$/i.test(rawRef) ? rawRef : null;
 
@@ -31,6 +32,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
     const e: Record<string, string> = {};
     if (mode === "register" && values.name.trim().length < 2) e.name = "Минимум 2 символа";
     if (!/^\S+@\S+\.\S+$/.test(values.email.trim())) e.email = "Некорректный email";
+    if (mode === "register" && !accept) e.accept = "Подтвердите возраст и согласие с правилами";
     if (mode === "register" ? values.password.length < 8 : !values.password) e.password = mode === "register" ? "Минимум 8 символов" : "Введите пароль";
     return e;
   }
@@ -43,7 +45,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
     if (Object.keys(e).length) return;
     setLoading(true);
     try {
-      await api(`/api/auth/${mode}`, { method: "POST", body: mode === "register" ? { ...values, ...(ref ? { ref } : {}) } : { email: values.email, password: values.password } });
+      await api(`/api/auth/${mode}`, { method: "POST", body: mode === "register" ? { ...values, accept, ...(ref ? { ref } : {}) } : { email: values.email, password: values.password } });
       router.replace(mode === "register" ? "/onboarding" : safeNext(params.get("next")));
       router.refresh();
     } catch (err) {
@@ -85,6 +87,17 @@ export function AuthForm({ mode }: { mode: Mode }) {
       {mode === "register" && field("name", "Имя", "text", "name")}
       {field("email", "Email", "email", "email")}
       {field("password", "Пароль", "password", mode === "register" ? "new-password" : "current-password", mode === "register" ? "Не меньше 8 символов." : undefined)}
+      {mode === "register" && (
+        <div className="field">
+          <label className="consent">
+            <input type="checkbox" checked={accept} onChange={(e) => setAccept(e.target.checked)} aria-invalid={Boolean(errors.accept)} />
+            <span>
+              Мне есть 18 лет, я принимаю <Link href="/terms" target="_blank">Условия</Link> и <Link href="/privacy" target="_blank">Политику конфиденциальности</Link> и даю согласие на обработку персональных данных.
+            </span>
+          </label>
+          {errors.accept && <span className="hint">{errors.accept}</span>}
+        </div>
+      )}
       <Button variant="primary" size="lg" block loading={loading} type="submit">
         {mode === "register" ? "Зарегистрироваться" : "Войти"}
       </Button>
