@@ -38,6 +38,10 @@ model User {
   challenges    ChallengeDone[]
   posts         CommunityPost[]
   pushSubs      PushSub[]
+  postLikes     PostLike[]
+  chatMessages  ChatMessage[]
+  dmSent        DirectMessage[] @relation("dmFrom")
+  dmReceived    DirectMessage[] @relation("dmTo")
 }
 
 model Profile {
@@ -377,6 +381,9 @@ model CommunityPost {
   user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   text      String
   parentId  String?
+  kind      String          @default("post") // post | win (success story) | question
+  topic     String          @default("") // business | startups | savings | investing | other
+  likes     PostLike[]
   parent    CommunityPost?  @relation("replies", fields: [parentId], references: [id], onDelete: Cascade)
   replies   CommunityPost[] @relation("replies")
   createdAt DateTime        @default(now())
@@ -395,4 +402,70 @@ model PushSub {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+model PostLike {
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    String
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+
+  @@id([userId, postId])
+  @@index([postId])
+}
+
+/// Message in a topic chat room (Pro only). Rooms are defined in code.
+model ChatMessage {
+  id        String   @id @default(cuid())
+  room      String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  text      String
+  createdAt DateTime @default(now())
+
+  @@index([room, createdAt])
+}
+
+/// Private message between two users (Pro only to start a conversation).
+model DirectMessage {
+  id        String    @id @default(cuid())
+  fromId    String
+  from      User      @relation("dmFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  toId      String
+  to        User      @relation("dmTo", fields: [toId], references: [id], onDelete: Cascade)
+  text      String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([fromId, toId, createdAt])
+  @@index([toId, readAt])
+}
+
+/// Where a user came from (first-touch UTM), saved at registration.
+model Attribution {
+  userId    String   @id
+  source    String   @default("")
+  medium    String   @default("")
+  campaign  String   @default("")
+  content   String   @default("")
+  landing   String   @default("")
+  referrer  String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([source, createdAt])
+}
+
+/// Anonymous landing visit (one per visitor per day) for the funnel top.
+model Visit {
+  id        String   @id @default(cuid())
+  visitorId String
+  day       String
+  source    String   @default("")
+  campaign  String   @default("")
+  path      String   @default("")
+  createdAt DateTime @default(now())
+
+  @@unique([visitorId, day])
+  @@index([day])
 }
