@@ -1,6 +1,7 @@
 import "server-only";
 import type { Category, Course, Lesson, Progress } from "@prisma/client";
 import { activateReferral } from "@/lib/growth/referral";
+import { isUniqueViolation } from "@/lib/db/lock";
 import { prisma } from "@/lib/db/prisma";
 import { toCategoryDTO } from "@/lib/content/mappers";
 import { getSavedIds } from "@/lib/content/saved";
@@ -99,15 +100,31 @@ export async function setLessonCompleted(userId: string, lessonId: string, compl
   const lesson = await prisma.lesson.findUnique({ where: { id: lessonId }, select: { id: true } });
   if (!lesson) return null;
   await assertLessonAccess(userId, lessonId);
-  const before = await prisma.progress.findUnique({ where: { userId_lessonId: { userId, lessonId } }, select: { completedAt: true, status: true } });
+  const where = { userId_lessonId: { userId, lessonId } };
   // completedAt survives un-completing, so re-completing a lesson never pays XP twice.
-  const everCompleted = !!before?.completedAt;
-  const progress = await prisma.progress.upsert({
-    where: { userId_lessonId: { userId, lessonId } },
-    update: completed ? { status: "completed", completedAt: before?.completedAt ?? new Date() } : { status: "in_progress" },
-    create: { userId, lessonId, status: completed ? "completed" : "in_progress", completedAt: completed ? new Date() : null },
-  });
-  const firstCompletion = completed && !everCompleted;
+  // First completion is decided atomically: only the call whose update sets completedAt wins.
+  let firstCompletion = false;
+  if (completed) {
+    const setFirst = () => prisma.progress.updateMany({ where: { userId, lessonId, completedAt: null }, data: { status: "completed", completedAt: new Date() } });
+    let r = await setFirst();
+    if (!r.count) {
+      const exists = await prisma.progress.findUnique({ where, select: { id: true } });
+      if (!exists) {
+        try {
+          await prisma.progress.create({ data: { userId, lessonId, status: "completed", completedAt: new Date() } });
+          r = { count: 1 };
+        } catch (e) {
+          if (!isUniqueViolation(e)) throw e;
+          r = await setFirst();
+        }
+      }
+    }
+    firstCompletion = r.count > 0;
+    if (!firstCompletion) await prisma.progress.update({ where, data: { status: "completed" } });
+  } else {
+    await prisma.progress.upsert({ where, update: { status: "in_progress" }, create: { userId, lessonId, status: "in_progress" } });
+  }
+  const progress = await prisma.progress.findUniqueOrThrow({ where });
   if (firstCompletion) {
     // A completed lesson activates a pending referral (idempotent); never block lesson completion on it.
     await activateReferral(userId).catch((e) => console.error("[referral] activate failed", e));

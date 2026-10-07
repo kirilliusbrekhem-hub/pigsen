@@ -3,10 +3,11 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { prisma } from "@/lib/db/prisma";
-import { SESSION_COOKIE, SESSION_TTL_SECONDS, signSession, verifySession } from "./token";
+import { SESSION_COOKIE, SESSION_TTL_SECONDS, signSession, verifySessionClaims } from "./token";
 
 export async function startSession(userId: string): Promise<void> {
-  const token = await signSession(userId);
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { sessionVersion: true } });
+  const token = await signSession(userId, u?.sessionVersion ?? 0);
   const jar = await cookies();
   jar.set(SESSION_COOKIE, token, {
     httpOnly: true,
@@ -22,21 +23,29 @@ export async function endSession(): Promise<void> {
   jar.delete(SESSION_COOKIE);
 }
 
-export const getSessionUserId = cache(async (): Promise<string | null> => {
+const getSessionClaims = cache(async () => {
   const jar = await cookies();
-  return verifySession(jar.get(SESSION_COOKIE)?.value);
+  return verifySessionClaims(jar.get(SESSION_COOKIE)?.value);
 });
+
+export const getSessionUserId = cache(async (): Promise<string | null> => (await getSessionClaims())?.userId ?? null);
+
+/** Revokes every session of the user (all devices), e.g. after a password change. */
+export async function revokeSessions(userId: string): Promise<void> {
+  await prisma.user.update({ where: { id: userId }, data: { sessionVersion: { increment: 1 } } });
+}
 
 /** Current user with profile, or null. Cached per request. */
 export const getCurrentUser = cache(async () => {
-  const id = await getSessionUserId();
-  if (!id) return null;
+  const claims = await getSessionClaims();
+  if (!claims) return null;
   const user = await prisma.user.findUnique({
-    where: { id },
-    select: { id: true, email: true, name: true, createdAt: true, blocked: true, profile: true },
+    where: { id: claims.userId },
+    select: { id: true, email: true, name: true, createdAt: true, blocked: true, sessionVersion: true, profile: true },
   });
-  // A blocked account is treated as signed out everywhere.
-  return user && !user.blocked ? user : null;
+  // A blocked account, or a token issued before the last "log out everywhere", is treated as signed out.
+  if (!user || user.blocked || user.sessionVersion !== claims.sessionVersion) return null;
+  return user;
 });
 
 export type CurrentUser = NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;

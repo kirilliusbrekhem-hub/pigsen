@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth/session";
 import { isPro } from "@/lib/billing/plan";
-import { isAdminEmail } from "@/lib/admin/auth";
+import { isAdmin } from "@/lib/admin/auth";
 import { ProPromo } from "@/components/pro/ProPromo";
 import { PremiumLock } from "@/components/pro/PremiumLock";
 import { CommunityTabs, ModerationNote } from "@/components/social/CommunityTabs";
@@ -28,7 +28,7 @@ export default async function CommunityChatPage({ searchParams }: { searchParams
       <CommunityTabs active="chat" />
       {pro ? (
         <>
-          <ChatRoom key={room} room={room} initial={await listChat(user.id, room)} admin={isAdminEmail(user.email)} />
+          <ChatRoom key={room} room={room} initial={await listChat(user.id, room)} admin={await isAdmin(user)} />
           <ModerationNote />
         </>
       ) : (

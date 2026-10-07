@@ -42,9 +42,20 @@ const fp = await prisma.profile.findUnique({ where: { userId: friend.id } });
 if (fp.coins < 200) problems.push(`friend bonus missing: ${fp.coins}`);
 const lesson = await prisma.lesson.findFirst({ where: { order: 1, course: { contentItem: { premium: false } } } });
 const st = await friendPage.evaluate(async (id) => (await fetch(`/api/lessons/${id}/complete`, { method: "POST" })).status, lesson.id);
+// Activation needs a lesson, a quiz with score > 0 and a 24h-old account: a lesson alone pays nothing.
+const ip0 = await prisma.profile.findUnique({ where: { userId: inviter.id } });
+if (st !== 200 || ip0.coins >= 500) problems.push(`inviter paid too early: status ${st}, coins ${ip0.coins}`);
+const qs = await friendPage.evaluate(async (id) => (await fetch(`/api/lessons/${id}/quiz`, { method: "POST" })).json(), lesson.id);
+const attempt = await prisma.quizAttempt.findUnique({ where: { id: qs.attemptId } });
+const answers = JSON.parse(attempt.questions).map((q) => q.answer);
+const sub = await friendPage.evaluate(async ([id, answers]) => (await fetch(`/api/quiz/${id}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ answers }) })).status, [qs.attemptId, answers]);
+const ip1 = await prisma.profile.findUnique({ where: { userId: inviter.id } });
+if (sub !== 200 || ip1.coins >= 500) problems.push(`inviter paid before 24h: quiz ${sub}, coins ${ip1.coins}`);
+await prisma.user.update({ where: { id: friend.id }, data: { createdAt: new Date(Date.now() - 25 * 3_600_000) } });
+const daily = await friendPage.evaluate(async () => (await fetch("/api/coins/daily", { method: "POST" })).status);
 const ip = await prisma.profile.findUnique({ where: { userId: inviter.id } });
-if (st !== 200 || !ip.proUntil || ip.coins < 500) problems.push(`inviter reward: status ${st}, coins ${ip.coins}, pro ${ip.proUntil}`);
-ok("Referral: friend +200, inviter +500 and Pro");
+if (daily !== 200 || !ip.proUntil || ip.coins < 500) problems.push(`inviter reward: daily ${daily}, coins ${ip.coins}, pro ${ip.proUntil}`);
+ok("Referral: friend +200; inviter +500 and Pro after lesson + quiz + 24h");
 await page.goto(BASE + "/invite");
 await page.getByText(/Отзыв за награду/).first().waitFor();
 

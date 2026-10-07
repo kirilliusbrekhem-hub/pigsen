@@ -1,11 +1,13 @@
 import "server-only";
 import { prisma } from "@/lib/db/prisma";
 import { HttpError } from "@/lib/api/http";
-import { isAdminEmail } from "@/lib/admin/auth";
+import { isAdmin } from "@/lib/admin/auth";
+import { avatarUrl } from "@/lib/profile/avatar-url";
+
 import type { ChatMsgView, RoomId } from "./meta";
 
-const userSelect = { id: true, name: true, profile: { select: { title: true, avatar: true, proUntil: true } } } as const;
-type Raw = { id: string; text: string; createdAt: Date; user: { id: string; name: string; profile: { title: string; avatar: string | null; proUntil: Date | null } | null } };
+const userSelect = { id: true, name: true, profile: { select: { title: true, avatar: true, proUntil: true, updatedAt: true } } } as const;
+type Raw = { id: string; text: string; createdAt: Date; user: { id: string; name: string; profile: { title: string; avatar: string | null; proUntil: Date | null; updatedAt: Date } | null } };
 
 function view(m: Raw, viewerId: string, now: number): ChatMsgView {
   const p = m.user.profile;
@@ -14,7 +16,7 @@ function view(m: Raw, viewerId: string, now: number): ChatMsgView {
     text: m.text,
     createdAt: m.createdAt.toISOString(),
     mine: m.user.id === viewerId,
-    author: { id: m.user.id, name: m.user.name, avatar: p?.avatar ?? null, pro: !!p?.proUntil && p.proUntil.getTime() > now, title: p?.title ?? "" },
+    author: { id: m.user.id, name: m.user.name, avatarUrl: avatarUrl(m.user.id, p), pro: !!p?.proUntil && p.proUntil.getTime() > now, title: p?.title ?? "" },
   };
 }
 
@@ -37,6 +39,6 @@ export async function sendChat(viewerId: string, room: RoomId, text: string) {
 export async function deleteChat(viewer: { id: string; email: string }, id: string) {
   const m = await prisma.chatMessage.findUnique({ where: { id }, select: { userId: true } });
   if (!m) throw new HttpError(404, "Сообщение не найдено");
-  if (!isAdminEmail(viewer.email) && m.userId !== viewer.id) throw new HttpError(403, "Нет прав");
+  if (!(await isAdmin(viewer)) && m.userId !== viewer.id) throw new HttpError(403, "Нет прав");
   await prisma.chatMessage.delete({ where: { id } });
 }

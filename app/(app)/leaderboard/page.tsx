@@ -17,7 +17,7 @@ function RowView({ r, me }: { r: Row; me: boolean }) {
   return (
     <li className={`lb-row${me ? " is-me" : ""}${r.place <= 3 ? ` lb-top lb-p${r.place}` : ""}`}>
       <span className="lb-place">{r.place}</span>
-      <Avatar name={r.name} src={r.avatar} className="lb-av" />
+      <Avatar name={r.name} src={r.avatarUrl} className="lb-av" />
       <span className="lb-name">
         <b>{r.name}{me ? " (вы)" : ""}</b>
         {r.title && <span className="muted">{r.title}</span>}

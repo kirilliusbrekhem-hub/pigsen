@@ -1,7 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/db/prisma";
 import { COINS, addCoins, addDailyCoins, ownedItems } from "@/lib/coins/service";
-import { isPro, limitsFor, startOfUtcDay } from "@/lib/billing/plan";
+import { isPro, limitsFor } from "@/lib/billing/plan";
 import { HttpError } from "@/lib/api/http";
 import { THEMES } from "./themes";
 
@@ -64,9 +64,8 @@ export async function updateGoal(userId: string, id: string, data: { title?: str
     const profile = await prisma.profile.findUnique({ where: { userId }, select: { proUntil: true } });
     if (!(await availableThemes(userId, isPro(profile))).has(data.theme)) throw new HttpError(403, "Эта обложка доступна в Pro или в магазине за PigCoin$");
   }
-  const target = data.target ?? goal.target;
-  const milestones = Math.min(goal.milestones, Math.min(4, Math.floor((goal.saved / target) * 4)));
-  return prisma.savingsGoal.update({ where: { id }, data: { ...data, milestones } });
+  // Milestones never go down: lowering the target can't re-arm already reached (and paid) steps.
+  return prisma.savingsGoal.update({ where: { id }, data });
 }
 
 export async function deleteGoal(userId: string, id: string) {
@@ -77,6 +76,9 @@ export async function deleteGoal(userId: string, id: string) {
 const MAX_SAVED = 1_500_000_000; // stays well inside Postgres INT
 const MILESTONE_MIN_AGE_MS = 3 * 86_400_000; // no milestone coins on a goal created minutes ago
 const MILESTONES_PER_DAY = 2;
+
+/** Inserts a one-time claim key; true only for the caller that inserted it. */
+const claimKey = async (userId: string, key: string) => (await prisma.dailyClaim.createMany({ data: [{ userId, key }], skipDuplicates: true })).count > 0;
 
 /**
  * Deposit (+) or withdrawal (-). Pays daily coins for deposits and a bonus for each new 25% milestone.
@@ -109,9 +111,15 @@ export async function addEntry(userId: string, goalId: string, amount: number, n
       if (claimed.count) {
         milestone = step * 25;
         // Coins only for goals older than 3 days and at most twice a day, so create/delete loops can't farm them.
-        const paidToday = await prisma.coinTx.count({ where: { userId, reason: { startsWith: "milestone:" }, createdAt: { gte: startOfUtcDay() } } });
-        if (Date.now() - goal.createdAt.getTime() >= MILESTONE_MIN_AGE_MS && paidToday < MILESTONES_PER_DAY) {
-          coins += await addCoins(userId, COINS.milestone, `milestone:${goalId}:${step}`);
+        // Both limits are claim keys: whichever request inserts first wins, parallel ones get nothing.
+        if (Date.now() - goal.createdAt.getTime() >= MILESTONE_MIN_AGE_MS && (await claimKey(userId, `milestone:${goalId}:${step}`))) {
+          const day = new Date().toISOString().slice(0, 10);
+          for (let n = 1; n <= MILESTONES_PER_DAY; n++) {
+            if (await claimKey(userId, `milestone-day:${day}:${n}`)) {
+              coins += await addCoins(userId, COINS.milestone, `milestone:${goalId}:${step}`);
+              break;
+            }
+          }
         }
       }
     }

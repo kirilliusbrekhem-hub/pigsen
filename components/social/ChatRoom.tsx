@@ -80,7 +80,7 @@ export function ChatRoom({ room, initial, admin }: { room: RoomId; initial: Chat
         {msgs.length === 0 && <p className="muted cm-empty">Здесь пока пусто — начните разговор!</p>}
         {msgs.map((m) => (
           <div key={m.id} className={`chat-msg ${m.mine ? "is-mine" : ""}`}>
-            {!m.mine && <Avatar name={m.author.name} src={m.author.avatar} className="chat-av" />}
+            {!m.mine && <Avatar name={m.author.name} src={m.author.avatarUrl} className="chat-av" />}
             <div className="chat-bubble">
               {!m.mine && (
                 <div className="chat-meta">

@@ -9,7 +9,8 @@ import { api, ApiClientError, errorMessage } from "@/lib/client/api";
 type Mode = "login" | "register";
 
 function safeNext(raw: string | null): string {
-  return raw && raw.startsWith("/") && !raw.startsWith("//") ? raw : "/dashboard";
+  // Same-origin paths only: "//host" and "/\\host" would leave the site.
+  return raw && raw.startsWith("/") && !raw.startsWith("//") && !raw.includes("\\") ? raw : "/dashboard";
 }
 
 export function AuthForm({ mode }: { mode: Mode }) {

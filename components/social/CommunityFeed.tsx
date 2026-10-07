@@ -78,7 +78,7 @@ function Author({ p, interactive }: { p: PostView; interactive: boolean }) {
 export function PostBody({ p, onDelete, onLike, onReply, me }: { p: PostView; onDelete?: () => void; onLike?: () => void; onReply?: () => void; me?: string }) {
   return (
     <div className="cm-post-main">
-      <Avatar name={p.author.name} src={p.author.avatar} className="cm-av" />
+      <Avatar name={p.author.name} src={p.author.avatarUrl} className="cm-av" />
       <div className="cm-post-content">
         <div className="cm-meta">
           <Author p={p} interactive={!!onLike && p.author.id !== me} />

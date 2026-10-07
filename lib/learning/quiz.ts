@@ -3,6 +3,10 @@ import { assertLessonAccess } from "./premium";
 import { z } from "zod";
 import { completeJson } from "@/lib/ai/aiService";
 import { prisma } from "@/lib/db/prisma";
+import { HttpError } from "@/lib/api/http";
+import { consumeAllowance } from "@/lib/billing/limits";
+import { isUniqueViolation } from "@/lib/db/lock";
+import { activateReferral } from "@/lib/growth/referral";
 import { awardXp, XP, type XpResult } from "@/lib/gamification/service";
 
 const QuestionSchema = z.object({
@@ -75,6 +79,7 @@ export async function startQuiz(userId: string, lessonId: string) {
   await assertLessonAccess(userId, lessonId);
   const exists = await prisma.lesson.findUnique({ where: { id: lessonId }, select: { id: true } });
   if (!exists) return null;
+  if (!(await consumeAllowance(userId, "quiz"))) throw new HttpError(429, "На сегодня квизы закончились. Завтра будут новые, а в Pro их больше.");
   const questions = await generate(lessonId);
   const attempt = await prisma.quizAttempt.create({
     data: { userId, lessonId, questions: JSON.stringify(questions), total: questions.length },
@@ -89,13 +94,22 @@ export async function submitQuiz(userId: string, attemptId: string, answers: num
   const questions = JSON.parse(attempt.questions) as QuizQuestion[];
   const results = questions.map((q, i) => ({ correct: answers[i] === q.answer, answer: q.answer, explain: q.explain }));
   const score = results.filter((r) => r.correct).length;
-  // XP is paid once per lesson: only the first finished quiz on a lesson earns it.
-  const earlier = await prisma.quizAttempt.count({ where: { userId, lessonId: attempt.lessonId, completedAt: { not: null } } });
-  const firstTime = earlier === 0;
-  const gained = firstTime ? score * XP.quizCorrect : 0;
-  // Atomic claim: a double submit can't finish the same attempt (and pay XP) twice.
-  const claimed = await prisma.quizAttempt.updateMany({ where: { id: attempt.id, completedAt: null }, data: { score, xpAwarded: gained, completedAt: new Date() } });
+  // Quizzes finished before the claim key existed still count as "already paid".
+  const earlier = await prisma.quizAttempt.count({ where: { userId, lessonId: attempt.lessonId, completedAt: { not: null }, xpAwarded: { gt: 0 } } });
+  // Atomic claim: a double submit can't finish the same attempt twice.
+  const claimed = await prisma.quizAttempt.updateMany({ where: { id: attempt.id, completedAt: null }, data: { score, xpAwarded: 0, completedAt: new Date() } });
   if (claimed.count === 0) return { error: "done" as const };
+  // XP is paid once per lesson: the first finished quiz inserts the claim key, parallel ones get 0.
+  let firstTime = earlier === 0;
+  if (firstTime) try {
+    await prisma.dailyClaim.create({ data: { userId, key: `quizxp:${attempt.lessonId}` } });
+  } catch (e) {
+    if (!isUniqueViolation(e)) throw e;
+    firstTime = false;
+  }
+  const gained = firstTime ? score * XP.quizCorrect : 0;
+  if (gained) await prisma.quizAttempt.update({ where: { id: attempt.id }, data: { xpAwarded: gained } });
   const xp: XpResult = await awardXp(userId, gained);
+  if (score > 0) await activateReferral(userId).catch((e) => console.error("[referral] activate failed", e));
   return { score, total: questions.length, results, xp, firstTime };
 }

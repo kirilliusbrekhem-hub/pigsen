@@ -22,7 +22,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ userId:
     <>
       <div className="dm-head">
         <Link href="/messages" className="btn btn-secondary btn-sm" aria-label="Назад"><Icon name="back" size="sm" /></Link>
-        <Avatar name={other.name} src={other.avatar} className="dm-av" />
+        <Avatar name={other.name} src={other.avatarUrl} className="dm-av" />
         <div className="dm-head-name">
           <b>{other.name}</b>
           {other.pro && <span className="pro-badge">Pro</span>}

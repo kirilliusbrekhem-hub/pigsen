@@ -17,7 +17,7 @@ export function DmList({ initial }: { initial: ConversationView[] }) {
       {list.map((c) => (
         <li key={c.user.id}>
           <Link href={`/messages/${c.user.id}`} className={`dm-row ${c.unread ? "is-unread" : ""}`}>
-            <Avatar name={c.user.name} src={c.user.avatar} className="dm-av" />
+            <Avatar name={c.user.name} src={c.user.avatarUrl} className="dm-av" />
             <span className="dm-body">
               <span className="dm-top">
                 <b>{c.user.name}</b>

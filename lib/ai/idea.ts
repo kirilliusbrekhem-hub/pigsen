@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db/prisma";
 import { awardXp, XP } from "@/lib/gamification/service";
 import type { IdeaReviewDTO } from "@/types";
 import { completeJson } from "./aiService";
-import { usage } from "@/lib/billing/limits";
+import { consumeAllowance } from "@/lib/billing/limits";
 
 const ResultSchema = z.object({
   score: z.number().int().min(1).max(10),
@@ -51,7 +51,8 @@ export async function reviewIdea(userId: string, idea: string) {
   since.setUTCHours(0, 0, 0, 0);
   const today = await prisma.ideaReview.count({ where: { userId, createdAt: { gte: since } } });
   // Free and trial plans: a few AI reviews a day, then the rule-based review. Pro: unlimited.
-  const useAi = (await usage(userId, "idea")).left > 0;
+  // The allowance row is taken before the AI call, so parallel requests can't overspend it.
+  const useAi = await consumeAllowance(userId, "idea");
   const ai = !useAi ? null : await completeJson(SYSTEM, idea, (raw) => {
     const r = ResultSchema.safeParse(raw);
     return r.success ? r.data : null;

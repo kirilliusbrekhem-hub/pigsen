@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { enforceRateLimit, handler, json, parseBody, requireApiUser } from "@/lib/api/http";
+import { enforceDbRateLimit } from "@/lib/api/rate-limit-db";
+import { handler, json, parseBody, requireApiUser } from "@/lib/api/http";
 import { reviewIdea } from "@/lib/ai/idea";
 import { sanitizeText } from "@/lib/validation/schemas";
 
@@ -7,7 +8,7 @@ const Body = z.object({ idea: z.string().trim().min(20, "Опишите идею
 
 export const POST = handler(async (req: Request) => {
   const user = await requireApiUser();
-  enforceRateLimit(`idea:${user.id}`, 5, 10 * 60_000);
+  await enforceDbRateLimit(`idea:${user.id}`, 5, 10 * 60_000);
   const { idea } = await parseBody(req, Body);
   return json(await reviewIdea(user.id, sanitizeText(idea)));
 });

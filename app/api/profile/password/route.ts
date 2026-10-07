@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { enforceRateLimit, handler, HttpError, json, parseBody, requireApiUser } from "@/lib/api/http";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
+import { startSession } from "@/lib/auth/session";
 import { passwordChangeSchema } from "@/lib/validation/schemas";
 
 export const POST = handler(async (req: Request) => {
@@ -11,6 +12,8 @@ export const POST = handler(async (req: Request) => {
   if (!(await verifyPassword(currentPassword, row.passwordHash))) {
     throw new HttpError(422, "Проверьте введённые данные", { currentPassword: "Неверный текущий пароль" });
   }
-  await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await hashPassword(newPassword) } });
+  // A new password signs out every other device; this one gets a fresh token.
+  await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await hashPassword(newPassword), sessionVersion: { increment: 1 } } });
+  await startSession(user.id);
   return json({ ok: true });
 });

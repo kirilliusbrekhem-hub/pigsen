@@ -1,6 +1,7 @@
 import { consumeAllowance } from "@/lib/billing/limits";
 import { savingsSummary } from "@/lib/savings/service";
 import { prisma } from "@/lib/db/prisma";
+import { enforceDbRateLimit } from "@/lib/api/rate-limit-db";
 import { enforceRateLimit, handler, HttpError, parseBody, requireApiUser } from "@/lib/api/http";
 import { appendMessage, DEFAULT_TITLE, findOwnConversation } from "@/lib/ai/conversations";
 import { getAIProvider, streamReply, titleFromQuestion } from "@/lib/ai/aiService";
@@ -21,7 +22,7 @@ type Ctx = { params: Promise<{ id: string }> };
 /** Streams NDJSON events: meta → delta* → done | error. */
 export const POST = handler(async (req: Request, { params }: Ctx) => {
   const user = await requireApiUser();
-  enforceRateLimit(`ai:${user.id}`, 20, 60_000);
+  await enforceDbRateLimit(`ai:${user.id}`, 20, 60_000);
   enforceRateLimit(`ai-day:${user.id}`, 300, 24 * 60 * 60_000);
   const { id } = await params;
   const { content } = await parseBody(req, chatMessageSchema);

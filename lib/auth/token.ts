@@ -12,8 +12,9 @@ function secretKey(): Uint8Array {
   return new TextEncoder().encode(secret);
 }
 
-export async function signSession(userId: string): Promise<string> {
-  return new SignJWT({})
+/** `sv` is the user's sessionVersion; bumping it in the DB revokes every older token. */
+export async function signSession(userId: string, sessionVersion = 0): Promise<string> {
+  return new SignJWT({ sv: sessionVersion })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(userId)
     .setIssuedAt()
@@ -21,12 +22,18 @@ export async function signSession(userId: string): Promise<string> {
     .sign(secretKey());
 }
 
-export async function verifySession(token: string | undefined): Promise<string | null> {
+export async function verifySessionClaims(token: string | undefined): Promise<{ userId: string; sessionVersion: number } | null> {
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, secretKey(), { algorithms: ["HS256"] });
-    return typeof payload.sub === "string" ? payload.sub : null;
+    if (typeof payload.sub !== "string") return null;
+    return { userId: payload.sub, sessionVersion: typeof payload.sv === "number" ? payload.sv : 0 };
   } catch {
     return null;
   }
+}
+
+/** Signature/expiry check only (edge proxy); getCurrentUser also checks the session version. */
+export async function verifySession(token: string | undefined): Promise<string | null> {
+  return (await verifySessionClaims(token))?.userId ?? null;
 }

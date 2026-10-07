@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/db/prisma";
+import { avatarUrl } from "@/lib/profile/avatar-url";
 import { XP } from "@/lib/gamification/service";
 import { addCoins, extendPro } from "@/lib/coins/service";
 import { currentWeek, lastWeek, type Week } from "./week";
@@ -24,7 +25,7 @@ export interface Row {
   userId: string;
   name: string;
   title: string;
-  avatar: string | null;
+  avatarUrl: string | null;
   points: number;
 }
 
@@ -42,10 +43,10 @@ export async function weeklyRanking(week: Week): Promise<Row[]> {
   const proSince = week.end > now ? now : week.start;
   const users = await prisma.user.findMany({
     where: { id: { in: [...points.keys()] }, blocked: false, profile: { proUntil: { gt: proSince } } },
-    select: { id: true, name: true, profile: { select: { title: true, avatar: true } } },
+    select: { id: true, name: true, profile: { select: { title: true, avatar: true, updatedAt: true } } },
   });
   return users
-    .map((u) => ({ userId: u.id, name: u.name, title: u.profile?.title ?? "", avatar: u.profile?.avatar ?? null, points: points.get(u.id) ?? 0 }))
+    .map((u) => ({ userId: u.id, name: u.name, title: u.profile?.title ?? "", avatarUrl: avatarUrl(u.id, u.profile), points: points.get(u.id) ?? 0 }))
     .filter((r) => r.points > 0)
     .sort((a, b) => b.points - a.points || a.userId.localeCompare(b.userId))
     .map((r, i) => ({ ...r, place: i + 1 }));

@@ -2,7 +2,9 @@ import "server-only";
 import { prisma } from "@/lib/db/prisma";
 import { HttpError } from "@/lib/api/http";
 import { addCoins } from "@/lib/coins/service";
-import { isAdminEmail } from "@/lib/admin/auth";
+import { isAdmin } from "@/lib/admin/auth";
+import { avatarUrl } from "@/lib/profile/avatar-url";
+
 import { CHALLENGES, challengeById } from "./challenges";
 import { LIKE_REWARD, LIKE_REWARD_AT, POST_KINDS, POST_TOPICS, type PostKind, type PostTopic } from "./meta";
 
@@ -34,7 +36,7 @@ export const challengeCount = () => CHALLENGES.length;
 export const POST_MAX = 1000;
 export const PAGE_SIZE = 30;
 
-const authorSelect = { id: true, name: true, profile: { select: { title: true, avatar: true, proUntil: true } } } as const;
+const authorSelect = { id: true, name: true, profile: { select: { title: true, avatar: true, proUntil: true, updatedAt: true } } } as const;
 
 export interface PostView {
   id: string;
@@ -42,7 +44,7 @@ export interface PostView {
   createdAt: string;
   kind: PostKind;
   topic: PostTopic | "";
-  author: { id: string; name: string; title: string; avatar: string | null; pro: boolean };
+  author: { id: string; name: string; title: string; avatarUrl: string | null; pro: boolean };
   canDelete: boolean;
   likes: number;
   liked: boolean;
@@ -50,7 +52,7 @@ export interface PostView {
   replies: PostView[];
 }
 
-type Viewer = { id: string; email: string };
+type Viewer = { id: string; email: string; admin?: boolean };
 
 const postSelect = (viewerId: string) =>
   ({
@@ -70,7 +72,7 @@ type RawPost = {
   createdAt: Date;
   kind: string;
   topic: string;
-  user: { id: string; name: string; profile: { title: string; avatar: string | null; proUntil: Date | null } | null };
+  user: { id: string; name: string; profile: { title: string; avatar: string | null; proUntil: Date | null; updatedAt: Date } | null };
   likes: { userId: string }[];
   _count: { likes: number; replies: number };
 };
@@ -82,8 +84,8 @@ function view(p: RawPost, viewer: Viewer, now: number, replies: RawPost[] = []):
     createdAt: p.createdAt.toISOString(),
     kind: (p.kind in POST_KINDS ? p.kind : "post") as PostKind,
     topic: (p.topic in POST_TOPICS ? p.topic : "") as PostTopic | "",
-    author: { id: p.user.id, name: p.user.name, title: p.user.profile?.title ?? "", avatar: p.user.profile?.avatar ?? null, pro: !!p.user.profile?.proUntil && p.user.profile.proUntil.getTime() > now },
-    canDelete: p.user.id === viewer.id || isAdminEmail(viewer.email),
+    author: { id: p.user.id, name: p.user.name, title: p.user.profile?.title ?? "", avatarUrl: avatarUrl(p.user.id, p.user.profile), pro: !!p.user.profile?.proUntil && p.user.profile.proUntil.getTime() > now },
+    canDelete: p.user.id === viewer.id || !!viewer.admin,
     likes: p._count.likes,
     liked: p.likes.length > 0,
     replyCount: p._count.replies,
@@ -104,6 +106,7 @@ export async function listPosts(viewer: Viewer, opts: ListOpts = {}) {
     ...(opts.topic ? { topic: opts.topic } : {}),
     ...(top ? { createdAt: { gte: new Date(now - 7 * 86_400_000) } } : {}),
   };
+  viewer = { ...viewer, admin: await isAdmin(viewer) };
   const sel = postSelect(viewer.id);
   const rows = await prisma.communityPost.findMany({
     where,
@@ -163,6 +166,6 @@ export async function toggleLike(viewer: Viewer, postId: string) {
 export async function deletePost(viewer: Viewer, id: string) {
   const p = await prisma.communityPost.findUnique({ where: { id }, select: { userId: true } });
   if (!p) throw new HttpError(404, "Пост не найден");
-  if (p.userId !== viewer.id && !isAdminEmail(viewer.email)) throw new HttpError(403, "Можно удалять только свои посты");
+  if (p.userId !== viewer.id && !(await isAdmin(viewer))) throw new HttpError(403, "Можно удалять только свои посты");
   await prisma.communityPost.delete({ where: { id } });
 }

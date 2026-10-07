@@ -17,20 +17,21 @@ export function tierOf(profile: PlanProfile): Tier {
   return isPro(profile) ? "pro" : isLite(profile) ? "lite" : "free";
 }
 
-export type LimitKind = "chat" | "coach" | "spend" | "idea";
+export type LimitKind = "chat" | "coach" | "spend" | "idea" | "quiz";
 export interface Limits {
   goals: number;
   chat: number;
   coach: number;
   spend: number;
   idea: number;
+  quiz: number;
 }
 
 /** Daily allowances per tier; Pro is unlimited (still rate-limited per minute). */
 export const LIMITS: Record<Tier, Limits> = {
-  free: { goals: 2, chat: 7, coach: 1, spend: 2, idea: 1 },
-  lite: { goals: 5, chat: 25, coach: 5, spend: 10, idea: 5 },
-  pro: { goals: Infinity, chat: Infinity, coach: Infinity, spend: Infinity, idea: Infinity },
+  free: { goals: 2, chat: 7, coach: 1, spend: 2, idea: 1, quiz: 5 },
+  lite: { goals: 5, chat: 25, coach: 5, spend: 10, idea: 5, quiz: 15 },
+  pro: { goals: Infinity, chat: Infinity, coach: Infinity, spend: Infinity, idea: Infinity, quiz: 40 },
 };
 export const FREE_LIMITS = LIMITS.free;
 
@@ -65,6 +66,7 @@ export const COMPARE: { label: string; free: string; lite: string; pro: string }
   { label: "Советы коуча в день", free: "1", lite: "5", pro: "∞" },
   { label: "«Что если потрачу» в день", free: "2", lite: "10", pro: "∞" },
   { label: "Разбор идей в день", free: "1", lite: "5", pro: "∞" },
+  { label: "Квизы по урокам в день", free: "5", lite: "15", pro: "40" },
   { label: "Цели в копилке", free: "2", lite: "5", pro: "∞" },
   { label: "PigCoin$ за обучение", free: "x1", lite: "x1", pro: "x2" },
   { label: "Ежедневный бонус", free: "до 30", lite: "до 30", pro: "до 60" },

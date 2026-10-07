@@ -13,7 +13,7 @@ export function SecurityForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [busy, setBusy] = useState<"logout" | "delete" | "clear" | null>(null);
+  const [busy, setBusy] = useState<"logout" | "logout-all" | "delete" | "clear" | null>(null);
 
   async function changePassword(e: React.FormEvent) {
     e.preventDefault();
@@ -36,7 +36,7 @@ export function SecurityForm() {
     }
   }
 
-  async function action(kind: "logout" | "delete" | "clear") {
+  async function action(kind: "logout" | "logout-all" | "delete" | "clear") {
     setBusy(kind);
     try {
       if (kind === "clear") {
@@ -46,8 +46,9 @@ export function SecurityForm() {
         router.refresh();
         return;
       }
-      await api(kind === "logout" ? "/api/auth/logout" : "/api/profile", { method: kind === "logout" ? "POST" : "DELETE" });
-      window.location.href = kind === "logout" ? "/login" : "/";
+      if (kind === "delete") await api("/api/profile", { method: "DELETE" });
+      else await api(kind === "logout" ? "/api/auth/logout" : "/api/auth/logout-all", { method: "POST" });
+      window.location.href = kind === "delete" ? "/" : "/login";
     } catch (e) {
       toast.show(errorMessage(e), { kind: "err" });
       setBusy(null);
@@ -93,6 +94,15 @@ export function SecurityForm() {
           </div>
           <Button size="sm" onClick={() => action("logout")} loading={busy === "logout"}>
             Выйти
+          </Button>
+        </div>
+        <div className="set-row">
+          <div>
+            <div className="t">Выйти на всех устройствах</div>
+            <div className="d">Завершить все сессии, например если вы входили с чужого телефона.</div>
+          </div>
+          <Button size="sm" onClick={() => action("logout-all")} loading={busy === "logout-all"}>
+            Выйти везде
           </Button>
         </div>
         <div className="set-row">

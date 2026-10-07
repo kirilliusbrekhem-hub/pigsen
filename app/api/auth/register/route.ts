@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
-import { clientIp, enforceRateLimit, handler, HttpError, json, parseBody } from "@/lib/api/http";
+import { enforceDbRateLimit } from "@/lib/api/rate-limit-db";
+import { clientIp, handler, HttpError, json, parseBody } from "@/lib/api/http";
 import { hashPassword } from "@/lib/auth/password";
 import { startSession } from "@/lib/auth/session";
 import { registerSchema } from "@/lib/validation/schemas";
@@ -16,7 +17,7 @@ function cookieRef(req: Request): string | null {
 }
 
 export const POST = handler(async (req: Request) => {
-  enforceRateLimit(`register:${clientIp(req)}`, 10, 60 * 60_000);
+  await enforceDbRateLimit(`register:${clientIp(req)}`, 10, 60 * 60_000);
   const { name, email, password, ref } = await parseBody(req, schema);
   const exists = await prisma.user.findUnique({ where: { email }, select: { id: true } });
   if (exists) throw new HttpError(409, "Аккаунт с таким email уже существует", { email: "Этот email уже зарегистрирован" });

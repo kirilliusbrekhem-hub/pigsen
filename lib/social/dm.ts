@@ -1,14 +1,15 @@
 import "server-only";
 import { prisma } from "@/lib/db/prisma";
+import { avatarUrl } from "@/lib/profile/avatar-url";
 import { HttpError } from "@/lib/api/http";
 import { isPro } from "@/lib/billing/plan";
 import type { ConversationView, DmView, PublicUser } from "./meta";
 
-const userSelect = { id: true, name: true, blocked: true, profile: { select: { title: true, avatar: true, proUntil: true } } } as const;
-type RawUser = { id: string; name: string; blocked: boolean; profile: { title: string; avatar: string | null; proUntil: Date | null } | null };
+const userSelect = { id: true, name: true, blocked: true, profile: { select: { title: true, avatar: true, proUntil: true, updatedAt: true } } } as const;
+type RawUser = { id: string; name: string; blocked: boolean; profile: { title: string; avatar: string | null; proUntil: Date | null; updatedAt: Date } | null };
 
 function pub(u: RawUser, now: number): PublicUser {
-  return { id: u.id, name: u.name, avatar: u.profile?.avatar ?? null, pro: !!u.profile?.proUntil && u.profile.proUntil.getTime() > now, title: u.profile?.title ?? "" };
+  return { id: u.id, name: u.name, avatarUrl: avatarUrl(u.id, u.profile), pro: !!u.profile?.proUntil && u.profile.proUntil.getTime() > now, title: u.profile?.title ?? "" };
 }
 
 export async function publicUser(id: string): Promise<PublicUser | null> {
