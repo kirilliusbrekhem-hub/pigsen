@@ -5,6 +5,7 @@ import { ProPromo } from "@/components/pro/ProPromo";
 import { PremiumLock } from "@/components/pro/PremiumLock";
 import { CommunityFeed, PostBody } from "@/components/social/CommunityFeed";
 import { listPosts } from "@/lib/social/service";
+import { CommunityTabs } from "@/components/social/CommunityTabs";
 
 export const metadata: Metadata = { title: "Комьюнити" };
 
@@ -17,12 +18,13 @@ export default async function CommunityPage() {
       <section className="page-head">
         <div>
           <span className="label">Комьюнити Pro</span>
-          <h1>Клуб тех, кто растёт</h1>
+          <h1>Лента успехов</h1>
           <p>Делитесь результатами, задавайте вопросы и помогайте другим. Будьте вежливы: без спама, рекламы и финансовых «сигналов». <a href="/rules">Правила комьюнити</a>.</p>
         </div>
       </section>
+      <CommunityTabs active="feed" />
       {pro ? (
-        <CommunityFeed initial={posts} next={next} />
+        <CommunityFeed initial={posts} next={next} me={user.id} />
       ) : (
         <div className="stack">
           <ProPromo place="community" />

@@ -25,3 +25,20 @@
 .growth-chart-dot { fill: var(--accent); }
 .growth-chart-axis { stroke: var(--line, rgba(127,127,127,.3)); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .growth-chart-x { display: flex; justify-content: space-between; font-size: 11px; }
+
+/* ---------- Analytics: funnel, marketing ---------- */
+.funnel { display: grid; gap: 12px; }
+.funnel-row { display: grid; gap: 4px; min-width: 0; }
+.funnel-head { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+.funnel-track { height: 12px; border-radius: 999px; background: var(--sunken); overflow: hidden; }
+.funnel-fill { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+.funnel-conv { font-size: 12px; }
+.funnel-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.mkt-scroll { overflow-x: auto; max-width: 100%; }
+.mkt-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.mkt-table th, .mkt-table td { padding: 8px 6px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.mkt-table td:first-child, .mkt-table td:nth-child(2) { white-space: normal; word-break: break-word; }
+.utm-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
+.utm-field { min-width: 0; }
+.utm-field .input { width: 100%; }
+.utm-link { display: block; padding: 10px; border-radius: 10px; background: var(--sunken); word-break: break-all; font-size: 13px; }

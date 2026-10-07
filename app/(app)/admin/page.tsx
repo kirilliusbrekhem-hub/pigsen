@@ -2,14 +2,17 @@ import type { Metadata } from "next";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { requireAdmin } from "@/lib/admin/auth";
 import { MiniChart } from "@/components/growth/MiniChart";
-import { adminStats, growthStats } from "@/lib/admin/service";
+import Link from "next/link";
+import { Funnel } from "@/components/analytics/Funnel";
+import { adminStats, funnelStats, growthStats } from "@/lib/admin/service";
 import { rub } from "@/lib/client/format";
 
 export const metadata: Metadata = { title: "Админка", robots: { index: false } };
 
-export default async function AdminPage() {
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ d?: string }> }) {
   await requireAdmin();
-  const [s, g] = await Promise.all([adminStats(), growthStats()]);
+  const period = (await searchParams).d === "30" ? 30 : 7;
+  const [s, g, f] = await Promise.all([adminStats(), growthStats(), funnelStats(period)]);
   const peak = Math.max(1, ...s.signups.map((d) => d.count));
   const tiles = [
     { k: "Пользователей", v: s.users, d: `+${s.users7} за 7 дней` },
@@ -37,6 +40,20 @@ export default async function AdminPage() {
           </div>
         ))}
       </div>
+      <section className="card card-pad stack" style={{ gap: 12 }}>
+        <div className="funnel-top">
+          <b>Воронка за {period} дней</b>
+          <nav className="chips-row" aria-label="Период воронки">
+            {[7, 30].map((d) => (
+              <Link key={d} href={`/admin?d=${d}`} className={`chip ${d === period ? "is-selected" : ""}`} aria-current={d === period ? "page" : undefined}>
+                {d} дней
+              </Link>
+            ))}
+          </nav>
+        </div>
+        <Funnel steps={f.steps} />
+        <span className="muted">Пробный Pro (за PigCoin$): <b className="num">{f.trial}</b> из новых пользователей. Шаги после визитов считаются по пользователям, зарегистрированным за период.</span>
+      </section>
       <section className="card card-pad stack" style={{ gap: 12 }}>
         <b>Регистрации за 14 дней</b>
         <div className="admin-bars" role="img" aria-label="Регистрации по дням">

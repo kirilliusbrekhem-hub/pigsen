@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Coin } from "@/components/ui/Coin";
 import { Icon } from "@/components/ui/Icon";
 import { useToast } from "@/components/ui/Toast";
+import { reachGoal } from "@/lib/analytics/goal";
 import { api, errorMessage } from "@/lib/client/api";
 
 export function BuyPlan({ plan, label, enabled }: { plan: "month" | "year"; label: string; enabled: boolean }) {
@@ -69,7 +70,10 @@ export function BuyPlan({ plan, label, enabled }: { plan: "month" | "year"; labe
     );
   }
   return (
-    <Button variant={plan === "year" ? "accent" : "primary"} onClick={go} loading={busy}>
+    <Button variant={plan === "year" ? "accent" : "primary"} onClick={() => {
+      reachGoal("pro_click");
+      void go();
+    }} loading={busy}>
       {label}
     </Button>
   );
@@ -96,6 +100,7 @@ export function Shop({ items, coins }: { items: ShopItemView[]; coins: number })
     setBusy(id);
     try {
       const r = await api<{ message?: string }>("/api/shop/buy", { method: "POST", body: { itemId: id } });
+      if (id === "pro-trial") reachGoal("pro_trial");
       toast.show(r.message ?? `Куплено: ${title}`);
       router.refresh();
     } catch (err) {

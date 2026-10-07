@@ -53,6 +53,26 @@ npm run dev               # http://localhost:3000
 ## Админка
 `/admin` открыта только для email из `ADMIN_EMAILS`; остальным показывается «страница не найдена». Статистика (пользователи, активность, Pro, выручка, $PIG, копилка), пользователи (поиск, выдача и отключение Pro, начисление и списание PigCoin$, блокировка), платежи и редактор материалов библиотеки. Изменённые или удалённые в админке материалы сид больше не трогает.
 
+## Аналитика: UTM, Яндекс.Метрика, Google Analytics 4
+
+Первый источник визита (utm_source/medium/campaign/content + referrer) хранится в cookie `pigsen_utm` (30 дней) и при регистрации сохраняется в `Attribution` (без UTM — `referral` по реф-ссылке или `direct`). Уникальные визиты пишутся в `Visit` (раз в день на посетителя). Воронка — на `/admin` (`?d=7|30`), разбивка по источникам и конструктор UTM-ссылок — на `/admin/marketing`. Оба счётчика необязательны и независимы.
+
+**Яндекс.Метрика (`NEXT_PUBLIC_YM_ID`)**
+1. Откройте metrika.yandex.ru → «Добавить счётчик».
+2. Адрес сайта: `pigsen.vercel.app`, примите условия.
+3. Включите «Вебвизор, карта скроллинга, аналитика форм» → «Создать счётчик».
+4. Скопируйте номер счётчика (только цифры). Код вставлять не нужно — он уже в приложении.
+5. Vercel → проект → Settings → Environment Variables → `NEXT_PUBLIC_YM_ID` = номер (Production и Preview) → Save.
+6. Deployments → у последнего деплоя «⋯» → Redeploy (переменные `NEXT_PUBLIC_*` подставляются при сборке).
+7. Цели: в Метрике «Цели» → «Добавить цель» → тип «JavaScript-событие» → идентификатор `register`. Повторите для `first_lesson`, `pro_click`, `pro_trial`.
+
+**Google Analytics 4 (`NEXT_PUBLIC_GA_ID`)**
+1. analytics.google.com → Admin (шестерёнка) → Create → Property, название PIGSEN, часовой пояс Москва.
+2. Data collection → Web → URL `pigsen.vercel.app`, название потока PIGSEN → Create stream.
+3. Скопируйте Measurement ID вида `G-XXXXXXX`.
+4. Vercel → Settings → Environment Variables → `NEXT_PUBLIC_GA_ID` = `G-…` → Save → Redeploy.
+5. События отправляются автоматически: `sign_up`, `first_lesson`, `begin_checkout`, `pro_trial`. После первого появления (Admin → Events) отметьте `sign_up` и `begin_checkout` как Key events (звёздочка/переключатель «Mark as key event»).
+
 ## Стек
 Next.js 16 (App Router), React, TypeScript, Prisma + Postgres (Supabase), zod, JWT-сессия в httpOnly cookie (jose + bcrypt).
 

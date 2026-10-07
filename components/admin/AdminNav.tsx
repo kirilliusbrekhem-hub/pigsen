@@ -6,6 +6,7 @@ const TABS = [
   { href: "/admin/payments", label: "Платежи" },
   { href: "/admin/content", label: "Материалы" },
   { href: "/admin/reviews", label: "Отзывы" },
+  { href: "/admin/marketing", label: "Маркетинг" },
 ];
 
 export function AdminNav({ active, title }: { active: string; title: string }) {

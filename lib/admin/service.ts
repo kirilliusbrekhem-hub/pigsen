@@ -237,3 +237,86 @@ export async function growthStats() {
     reviews: { pending: reviewCount("pending"), approved: reviewCount("approved"), rejected: reviewCount("rejected") },
   };
 }
+
+// ---------- Funnel & marketing (period = last N days, UTC) ----------
+
+/** Distinct (user, UTC day) activity — same sources as growthStats. */
+async function activityDays(userIds: string[], since: Date) {
+  if (!userIds.length) return new Map<string, Set<string>>();
+  const rows = await prisma.$queryRaw<{ userId: string; d: string }[]>`
+    SELECT DISTINCT "userId", to_char(t, 'YYYY-MM-DD') AS d FROM (
+      SELECT "userId", "updatedAt" AS t FROM "Progress" WHERE "updatedAt" >= ${since}
+      UNION ALL SELECT "userId", "createdAt" FROM "ContentView" WHERE "createdAt" >= ${since}
+      UNION ALL SELECT c."userId", m."createdAt" FROM "Message" m JOIN "Conversation" c ON c.id = m."conversationId" WHERE m.role = 'user' AND m."createdAt" >= ${since}
+      UNION ALL SELECT "userId", "createdAt" FROM "CoinTx" WHERE "createdAt" >= ${since}
+    ) a WHERE "userId" = ANY(${userIds})`;
+  const map = new Map<string, Set<string>>();
+  for (const r of rows) {
+    if (!map.has(r.userId)) map.set(r.userId, new Set());
+    map.get(r.userId)!.add(r.d);
+  }
+  return map;
+}
+
+interface CohortUser { id: string; createdAt: Date; activated: boolean; returned: boolean; pro: boolean; trial: boolean }
+
+async function cohort(days: number): Promise<{ since: Date; users: CohortUser[] }> {
+  const since = new Date(day(days - 1).toISOString().slice(0, 10) + "T00:00:00Z");
+  const users = await prisma.user.findMany({ where: { createdAt: { gte: since } }, select: { id: true, createdAt: true } });
+  const ids = users.map((u) => u.id);
+  const [active, done, paid, trials] = await Promise.all([
+    activityDays(ids, since),
+    prisma.progress.findMany({ where: { userId: { in: ids }, status: "completed" }, select: { userId: true }, distinct: ["userId"] }),
+    prisma.payment.findMany({ where: { userId: { in: ids }, OR: [{ status: "succeeded" }, { applied: true }] }, select: { userId: true }, distinct: ["userId"] }),
+    prisma.coinTx.findMany({ where: { userId: { in: ids }, reason: "shop:pro-trial" }, select: { userId: true }, distinct: ["userId"] }),
+  ]);
+  const doneS = new Set(done.map((r) => r.userId));
+  const paidS = new Set(paid.map((r) => r.userId));
+  const trialS = new Set(trials.map((r) => r.userId));
+  return {
+    since,
+    users: users.map((u) => {
+      const reg = dayKey(u.createdAt);
+      const returned = [...(active.get(u.id) ?? [])].some((d) => d > reg);
+      return { id: u.id, createdAt: u.createdAt, activated: doneS.has(u.id), returned, pro: paidS.has(u.id), trial: trialS.has(u.id) };
+    }),
+  };
+}
+
+export async function funnelStats(days: 7 | 30) {
+  const { since, users } = await cohort(days);
+  const visitors = await prisma.visit.groupBy({ by: ["visitorId"], where: { day: { gte: dayKey(since) } } });
+  const count = (f: (u: CohortUser) => boolean) => users.filter(f).length;
+  return {
+    days,
+    steps: [
+      { key: "visits", label: "Визиты (уникальные)", value: visitors.length },
+      { key: "register", label: "Регистрации", value: users.length },
+      { key: "activated", label: "Активированы (≥1 урок)", value: count((u) => u.activated) },
+      { key: "returned", label: "Вернулись в другой день", value: count((u) => u.returned) },
+      { key: "pro", label: "Купили Pro", value: count((u) => u.pro) },
+    ],
+    trial: count((u) => u.trial),
+  };
+}
+
+export async function marketingStats(days: 7 | 30) {
+  const { users } = await cohort(days);
+  const attrs = await prisma.attribution.findMany({ where: { userId: { in: users.map((u) => u.id) } }, select: { userId: true, source: true, campaign: true } });
+  const byUser = new Map(attrs.map((a) => [a.userId, a]));
+  const rows = new Map<string, { source: string; campaign: string; registrations: number; activated: number; returned: number; pro: number; trial: number }>();
+  for (const u of users) {
+    const a = byUser.get(u.id);
+    const source = a?.source || "(нет данных)";
+    const campaign = a?.campaign || "—";
+    const k = `${source}\u0000${campaign}`;
+    const r = rows.get(k) ?? { source, campaign, registrations: 0, activated: 0, returned: 0, pro: 0, trial: 0 };
+    r.registrations++;
+    if (u.activated) r.activated++;
+    if (u.returned) r.returned++;
+    if (u.pro) r.pro++;
+    if (u.trial) r.trial++;
+    rows.set(k, r);
+  }
+  return [...rows.values()].sort((a, b) => b.registrations - a.registrations);
+}

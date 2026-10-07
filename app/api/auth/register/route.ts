@@ -4,6 +4,8 @@ import { clientIp, enforceRateLimit, handler, HttpError, json, parseBody } from 
 import { hashPassword } from "@/lib/auth/password";
 import { startSession } from "@/lib/auth/session";
 import { registerSchema } from "@/lib/validation/schemas";
+import { saveAttribution } from "@/lib/analytics/attribution";
+import { GOAL_COOKIE } from "@/lib/analytics/utm";
 import { attachReferral, REF_COOKIE } from "@/lib/growth/referral";
 
 const schema = registerSchema.extend({ ref: z.string().max(64).optional() });
@@ -27,8 +29,10 @@ export const POST = handler(async (req: Request) => {
   } catch (e) {
     console.error("[referral] attach failed", e);
   }
+  await saveAttribution(user.id, req, referred);
   await startSession(user.id);
   const res = json({ id: user.id, name: user.name, referred }, 201);
   if (referred) res.cookies.set(REF_COOKIE, "", { maxAge: 0, path: "/" });
+  res.cookies.set(GOAL_COOKIE, "register", { maxAge: 600, path: "/", sameSite: "lax" });
   return res;
 });

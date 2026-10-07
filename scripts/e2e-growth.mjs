@@ -91,7 +91,12 @@ ok(`cron ${cron.status}, sw ${sw.status}`);
 for (const [w, p] of [[1280, page], [360, friendPage]]) {
   for (const path of ["/invite", "/challenges", "/community", "/leaderboard", "/savings"]) {
     await p.goto(BASE + path);
-    const over = await p.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1 || [...document.querySelectorAll("main *")].some((e) => e.getBoundingClientRect().right > window.innerWidth + 2 && getComputedStyle(e).position !== "fixed"));
+    const over = await p.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1 || [...document.querySelectorAll("main *")].some((e) => {
+      if (e.getBoundingClientRect().right <= window.innerWidth + 2 || getComputedStyle(e).position === "fixed") return false;
+      // Items inside a horizontally scrollable strip (chips, tabs) are fine.
+      for (let a = e.parentElement; a && a.tagName !== "MAIN"; a = a.parentElement) if (/(auto|scroll)/.test(getComputedStyle(a).overflowX)) return false;
+      return true;
+    }));
     if (over && w === 360) problems.push(`overflow ${path} @${w}`);
   }
 }

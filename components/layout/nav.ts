@@ -13,6 +13,7 @@ export const NAV: NavItem[] = [
   { href: "/tools", label: "Инструменты", icon: "sliders" },
   { href: "/leaderboard", label: "Лидерборд", icon: "chart" },
   { href: "/community", label: "Комьюнити", icon: "users" },
+  { href: "/messages", label: "Сообщения", icon: "message" },
   { href: "/challenges", label: "Челленджи", icon: "target" },
   { href: "/invite", label: "Пригласить", icon: "link" },
   { href: "/saved", label: "Сохранённое", icon: "bookmark" },
@@ -41,6 +42,7 @@ export const SECTION_TITLES: Record<string, string> = {
   admin: "Админка",
   leaderboard: "Лидерборд",
   community: "Комьюнити",
+  messages: "Сообщения",
   challenges: "Челленджи",
   invite: "Пригласить",
 };
@@ -58,6 +60,7 @@ export const DOCK_HINTS: Record<string, string[]> = {
   admin: [],
   leaderboard: [],
   community: ["Как найти партнёра для бизнеса?"],
+  messages: [],
   challenges: ["Помоги выбрать челлендж под мои цели"],
   invite: [],
 };

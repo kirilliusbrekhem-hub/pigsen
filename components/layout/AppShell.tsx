@@ -41,6 +41,22 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
     setMore(false);
   }
 
+  // Unread private messages badge (polls every 30s while the tab is visible).
+  const [unread, setUnread] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    const load = () => {
+      if (document.visibilityState !== "visible") return;
+      fetch("/api/dm/unread", { credentials: "same-origin" })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d: { unread?: number } | null) => { if (alive && d) setUnread(d.unread ?? 0); })
+        .catch(() => {});
+    };
+    load();
+    const id = window.setInterval(load, 30_000);
+    return () => { alive = false; window.clearInterval(id); };
+  }, [pathname]);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const typing = e.target instanceof HTMLElement && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
@@ -98,6 +114,7 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
                   <Icon name={n.icon} />
                   {n.label}
                   {n.href === "/saved" && savedCount > 0 && <span className="count">{savedCount}</span>}
+                  {n.href === "/messages" && unread > 0 && <span className="count dm-count">{unread}</span>}
                   {n.href === "/search" && <kbd>/</kbd>}
                 </Link>
               ),
@@ -261,6 +278,7 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
                       <Icon name={m.icon} />
                       <span>{m.label}</span>
                       {m.href === "/saved" && savedCount > 0 && <span className="count">{savedCount}</span>}
+                      {m.href === "/messages" && unread > 0 && <span className="count dm-count">{unread}</span>}
                     </Link>
                   ))}
                 </div>
