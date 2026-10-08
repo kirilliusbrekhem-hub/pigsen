@@ -45,6 +45,7 @@ model User {
   chatMessages  ChatMessage[]
   dmSent        DirectMessage[] @relation("dmFrom")
   dmReceived    DirectMessage[] @relation("dmTo")
+  simRuns       SimRun[]
 }
 
 model Profile {
@@ -81,6 +82,9 @@ model Profile {
   extraGoals        Int      @default(0)
   nameColor         String   @default("")
   avatarRing        String   @default("")
+  // Profile customization: background preset and emblem next to the name (see lib/profile/cosmetics.ts)
+  profileBg         String   @default("")
+  profileEmblem     String   @default("")
   updatedAt         DateTime @updatedAt
 }
 
@@ -491,4 +495,125 @@ model RateHit {
   key     String   @id
   count   Int
   resetAt DateTime
+}
+
+/// Duels: 1v1 speed quiz. Questions (with answers) live only on the server in `questions` (JSON snapshot).
+model Duel {
+  id         String       @id @default(cuid())
+  code       String       @unique
+  /// friend | random | ghost | bot
+  kind       String
+  /// waiting | active | done | cancelled
+  status     String       @default("waiting")
+  stake      Int          @default(0)
+  questions  String
+  creatorId  String
+  rematchId  String?
+  createdAt  DateTime     @default(now())
+  startedAt  DateTime?
+  finishedAt DateTime?
+  players    DuelPlayer[]
+
+  @@index([status, kind, stake, createdAt])
+  @@index([creatorId, createdAt])
+}
+
+model DuelPlayer {
+  id           String       @id @default(cuid())
+  duelId       String
+  duel         Duel         @relation(fields: [duelId], references: [id], onDelete: Cascade)
+  /// null for a bot / ghost
+  userId       String?
+  name         String
+  isBot        Boolean      @default(false)
+  stake        Int          @default(0)
+  score        Int          @default(0)
+  correct      Int          @default(0)
+  current      Int          @default(0)
+  qStartedAt   DateTime?
+  lastActiveAt DateTime     @default(now())
+  finishedAt   DateTime?
+  /// win | loss | draw
+  result       String?
+  joinedAt     DateTime     @default(now())
+  answers      DuelAnswer[]
+
+  @@unique([duelId, userId])
+  @@index([userId, joinedAt])
+  @@index([result, finishedAt])
+}
+
+model DuelAnswer {
+  id        String     @id @default(cuid())
+  playerId  String
+  player    DuelPlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  q         Int
+  choice    Int
+  correct   Boolean
+  ms        Int
+  points    Int
+
+  @@unique([playerId, q])
+}
+
+/// Quest progress counter per user, period ("d:YYYY-MM-DD" daily, "w:YYYY-MM-DD" week starting Monday) and quest kind.
+/// Rewards are claimed through DailyClaim keys, so a counter row only ever increments.
+model QuestProgress {
+  userId    String
+  period    String
+  kind      String
+  progress  Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@id([userId, period, kind])
+}
+
+/// Business plan from the "Бизнес-план за 10 минут" wizard. input: PlanInput JSON; sections: AI/template text.
+/// Numbers are recomputed from input by lib/bizplan/model.ts on every read, never stored or written by AI.
+model BizPlan {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  input     Json
+  sections  Json
+  aiDemo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, updatedAt])
+}
+
+/// Business simulator run. State and per-week history are computed only by lib/sim/engine.ts.
+model SimRun {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind       String
+  seed       Int
+  week       Int       @default(0)
+  status     String    @default("active") // active | finished | bankrupt
+  state      Json
+  history    Json      @default("[]")
+  score      Int?
+  reward     Int       @default(0)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  finishedAt DateTime?
+
+  @@index([userId, createdAt])
+}
+
+/// «Разбор трат»: only the aggregated result of one statement analysis is kept (never the uploaded file or rows).
+/// A deleted analysis keeps its timestamp (result wiped) so the weekly Free quota can't be reset by deleting.
+model SpendAnalysis {
+  id        String    @id @default(cuid())
+  userId    String
+  source    String
+  txCount   Int
+  total     Int
+  result    Json?
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, createdAt])
 }

@@ -6,9 +6,15 @@ import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
 import "./styles/growth.css";
 import "./styles/social.css";
+import "./styles/cosmetics.css";
 import "./styles/savings-push.css";
 import "./styles/landing.css";
 import "./styles/nav.css";
+import "./styles/fx.css";
+import "./styles/duels.css";
+import "./styles/analyze.css";
+import "./styles/sim.css";
+import "./styles/bizplan.css";
 
 export const metadata: Metadata = {
   title: { default: "PIGSEN", template: "%s · PIGSEN" },

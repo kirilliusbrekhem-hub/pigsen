@@ -9,16 +9,16 @@ export interface GoalTheme {
 }
 
 export const THEMES: GoalTheme[] = [
-  { id: "piggy", label: "Копилка", icon: "piggy", from: "#ff9a8b", to: "#ff6a88" },
-  { id: "umbrella", label: "Подушка", icon: "umbrella", from: "#5ee7df", to: "#3b82f6" },
-  { id: "plane", label: "Путешествие", icon: "plane", from: "#4facfe", to: "#00c6fb" },
-  { id: "house", label: "Жильё", icon: "house", from: "#a18cd1", to: "#7c3aed" },
-  { id: "laptop", label: "Техника", icon: "laptop", from: "#84fab0", to: "#10b981" },
-  { id: "car", label: "Машина", icon: "car", from: "#f6d365", to: "#fd8a3e", premium: true },
-  { id: "rocket", label: "Свой бизнес", icon: "rocket", from: "#667eea", to: "#e040fb", premium: true },
-  { id: "heart", label: "Для близких", icon: "heart", from: "#ff758c", to: "#e11d48", premium: true },
-  { id: "cap", label: "Учёба", icon: "cap", from: "#43e97b", to: "#0ea5e9", premium: true },
-  { id: "gold", label: "Золотая", icon: "coin", from: "#f7d774", to: "#b8860b", premium: true },
+  { id: "piggy", label: "Копилка", icon: "piggy", from: "#4CC795", to: "#0E7A52" },
+  { id: "umbrella", label: "Подушка", icon: "umbrella", from: "#3FBD88", to: "#0B4D35" },
+  { id: "plane", label: "Путешествие", icon: "plane", from: "#5FA884", to: "#1C5640" },
+  { id: "house", label: "Жильё", icon: "house", from: "#2E8A63", to: "#0C1114" },
+  { id: "laptop", label: "Техника", icon: "laptop", from: "#A9D2BC", to: "#2E8A63" },
+  { id: "car", label: "Машина", icon: "car", from: "#0E7A52", to: "#0C1114", premium: true },
+  { id: "rocket", label: "Свой бизнес", icon: "rocket", from: "#4CC795", to: "#0C1114", premium: true },
+  { id: "heart", label: "Для близких", icon: "heart", from: "#55CC99", to: "#0B6745", premium: true },
+  { id: "cap", label: "Учёба", icon: "cap", from: "#1C5640", to: "#0C1114", premium: true },
+  { id: "gold", label: "Изумрудная", icon: "gem", from: "#4CE0A2", to: "#0E3B2A", premium: true },
 ];
 
 export const themeOf = (id: string) => THEMES.find((t) => t.id === id) ?? THEMES[0];

@@ -3,6 +3,7 @@ import { enforceRateLimit, handler, HttpError, json, parseBody, requireApiUser }
 import { isPro } from "@/lib/billing/plan";
 import { createPost, listPosts, POST_MAX } from "@/lib/social/service";
 import { KIND_IDS, TOPIC_IDS } from "@/lib/social/meta";
+import { trackQuest } from "@/lib/gamification/quests";
 import { sanitizeText } from "@/lib/validation/schemas";
 
 const schema = z.object({
@@ -38,5 +39,7 @@ export const POST = handler(async (req: Request) => {
   const body = await parseBody(req, schema);
   if (body.parentId) enforceRateLimit(`community-reply:${user.id}`, 20, 10 * 60_000);
   else enforceRateLimit(`community:${user.id}`, 5, 10 * 60_000);
-  return json({ post: await createPost(user, body.text, body) }, 201);
+  const post = await createPost(user, body.text, body);
+  await trackQuest(user.id, "community");
+  return json({ post }, 201);
 });

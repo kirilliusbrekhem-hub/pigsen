@@ -3,6 +3,8 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Icon } from "@/components/ui/Icon";
+import { Emblem } from "@/components/profile/ProfileCard";
+import { nameCls, ringCls } from "@/lib/profile/cosmetics";
 import { useToast } from "@/components/ui/Toast";
 import { api, errorMessage } from "@/lib/client/api";
 import { KIND_IDS, POST_KINDS, POST_TOPICS, TOPIC_IDS, type PostKind, type PostTopic } from "@/lib/social/meta";
@@ -62,12 +64,13 @@ function Composer({ parentId, onDone, placeholder, initialText = "", autoFocus }
 
 function Author({ p, interactive }: { p: PostView; interactive: boolean }) {
   const [open, setOpen] = useState(false);
-  if (!interactive) return <b>{p.author.name}</b>;
+  if (!interactive) return <span className="who"><b className={nameCls(p.author.look)}>{p.author.name}</b><Emblem value={p.author.look?.emblem} /></span>;
   return (
     <span className="cm-author">
-      <button type="button" className="cm-author-btn" onClick={() => setOpen((o) => !o)} aria-expanded={open}>{p.author.name}</button>
+      <span className="who"><button type="button" className={`cm-author-btn ${nameCls(p.author.look) ?? ""}`} onClick={() => setOpen((o) => !o)} aria-expanded={open}>{p.author.name}</button><Emblem value={p.author.look?.emblem} /></span>
       {open && (
         <span className="cm-author-menu">
+          <Link href={`/u/${p.author.id}`} className="btn btn-secondary btn-sm"><Icon name="user" size="sm" /> Профиль</Link>
           <Link href={`/messages/${p.author.id}`} className="btn btn-secondary btn-sm"><Icon name="message" size="sm" /> Написать</Link>
         </span>
       )}
@@ -78,7 +81,7 @@ function Author({ p, interactive }: { p: PostView; interactive: boolean }) {
 export function PostBody({ p, onDelete, onLike, onReply, me }: { p: PostView; onDelete?: () => void; onLike?: () => void; onReply?: () => void; me?: string }) {
   return (
     <div className="cm-post-main">
-      <Avatar name={p.author.name} src={p.author.avatarUrl} className="cm-av" />
+      <Avatar name={p.author.name} src={p.author.avatarUrl} className={`cm-av${ringCls(p.author.look)}`} />
       <div className="cm-post-content">
         <div className="cm-meta">
           <Author p={p} interactive={!!onLike && p.author.id !== me} />

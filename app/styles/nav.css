@@ -7,7 +7,7 @@
   content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; background: var(--accent);
 }
 .nav-group-head:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-.nav-dot { width: 7px; height: 7px; border-radius: 50%; background: #e0245e; flex: none; }
+.nav-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex: none; }
 .nav-dot + .nav-chev { margin-left: 6px; }
 .nav-group-head:has(.nav-dot) .nav-dot { margin-left: auto; }
 

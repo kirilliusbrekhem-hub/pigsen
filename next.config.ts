@@ -9,6 +9,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // The business-plan PDF reads Geist font files from node_modules at runtime; ship them with that route.
+  outputFileTracingIncludes: { "/api/plan/[id]/pdf": ["./node_modules/geist/dist/fonts/geist-sans/**"] },
   async headers() {
     return [
       { source: "/(.*)", headers: securityHeaders },

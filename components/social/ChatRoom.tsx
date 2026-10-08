@@ -3,6 +3,8 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Icon } from "@/components/ui/Icon";
+import { Emblem } from "@/components/profile/ProfileCard";
+import { nameCls, ringCls } from "@/lib/profile/cosmetics";
 import { useToast } from "@/components/ui/Toast";
 import { api, errorMessage } from "@/lib/client/api";
 import { CHAT_MAX, CHAT_ROOMS, type ChatMsgView, type RoomId } from "@/lib/social/meta";
@@ -80,11 +82,12 @@ export function ChatRoom({ room, initial, admin }: { room: RoomId; initial: Chat
         {msgs.length === 0 && <p className="muted cm-empty">Здесь пока пусто — начните разговор!</p>}
         {msgs.map((m) => (
           <div key={m.id} className={`chat-msg ${m.mine ? "is-mine" : ""}`}>
-            {!m.mine && <Avatar name={m.author.name} src={m.author.avatarUrl} className="chat-av" />}
+            {!m.mine && <Avatar name={m.author.name} src={m.author.avatarUrl} className={`chat-av${ringCls(m.author.look)}`} />}
             <div className="chat-bubble">
               {!m.mine && (
                 <div className="chat-meta">
-                  <Link href={`/messages/${m.author.id}`} title="Написать">{m.author.name}</Link>
+                  <Link href={`/u/${m.author.id}`} title="Профиль" className={nameCls(m.author.look)}>{m.author.name}</Link>
+                  <Emblem value={m.author.look?.emblem} />
                   {m.author.pro && <span className="pro-badge">Pro</span>}
                 </div>
               )}

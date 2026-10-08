@@ -3,7 +3,9 @@ import { prisma } from "@/lib/db/prisma";
 import { HttpError } from "@/lib/api/http";
 import { addCoins } from "@/lib/coins/service";
 import { isAdmin } from "@/lib/admin/auth";
+import type { Look } from "@/lib/profile/cosmetics";
 import { avatarUrl } from "@/lib/profile/avatar-url";
+import { LOOK_SELECT, lookOf, type LookFields } from "@/lib/profile/cosmetics";
 
 import { CHALLENGES, challengeById } from "./challenges";
 import { LIKE_REWARD, LIKE_REWARD_AT, POST_KINDS, POST_TOPICS, type PostKind, type PostTopic } from "./meta";
@@ -36,7 +38,7 @@ export const challengeCount = () => CHALLENGES.length;
 export const POST_MAX = 1000;
 export const PAGE_SIZE = 30;
 
-const authorSelect = { id: true, name: true, profile: { select: { title: true, avatar: true, proUntil: true, updatedAt: true } } } as const;
+const authorSelect = { id: true, name: true, profile: { select: { title: true, avatar: true, proUntil: true, updatedAt: true, ...LOOK_SELECT } } } as const;
 
 export interface PostView {
   id: string;
@@ -44,7 +46,7 @@ export interface PostView {
   createdAt: string;
   kind: PostKind;
   topic: PostTopic | "";
-  author: { id: string; name: string; title: string; avatarUrl: string | null; pro: boolean };
+  author: { id: string; name: string; title: string; avatarUrl: string | null; pro: boolean; look: Look };
   canDelete: boolean;
   likes: number;
   liked: boolean;
@@ -72,7 +74,7 @@ type RawPost = {
   createdAt: Date;
   kind: string;
   topic: string;
-  user: { id: string; name: string; profile: { title: string; avatar: string | null; proUntil: Date | null; updatedAt: Date } | null };
+  user: { id: string; name: string; profile: ({ title: string; avatar: string | null; proUntil: Date | null; updatedAt: Date } & LookFields) | null };
   likes: { userId: string }[];
   _count: { likes: number; replies: number };
 };
@@ -84,7 +86,7 @@ function view(p: RawPost, viewer: Viewer, now: number, replies: RawPost[] = []):
     createdAt: p.createdAt.toISOString(),
     kind: (p.kind in POST_KINDS ? p.kind : "post") as PostKind,
     topic: (p.topic in POST_TOPICS ? p.topic : "") as PostTopic | "",
-    author: { id: p.user.id, name: p.user.name, title: p.user.profile?.title ?? "", avatarUrl: avatarUrl(p.user.id, p.user.profile), pro: !!p.user.profile?.proUntil && p.user.profile.proUntil.getTime() > now },
+    author: { id: p.user.id, name: p.user.name, title: p.user.profile?.title ?? "", avatarUrl: avatarUrl(p.user.id, p.user.profile), pro: !!p.user.profile?.proUntil && p.user.profile.proUntil.getTime() > now, look: lookOf(p.user.profile) },
     canDelete: p.user.id === viewer.id || !!viewer.admin,
     likes: p._count.likes,
     liked: p.likes.length > 0,

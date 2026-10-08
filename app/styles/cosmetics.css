@@ -1,0 +1,73 @@
+/* Profile cosmetics: name colors, avatar frames, emblems, profile backgrounds.
+   Brand palette only: green accent shades, ink/black, white. Values match lib/profile/cosmetics.ts. */
+:root { --cx-neon: #12A06B; --cx-deep: #0B4D35; --cx-glow: rgba(76, 199, 149, .55); --cx-black: #0C1114; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --cx-neon: #4CE0A2; --cx-deep: #3FBD88; } }
+:root[data-theme="dark"] { --cx-neon: #4CE0A2; --cx-deep: #3FBD88; }
+
+/* Name colors ("violet" = Малахитовое, "gold" = Неоновое: ids kept for owned items) */
+.name-mint { color: var(--accent); }
+.name-emerald { color: var(--cx-neon); }
+.name-violet { color: var(--cx-deep); }
+.name-gold, .name-aurora { background: linear-gradient(90deg, var(--accent), #4CC795, var(--ink), var(--accent)); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; }
+.name-aurora { animation: cx-shift 4s linear infinite; }
+.name-glow { color: var(--cx-neon); text-shadow: 0 0 10px var(--cx-glow); }
+
+/* Avatar frames ("gold" = Изумрудная, "fire" = Неоновая) */
+.avatar.ring-line { box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--accent-2); }
+.avatar.ring-gold { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent); }
+.avatar.ring-fire { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px #4CC795, 0 0 12px 3px var(--cx-glow); }
+.avatar.ring-duo { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent), 0 0 0 6px var(--cx-black), 0 0 0 7px #4CC795; }
+.avatar.ring-pulse { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px #4CC795, 0 0 14px 4px var(--cx-glow); animation: cx-pulse 2.2s ease-in-out infinite; }
+
+/* Emblem next to the name */
+.emblem { display: inline-grid; place-items: center; flex: none; width: 20px; height: 20px; border-radius: 7px; background: linear-gradient(135deg, var(--cx-black), #0E7A52); color: #EAFBF2; box-shadow: inset 0 0 0 1px rgba(76, 199, 149, .45); vertical-align: middle; }
+.emblem .icon { width: 13px; height: 13px; }
+.emblem.lg { width: 30px; height: 30px; border-radius: 10px; }
+.emblem.lg .icon { width: 18px; height: 18px; }
+.who { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; }
+.who > b, .who > a { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Profile card backgrounds */
+.pcard { position: relative; overflow: hidden; display: flex; align-items: center; gap: 16px; padding: 22px; border-radius: var(--r-lg); background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); --pc-muted: var(--ink-2); }
+.pcard > * { position: relative; }
+.pcard .pc-body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.pcard .pc-name { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 24px; font-weight: 560; letter-spacing: -.02em; line-height: 1.15; }
+.pcard .pc-sub { color: var(--pc-muted); font-size: 13px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.pcard .avatar:not([class*="ring-"]) { box-shadow: 0 0 0 2px var(--surface); }
+.pbg-mint { background: linear-gradient(135deg, var(--accent-soft), var(--surface) 70%); box-shadow: inset 0 0 0 1px var(--accent-line); }
+.pcard.is-dark { color: #EEF1EE; --pc-muted: #A9C9B9; box-shadow: none; }
+.pcard.is-dark .title-chip { background: rgba(76, 199, 149, .2); color: #EAFBF2; }
+.pcard.is-dark .name-violet, .pcard.is-dark .name-mint { color: #4CC795; }
+.pcard.is-dark .name-gold, .pcard.is-dark .name-aurora { background-image: linear-gradient(90deg, #4CC795, #EAFBF2, #3FBD88, #4CC795); }
+.pbg-ink { background: radial-gradient(circle at 100% 0%, rgba(14, 122, 82, .35), transparent 60%), var(--cx-black); }
+.pbg-grid { background-color: var(--cx-black); background-image: linear-gradient(rgba(76, 199, 149, .16) 1px, transparent 1px), linear-gradient(90deg, rgba(76, 199, 149, .16) 1px, transparent 1px); background-size: 22px 22px; }
+.pbg-forest { background: linear-gradient(135deg, #0E7A52, #0B4D35 50%, var(--cx-black)); }
+.pbg-night { background: radial-gradient(circle at 85% -10%, rgba(76, 199, 149, .55), transparent 55%), radial-gradient(circle at 0% 120%, rgba(14, 122, 82, .5), transparent 50%), var(--cx-black); }
+.pbg-stripes { background: repeating-linear-gradient(135deg, var(--cx-black) 0 14px, #0F3A2A 14px 28px); }
+.pbg-aurora { background: linear-gradient(120deg, var(--cx-black), #0E7A52, #4CC795, #0B4D35, var(--cx-black)); background-size: 300% 300%; animation: cx-shift 8s ease-in-out infinite alternate; }
+.pcard.is-dark .avatar:not([class*="ring-"]) { box-shadow: 0 0 0 2px var(--cx-black); }
+.pcard.is-dark .avatar.ring-line, .pcard.is-dark .avatar.ring-gold { box-shadow: 0 0 0 2px var(--cx-black), 0 0 0 4px #4CC795; }
+.pcard.is-pro::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; box-shadow: inset 0 0 0 1.5px rgba(76, 199, 149, .7); }
+@media (max-width: 520px) { .pcard { padding: 16px; gap: 12px; } .pcard .pc-name { font-size: 20px; } .pcard .avatar.xl { width: 56px; height: 56px; } }
+
+/* Customization picker */
+.cx-group { display: flex; flex-direction: column; gap: 8px; }
+.cx-group h3 { font-size: 14px; font-weight: 600; }
+.cx-opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; }
+.cx-opt { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 8px; border-radius: var(--r-md); background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); font-size: 12.5px; color: var(--ink); text-align: center; cursor: pointer; font: inherit; font-size: 12.5px; }
+.cx-opt:hover:not(:disabled) { box-shadow: inset 0 0 0 1px var(--accent-line); }
+.cx-opt.is-on { box-shadow: inset 0 0 0 2px var(--accent); background: var(--accent-soft); }
+.cx-opt.is-locked { color: var(--ink-3); }
+.cx-opt .cx-tag { font-size: 10.5px; font-family: var(--font-mono); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); display: inline-flex; gap: 3px; align-items: center; }
+.cx-opt .cx-tag .icon { width: 11px; height: 11px; }
+.cx-opt .cx-tag.pro { color: var(--accent); }
+.cx-swatch { width: 100%; height: 34px; border-radius: 8px; box-shadow: inset 0 0 0 1px var(--line); }
+.cx-swatch.pcard { padding: 0; display: block; }
+.cx-name { font-weight: 600; font-size: 15px; }
+
+@keyframes cx-shift { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+@keyframes cx-pulse { 0%, 100% { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px #4CC795, 0 0 8px 2px var(--cx-glow); } 50% { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px #4CC795, 0 0 18px 6px var(--cx-glow); } }
+@media (prefers-reduced-motion: reduce) { .name-aurora, .pbg-aurora, .avatar.ring-pulse { animation: none; } }
+.lb-name .who { font-size: inherit; display: flex; }
+.lb-name .who .emblem { flex: none; }
+.chat-meta .emblem, .dm-top .emblem, .dm-head-name .emblem { width: 18px; height: 18px; }

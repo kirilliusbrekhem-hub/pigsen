@@ -1,15 +1,16 @@
 import "server-only";
 import { prisma } from "@/lib/db/prisma";
 import { avatarUrl } from "@/lib/profile/avatar-url";
+import { LOOK_SELECT, lookOf, type LookFields } from "@/lib/profile/cosmetics";
 import { HttpError } from "@/lib/api/http";
 import { isPro } from "@/lib/billing/plan";
 import type { ConversationView, DmView, PublicUser } from "./meta";
 
-const userSelect = { id: true, name: true, blocked: true, profile: { select: { title: true, avatar: true, proUntil: true, updatedAt: true } } } as const;
-type RawUser = { id: string; name: string; blocked: boolean; profile: { title: string; avatar: string | null; proUntil: Date | null; updatedAt: Date } | null };
+const userSelect = { id: true, name: true, blocked: true, profile: { select: { title: true, avatar: true, proUntil: true, updatedAt: true, ...LOOK_SELECT } } } as const;
+type RawUser = { id: string; name: string; blocked: boolean; profile: ({ title: string; avatar: string | null; proUntil: Date | null; updatedAt: Date } & LookFields) | null };
 
 function pub(u: RawUser, now: number): PublicUser {
-  return { id: u.id, name: u.name, avatarUrl: avatarUrl(u.id, u.profile), pro: !!u.profile?.proUntil && u.profile.proUntil.getTime() > now, title: u.profile?.title ?? "" };
+  return { id: u.id, name: u.name, avatarUrl: avatarUrl(u.id, u.profile), pro: !!u.profile?.proUntil && u.profile.proUntil.getTime() > now, title: u.profile?.title ?? "", look: lookOf(u.profile) };
 }
 
 export async function publicUser(id: string): Promise<PublicUser | null> {

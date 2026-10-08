@@ -24,9 +24,7 @@ export function GameStrip({ game, fact }: { game: GameStats; fact: DailyFact }) 
             <b className="game-level">{level.name}</b>
           </div>
           <div className={`streak ${streak ? "on" : ""}`} title="Дней подряд с активностью">
-            <span className="flame" aria-hidden>
-              🔥
-            </span>
+            <Icon name="flame" size="sm" className="flame" />
             <span className="num">{streak}</span>
             <span className="muted">{plural(streak, "день", "дня", "дней")}</span>
           </div>

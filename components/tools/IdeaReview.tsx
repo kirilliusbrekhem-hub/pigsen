@@ -9,6 +9,7 @@ import { ErrorBox } from "@/components/ui/States";
 import { useToast } from "@/components/ui/Toast";
 import { api, errorMessage } from "@/lib/client/api";
 import { xpMessage } from "@/lib/client/xp";
+import { rewardXp } from "@/components/fx";
 import type { IdeaReviewDTO, XpResultDTO } from "@/types";
 
 interface Past {
@@ -67,7 +68,10 @@ export function IdeaReview({ history }: { history: Past[] }) {
     try {
       const r = await api<{ result: IdeaReviewDTO; xp: XpResultDTO; demo: boolean }>("/api/ai/idea", { method: "POST", body: { idea } });
       setCurrent({ idea, result: r.result, demo: r.demo });
-      if (r.xp.gained > 0) toast.show(xpMessage(r.xp, "Разбор готов."));
+      if (r.xp.gained > 0) {
+        toast.show(xpMessage(r.xp, "Разбор готов."));
+        rewardXp(r.xp, null, 1.2);
+      }
       router.refresh();
     } catch (err) {
       setError(errorMessage(err));

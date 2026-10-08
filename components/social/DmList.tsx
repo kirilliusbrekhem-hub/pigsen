@@ -2,6 +2,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Avatar } from "@/components/ui/Avatar";
+import { Emblem } from "@/components/profile/ProfileCard";
+import { nameCls, ringCls } from "@/lib/profile/cosmetics";
 import { api } from "@/lib/client/api";
 import type { ConversationView } from "@/lib/social/meta";
 import { usePoll } from "./usePoll";
@@ -17,10 +19,11 @@ export function DmList({ initial }: { initial: ConversationView[] }) {
       {list.map((c) => (
         <li key={c.user.id}>
           <Link href={`/messages/${c.user.id}`} className={`dm-row ${c.unread ? "is-unread" : ""}`}>
-            <Avatar name={c.user.name} src={c.user.avatarUrl} className="dm-av" />
+            <Avatar name={c.user.name} src={c.user.avatarUrl} className={`dm-av${ringCls(c.user.look)}`} />
             <span className="dm-body">
               <span className="dm-top">
-                <b>{c.user.name}</b>
+                <b className={nameCls(c.user.look)}>{c.user.name}</b>
+                <Emblem value={c.user.look?.emblem} />
                 {c.user.pro && <span className="pro-badge">Pro</span>}
                 <time className="muted" dateTime={c.last.createdAt}>{when(c.last.createdAt)}</time>
               </span>

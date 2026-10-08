@@ -19,7 +19,7 @@ export default async function AdminPayments() {
         {rows.map((p) => (
           <Link key={p.id} href={`/admin/users/${p.userId}`} className="card admin-row clickable">
             <span className="admin-row-main">
-              <b className="num">{p.provider === "telegram" ? `${p.amount} ⭐` : rub(p.amount)}</b>
+              <b className="num">{p.provider === "telegram" ? `${p.amount} ★` : rub(p.amount)}</b>
               <span className="muted">{p.user.name} · {p.user.email}</span>
             </span>
             <span className="admin-row-meta">

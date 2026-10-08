@@ -16,6 +16,8 @@ import { PremiumLock, ProChip } from "@/components/pro/PremiumLock";
 import { hasPremium } from "@/lib/billing/plan";
 import { lessonLocked } from "@/lib/learning/premium";
 import { LessonChallenge } from "@/components/social/LessonChallenge";
+import { LessonInteractive } from "@/components/learning/interactive/LessonInteractive";
+import { lessonBlocks } from "@/lib/learning/interactive";
 
 export const metadata: Metadata = { title: "Урок" };
 
@@ -53,6 +55,7 @@ export default async function LessonPage({ params }: { params: Promise<{ course:
           <article className="card" style={{ overflow: "hidden" }}>
             <div className="reader-main">
               {locked ? <PremiumLock what="урок" /> : <Markdown>{lesson.body}</Markdown>}
+              {!locked && <LessonInteractive blocks={lessonBlocks(course.slug, lesson.slug)} />}
               <Disclaimer kind={RISKY_CATEGORIES.has(course.category.slug) ? "invest" : "general"} compact={!RISKY_CATEGORIES.has(course.category.slug)} />
               {!locked && course.premium && !pro && (
                 <p className="premium-note">

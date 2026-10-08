@@ -9,7 +9,7 @@
 .goal-pic-thumb { width: 72px; height: 72px; flex: none; border-radius: 12px; object-fit: cover; }
 .goal-pic-empty { display: grid; place-items: center; background: var(--surface-2, rgba(127,127,127,.12)); color: var(--ink-3, #888); }
 .push-box { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-.push-ic { width: 40px; height: 40px; flex: none; border-radius: 12px; display: grid; place-items: center; background: rgba(245,183,0,.16); color: #c98f00; }
+.push-ic { width: 40px; height: 40px; flex: none; border-radius: 12px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
 .push-text { display: flex; flex-direction: column; gap: 2px; flex: 1 1 200px; min-width: 0; font-size: 14px; }
 .push-text .muted { font-size: 13px; }
 .push-actions { display: flex; gap: 8px; flex-wrap: wrap; }

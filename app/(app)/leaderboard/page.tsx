@@ -5,6 +5,8 @@ import { isPro } from "@/lib/billing/plan";
 import { Avatar } from "@/components/ui/Avatar";
 import { Coin } from "@/components/ui/Coin";
 import { Icon } from "@/components/ui/Icon";
+import { Emblem } from "@/components/profile/ProfileCard";
+import { nameCls, ringCls } from "@/lib/profile/cosmetics";
 import { ProPromo } from "@/components/pro/ProPromo";
 import { currentBoard, PRIZES, prizeFor, type Row } from "@/lib/social/leaderboard";
 
@@ -17,9 +19,9 @@ function RowView({ r, me }: { r: Row; me: boolean }) {
   return (
     <li className={`lb-row${me ? " is-me" : ""}${r.place <= 3 ? ` lb-top lb-p${r.place}` : ""}`}>
       <span className="lb-place">{r.place}</span>
-      <Avatar name={r.name} src={r.avatarUrl} className={`lb-av${r.avatarRing ? ` ring-${r.avatarRing}` : ""}`} />
+      <Avatar name={r.name} src={r.avatarUrl} className={`lb-av${ringCls(r.look)}`} />
       <span className="lb-name">
-        <b className={r.nameColor ? `name-${r.nameColor}` : undefined}>{r.name}{me ? " (вы)" : ""}</b>
+        <span className="who"><Link href={`/u/${r.userId}`} style={{ color: "inherit" }}><b className={nameCls(r.look)}>{r.name}{me ? " (вы)" : ""}</b></Link><Emblem value={r.look.emblem} /></span>
         {r.title && <span className="muted">{r.title}</span>}
       </span>
       {prize && (

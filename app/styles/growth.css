@@ -9,7 +9,7 @@
 .growth-rules { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; line-height: 1.5; }
 .growth-stars { display: flex; gap: 4px; }
 .growth-stars button { font-size: 28px; line-height: 1; background: none; border: 0; padding: 2px; cursor: pointer; color: var(--ink-3, #bbb); }
-.growth-stars button.on { color: #f5b301; }
+.growth-stars button.on { color: var(--accent); }
 .growth-stars button:disabled { cursor: default; }
 .growth-mod { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .growth-review-head { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; min-width: 0; }

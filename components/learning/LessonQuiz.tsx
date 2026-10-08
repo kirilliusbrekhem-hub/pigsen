@@ -6,6 +6,7 @@ import { Icon } from "@/components/ui/Icon";
 import { Orb } from "@/components/ui/Orb";
 import { ErrorBox } from "@/components/ui/States";
 import { api, errorMessage } from "@/lib/client/api";
+import { burst, rewardXp } from "@/components/fx";
 import type { QuizQuestionDTO, QuizResultDTO } from "@/types";
 
 type State =
@@ -41,6 +42,9 @@ export function LessonQuiz({ lessonId, passedBefore }: { lessonId: string; passe
     try {
       const result = await api<QuizResultDTO>(`/api/quiz/${s.attemptId}`, { method: "POST", body: { answers } });
       setS({ kind: "done", questions: s.questions, answers, result });
+      const perfect = result.score === result.total;
+      if (result.xp.gained > 0) rewardXp(result.xp, null, perfect ? 2.5 : 1);
+      else if (result.score > 0) burst(null, perfect ? 2 : 0.8);
       router.refresh();
     } catch (e) {
       setS({ kind: "error", message: errorMessage(e) });

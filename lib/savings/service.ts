@@ -1,4 +1,5 @@
 import "server-only";
+import { trackQuest } from "@/lib/gamification/quests";
 import { prisma } from "@/lib/db/prisma";
 import { COINS, addCoins, addDailyCoins, ownedItems } from "@/lib/coins/service";
 import { goalLimit, isPro } from "@/lib/billing/plan";
@@ -109,6 +110,7 @@ export async function addEntry(userId: string, goalId: string, amount: number, n
     if (step > updated.milestones) await prisma.savingsGoal.update({ where: { id: goalId }, data: { milestones: step } });
   } else if (amount > 0) {
     coins += await addDailyCoins(userId, COINS.dailyDeposit, "deposit");
+    await trackQuest(userId, "deposit");
     if (step > updated.milestones) {
       // Claim atomically so two parallel deposits can't both pay the same milestone.
       const claimed = await prisma.savingsGoal.updateMany({ where: { id: goalId, milestones: { lt: step } }, data: { milestones: step } });

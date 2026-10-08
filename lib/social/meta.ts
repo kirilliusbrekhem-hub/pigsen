@@ -21,7 +21,9 @@ export const DM_MAX = 1000;
 export const LIKE_REWARD = 10;
 export const LIKE_REWARD_AT = 5;
 
-export interface PublicUser { id: string; name: string; avatarUrl: string | null; pro: boolean; title?: string }
+import type { Look } from "@/lib/profile/cosmetics";
+
+export interface PublicUser { id: string; name: string; avatarUrl: string | null; pro: boolean; title?: string; look?: Look }
 export interface ChatMsgView { id: string; text: string; createdAt: string; mine: boolean; author: PublicUser }
 export interface DmView { id: string; text: string; createdAt: string; mine: boolean; read: boolean }
 export interface ConversationView { user: PublicUser; last: { text: string; createdAt: string; mine: boolean }; unread: number }

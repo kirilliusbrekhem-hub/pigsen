@@ -8,6 +8,7 @@ import { consumeAllowance } from "@/lib/billing/limits";
 import { isUniqueViolation } from "@/lib/db/lock";
 import { activateReferral } from "@/lib/growth/referral";
 import { awardXp, XP, type XpResult } from "@/lib/gamification/service";
+import { trackQuest } from "@/lib/gamification/quests";
 
 const QuestionSchema = z.object({
   q: z.string().min(5).max(300),
@@ -110,6 +111,7 @@ export async function submitQuiz(userId: string, attemptId: string, answers: num
   const gained = firstTime ? score * XP.quizCorrect : 0;
   if (gained) await prisma.quizAttempt.update({ where: { id: attempt.id }, data: { xpAwarded: gained } });
   const xp: XpResult = await awardXp(userId, gained);
+  await Promise.all([trackQuest(userId, "quiz"), score === questions.length && trackQuest(userId, "quiz_perfect")]);
   if (score > 0) await activateReferral(userId).catch((e) => console.error("[referral] activate failed", e));
   return { score, total: questions.length, results, xp, firstTime };
 }

@@ -6,6 +6,7 @@ import { Icon } from "@/components/ui/Icon";
 import { Orb } from "@/components/ui/Orb";
 import { useToast } from "@/components/ui/Toast";
 import { api, errorMessage } from "@/lib/client/api";
+import { reward } from "@/components/fx";
 import { dateRu, rub } from "@/lib/client/format";
 import type { GoalView } from "./SavingsHome";
 
@@ -35,6 +36,7 @@ export function GoalActions({ goal }: { goal: GoalView }) {
       setAmount("");
       setNote("");
       if (r.milestone) setCelebrate(r.milestone);
+      if (sign > 0) reward({ coins: r.coins, origin: document.activeElement, power: r.milestone ? (r.milestone >= 100 ? 3 : 2) : r.coins ? 0.8 : 0 });
       toast.show(sign > 0 ? `+${rub(n)} в копилку${r.coins ? `, +${r.coins} PigCoin$` : ""}` : `Снято ${rub(n)}`);
       router.refresh();
     } catch (err) {

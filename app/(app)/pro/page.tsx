@@ -24,7 +24,7 @@ const REASONS: Record<string, string> = {
   "daily-pro": "Pro-бонус",
   "shop:boost-chat": "+10 вопросов $PIG",
   "shop:streak-freeze": "Заморозка серии",
-  "shop:chest-gold": "Золотой сундук",
+  "shop:chest-gold": "Изумрудный сундук",
   "shop:boost-chat-30": "+30 вопросов $PIG",
   "shop:xp-boost": "Двойной XP",
   "shop:pro-pass": "Pro-материалы на 3 дня",
@@ -53,7 +53,7 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
   const coins = profile?.coins ?? 0;
   const stars = starsEnabled();
   const enabled = stars || paymentsEnabled();
-  const price = (p: (typeof PLANS)[keyof typeof PLANS]) => (stars ? `${p.stars} ⭐` : `${p.price} ₽`);
+  const price = (p: (typeof PLANS)[keyof typeof PLANS]) => (stars ? `${p.stars} ★` : `${p.price} ₽`);
 
   return (
     <div className="stack" style={{ gap: 24 }}>
@@ -211,7 +211,7 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
           <h2 style={{ fontSize: 20, fontWeight: 500 }}>Пополнить баланс</h2>
         </div>
         <p className="muted">
-          Не хотите ждать? Купите PigCoin$ за Telegram Stars, монеты придут сразу после оплаты.{!pro && ` Если нужны лимиты и курсы, Pro на месяц (${PLANS.month.stars} ⭐) выгоднее, чем 1000 монет на пробный Pro.`}
+          Не хотите ждать? Купите PigCoin$ за Telegram Stars, монеты придут сразу после оплаты.{!pro && ` Если нужны лимиты и курсы, Pro на месяц (${PLANS.month.stars} ★) выгоднее, чем 1000 монет на пробный Pro.`}
         </p>
         <CoinPacks enabled={stars} packs={Object.values(COIN_PACKS).map((p) => ({ id: p.id, coins: p.coins, stars: p.stars, note: p.id === "coins-3000" ? "Выгоднее всего" : undefined }))} />
       </section>

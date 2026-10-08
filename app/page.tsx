@@ -229,7 +229,7 @@ export default function Landing() {
               <div className="lp-plan">
                 <span className="label">Free</span>
                 <div className="lp-price">
-                  <b>0 ⭐</b>
+                  <b>0 ★</b>
                   <span>навсегда</span>
                 </div>
                 <ul>
@@ -249,11 +249,11 @@ export default function Landing() {
                   <span className="lp-badge">Выгоднее на год</span>
                 </div>
                 <div className="lp-price">
-                  <b>{PLANS.month.stars}⭐</b>
+                  <b>{PLANS.month.stars}★</b>
                   <span>в месяц</span>
                 </div>
                 <p className="lp-price-alt">
-                  или <b>{PLANS.year.stars}⭐</b> в год — оплата через Telegram Stars
+                  или <b>{PLANS.year.stars}★</b> в год — оплата через Telegram Stars
                 </p>
                 <ul>
                   {PRO_FEATURES.map((f) => (

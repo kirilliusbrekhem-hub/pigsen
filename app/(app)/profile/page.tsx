@@ -17,11 +17,18 @@ import { getGameStats } from "@/lib/gamification/service";
 import { learningHistory, learningStats, listCoursesWithProgress } from "@/lib/learning/service";
 import { ProgressBar } from "@/components/ui/Ring";
 import { parseInterests, profileTheme, profileTone } from "@/lib/profile/service";
+import { isPro } from "@/lib/billing/plan";
+import { ownedItems, priceFor, SHOP, TITLES } from "@/lib/coins/service";
+import { avatarUrl } from "@/lib/profile/avatar-url";
+import { lookOf, type Look } from "@/lib/profile/cosmetics";
+import { CosmeticsForm } from "@/components/profile/CosmeticsForm";
+import { ProfileCard } from "@/components/profile/ProfileCard";
 
 export const metadata: Metadata = { title: "Профиль" };
 
 const SECTIONS = [
   ["personal", "Личные данные", "user"],
+  ["style", "Оформление", "palette"],
   ["interests", "Интересы", "target"],
   ["progress", "Прогресс", "trendUp"],
   ["saved", "Сохранённое", "bookmark"],
@@ -37,15 +44,24 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
   const sec: Section = SECTIONS.some(([id]) => id === tab) ? (tab as Section) : "personal";
   const profile = user.profile;
   const memberSince = user.createdAt.toLocaleDateString("ru-RU", { month: "long", year: "numeric" });
+  const pro = isPro(profile);
+  const look = lookOf(profile);
 
   return (
     <>
-      <section className="page-head">
-        <div>
-          <span className="label">Профиль</span>
-          <h1 className={profile?.nameColor ? `name-${profile.nameColor}` : undefined}>{user.name}</h1>
-        </div>
-      </section>
+      <ProfileCard
+        name={user.name}
+        avatarUrl={avatarUrl(user.id, profile)}
+        look={look}
+        pro={pro}
+        title={profile?.title || undefined}
+        sub={
+          <>
+            <span>С нами с {memberSince}</span>
+            <Link href={`/u/${user.id}`} className="link-btn" style={{ color: "inherit", textDecoration: "underline" }}>Как видят другие</Link>
+          </>
+        }
+      />
       <div className="prof">
         <nav className="prof-nav" aria-label="Разделы профиля">
           {SECTIONS.map(([id, label, icon]) => (
@@ -57,7 +73,8 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
         </nav>
         <div className="stack fade-in" style={{ minWidth: 0 }} key={sec}>
           <h2 style={{ fontSize: 18 }}>{SECTIONS.find(([id]) => id === sec)?.[1]}</h2>
-          {sec === "personal" && <PersonalForm name={user.name} email={user.email} bio={profile?.bio ?? ""} avatar={profile?.avatar ?? null} memberSince={memberSince} ring={profile?.avatarRing ?? ""} />}
+          {sec === "personal" && <PersonalForm name={user.name} email={user.email} bio={profile?.bio ?? ""} avatar={profile?.avatar ?? null} memberSince={memberSince} ring={look.ring} />}
+          {sec === "style" && <StyleSection userId={user.id} name={user.name} avatarUrl={avatarUrl(user.id, profile)} pro={pro} look={look} title={profile?.title ?? ""} />}
           {sec === "interests" && <InterestsSection userInterests={parseInterests(profile)} />}
           {sec === "progress" && <ProgressSection userId={user.id} />}
           {sec === "saved" && <SavedSection userId={user.id} />}
@@ -81,6 +98,13 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
   );
 }
 
+async function StyleSection({ userId, ...rest }: { userId: string; name: string; avatarUrl: string | null; pro: boolean; look: Look; title: string }) {
+  const owned = await ownedItems(userId);
+  const prices = Object.fromEntries(SHOP.filter((i) => i.category === "style").map((i) => [i.id, priceFor(i, rest.pro)]));
+  const titles = Object.entries(TITLES).filter(([id]) => owned.has(id)).map(([id, label]) => ({ id, label }));
+  return <CosmeticsForm {...rest} owned={[...owned]} prices={prices} titles={titles} />;
+}
+
 async function InterestsSection({ userInterests }: { userInterests: string[] }) {
   const cats = await listCategories();
   return (
@@ -96,7 +120,7 @@ async function ProgressSection({ userId }: { userId: string }) {
   const metrics = [
     { k: "Уровень", v: `${game.level.index} · ${game.level.name}` },
     { k: "Опыт", v: `${game.xp} XP` },
-    { k: "Серия", v: `${game.streak} 🔥` },
+    { k: "Серия", v: `${game.streak} дн.` },
     { k: "Общий прогресс", v: `${stats.percent}%` },
     { k: "Уроков пройдено", v: `${stats.lessonsCompleted}` },
     { k: "Курсов начато", v: `${stats.coursesStarted}` },

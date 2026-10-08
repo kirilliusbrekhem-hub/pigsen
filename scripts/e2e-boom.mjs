@@ -31,7 +31,7 @@ async function run(viewport, tag) {
   await page.waitForURL("**/dashboard");
 
   // Dashboard: level, streak, fact of the day, tool shortcuts
-  await page.getByText("Стажёр").waitFor();
+  await page.getByText("Стажёр").first().waitFor();
   await page.getByText("Факт дня").waitFor();
   await shot("dashboard");
   log(`[${tag}] Главная: уровень, серия, факт дня`);
@@ -45,7 +45,7 @@ async function run(viewport, tag) {
   });
   await page.waitForURL(/\/learn\/[^/]+\/[^/]+$/);
   await page.getByRole("button", { name: /Отметить как завершённый/ }).click();
-  await page.getByText(/\+20 XP/).waitFor();
+  await page.locator(".toast").getByText(/\+20 XP/).waitFor();
   log(`[${tag}] Урок завершён`, "+20 XP");
 
   await page.getByRole("button", { name: "Начать квиз" }).click();
@@ -90,14 +90,14 @@ async function run(viewport, tag) {
   await page.getByLabel("Описание бизнес-идеи").fill("Сервис для кофеен: AI анализирует продажи и подсказывает цены и меню. Клиенты — владельцы небольших кофеен, проблема в том, что цены ставят наугад. Подписка 1990 руб в месяц.");
   await page.getByRole("button", { name: "Разобрать идею" }).click();
   await page.locator(".idea-card .score").first().waitFor({ timeout: 60_000 });
-  await page.getByText(/\+15 XP/).waitFor();
+  await page.locator(".toast").getByText(/\+15 XP/).waitFor();
   await shot("idea");
   log(`[${tag}] Разбор идеи`, await page.locator(".idea-card .score").first().innerText());
 
   // Profile: XP and badges updated
   await page.goto(BASE + "/profile?tab=progress");
-  await page.getByText(/Бейджи · \d+ из 10/).waitFor();
-  const badges = await page.getByText(/Бейджи · \d+ из 10/).innerText();
+  await page.getByText(/Бейджи · \d+ из \d+/).waitFor();
+  const badges = await page.getByText(/Бейджи · \d+ из \d+/).innerText();
   const xp = await page.locator(".metric", { hasText: "Опыт" }).locator(".v").innerText();
   if (parseInt(xp, 10) < 35) problems.push(`[${tag}] unexpected XP: ${xp}`);
   await shot("profile");

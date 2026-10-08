@@ -145,7 +145,7 @@ export function CoinPacks({ packs, enabled }: { packs: { id: string; coins: numb
             </Button>
           ) : (
             <Button variant="primary" size="sm" onClick={() => buy(p.id, p.coins)} loading={busy === p.id} disabled={!!waiting}>
-              {p.stars} ⭐
+              {p.stars} ★
             </Button>
           )}
         </div>

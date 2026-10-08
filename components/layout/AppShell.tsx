@@ -227,7 +227,7 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
               <Avatar name={user.name} src={user.avatar} />
               <span style={{ textAlign: "left", minWidth: 0 }}>
                 <b style={{ fontWeight: 540, display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{user.name}</b>
-                <span className="muted" style={{ fontSize: 12 }}>
+                <span className="muted" style={{ fontSize: 12 }} data-fx-target="coins">
                   {user.plan === "pro" ? <span className="pro-badge">Pro</span> : user.plan === "lite" ? "Пробный Pro" : "Free"} · {user.coins} <Coin size={12} />
                 </span>
                 {user.title && <span className="title-chip">{user.title}</span>}
@@ -286,7 +286,7 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
             <Link className="icon-btn" href="/search" aria-label="Поиск">
               <Icon name="search" />
             </Link>
-            <Link href="/profile" aria-label="Профиль">
+            <Link href="/profile" aria-label="Профиль" data-fx-target="coins">
               <Avatar name={user.name} src={user.avatar} />
             </Link>
           </header>

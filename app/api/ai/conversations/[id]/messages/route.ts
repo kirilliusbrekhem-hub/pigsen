@@ -5,6 +5,7 @@ import { enforceDbRateLimit } from "@/lib/api/rate-limit-db";
 import { enforceRateLimit, handler, HttpError, parseBody, requireApiUser } from "@/lib/api/http";
 import { appendMessage, DEFAULT_TITLE, findOwnConversation } from "@/lib/ai/conversations";
 import { getAIProvider, streamReply, titleFromQuestion } from "@/lib/ai/aiService";
+import { trackQuest } from "@/lib/gamification/quests";
 import { followUpsFor } from "@/lib/ai/followups";
 import { AIProviderError, type AIContext, type ChatTurn } from "@/lib/ai/types";
 import { TYPE_LABELS } from "@/lib/content/mappers";
@@ -37,6 +38,7 @@ export const POST = handler(async (req: Request, { params }: Ctx) => {
     throw new HttpError(402, "Вопросы $PIG на сегодня закончились. В Pro чат без лимитов, или возьмите +10 вопросов в магазине за PigCoin$ (раздел Pro).");
   }
   const userMsg = retry ? last : await appendMessage(convo.id, "user", content);
+  if (!retry) await trackQuest(user.id, "ask_pig");
   if (convo.title === DEFAULT_TITLE) {
     await prisma.conversation.update({ where: { id: convo.id }, data: { title: titleFromQuestion(content) } });
   }

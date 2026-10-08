@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/db/prisma";
+import { LOOK_SELECT, lookOf, type Look } from "@/lib/profile/cosmetics";
 import { avatarUrl } from "@/lib/profile/avatar-url";
 import { XP } from "@/lib/gamification/service";
 import { addCoins, extendPro } from "@/lib/coins/service";
@@ -27,9 +28,8 @@ export interface Row {
   title: string;
   avatarUrl: string | null;
   points: number;
-  /** Shop cosmetics: name color and avatar ring ("" = none). */
-  nameColor: string;
-  avatarRing: string;
+  /** Cosmetics others see: name color, avatar frame, emblem. */
+  look: Look;
 }
 
 export async function weeklyRanking(week: Week): Promise<Row[]> {
@@ -46,10 +46,10 @@ export async function weeklyRanking(week: Week): Promise<Row[]> {
   const proSince = week.end > now ? now : week.start;
   const users = await prisma.user.findMany({
     where: { id: { in: [...points.keys()] }, blocked: false, profile: { proUntil: { gt: proSince } } },
-    select: { id: true, name: true, profile: { select: { title: true, avatar: true, updatedAt: true, nameColor: true, avatarRing: true } } },
+    select: { id: true, name: true, profile: { select: { title: true, avatar: true, updatedAt: true, proUntil: true, ...LOOK_SELECT } } },
   });
   return users
-    .map((u) => ({ userId: u.id, name: u.name, title: u.profile?.title ?? "", avatarUrl: avatarUrl(u.id, u.profile), points: points.get(u.id) ?? 0, nameColor: u.profile?.nameColor ?? "", avatarRing: u.profile?.avatarRing ?? "" }))
+    .map((u) => ({ userId: u.id, name: u.name, title: u.profile?.title ?? "", avatarUrl: avatarUrl(u.id, u.profile), points: points.get(u.id) ?? 0, look: lookOf(u.profile) }))
     .filter((r) => r.points > 0)
     .sort((a, b) => b.points - a.points || a.userId.localeCompare(b.userId))
     .map((r, i) => ({ ...r, place: i + 1 }));

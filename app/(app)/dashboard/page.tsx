@@ -16,7 +16,10 @@ import { prisma } from "@/lib/db/prisma";
 import { requireUserWith } from "@/lib/auth/session";
 import { trendingContent } from "@/lib/content/service";
 import { factOfTheDay } from "@/lib/facts";
-import { getGameStats } from "@/lib/gamification/service";
+import { getGameStats, nextBadge } from "@/lib/gamification/service";
+import { getQuestBoard } from "@/lib/gamification/quests";
+import { TodayPanel } from "@/components/dashboard/TodayPanel";
+import { CountUp } from "@/components/fx/CountUp";
 import { listSaved } from "@/lib/content/saved";
 import { learningActivity, learningStats, listCoursesWithProgress } from "@/lib/learning/service";
 import { getInterestProfile, getRecommendations } from "@/lib/recommendations/service";
@@ -38,6 +41,7 @@ export default async function DashboardPage() {
     ]),
   );
   const pro = isPro(user.profile);
+  const board = await getQuestBoard(user.id, pro).catch((e) => (console.error("[quest] board failed", e), null));
   const weekLessons = activity.slice(-7).reduce((s, d) => s + d.count, 0);
   const coursesInProgress = courses.filter((c) => c.started && c.percent < 100);
   const continueCourses = [...courses].sort((a, b) => Number(b.started && b.percent < 100) - Number(a.started && a.percent < 100)).slice(0, 2);
@@ -45,10 +49,10 @@ export default async function DashboardPage() {
   const firstName = user.name.split(" ")[0];
 
   const cells = [
-    { k: "Уроков пройдено", v: `${stats.lessonsCompleted}`, d: `из ${stats.totalLessons} в каталоге`, href: "/learn", sw: "var(--ink)" },
-    { k: "Курсов в процессе", v: `${coursesInProgress.length}`, d: `${courses.length} курса доступно`, href: "/learn", sw: "var(--accent)" },
-    { k: "Сохранено", v: `${saved.length}`, d: "материалов в библиотеке", href: "/saved", sw: "var(--accent-2)" },
-    { k: "Разговоров с $PIG", v: `${convoCount}`, d: "история сохраняется", href: "/ai", sw: "var(--accent-3)" },
+    { k: "Уроков пройдено", v: stats.lessonsCompleted, d: `из ${stats.totalLessons} в каталоге`, href: "/learn", sw: "var(--ink)" },
+    { k: "Курсов в процессе", v: coursesInProgress.length, d: `${courses.length} курса доступно`, href: "/learn", sw: "var(--accent)" },
+    { k: "Сохранено", v: saved.length, d: "материалов в библиотеке", href: "/saved", sw: "var(--accent-2)" },
+    { k: "Разговоров с $PIG", v: convoCount, d: "история сохраняется", href: "/ai", sw: "var(--accent-3)" },
   ];
 
   return (
@@ -58,6 +62,8 @@ export default async function DashboardPage() {
       </section>
 
       <DailyBonus pro={pro} />
+
+      {board && <TodayPanel board={board} streak={game.streak} xp={game.xp} level={game.level} next={nextBadge(game.badges)} />}
 
       <GameStrip game={game} fact={factOfTheDay()} />
 
@@ -89,7 +95,7 @@ export default async function DashboardPage() {
           <div>
             <span className="label">Прогресс обучения</span>
             <div className="big num">
-              {stats.percent}
+              <CountUp value={stats.percent} />
               <span className="unit">%</span>
             </div>
             <div className="row" style={{ gap: 10, flexWrap: "wrap" }}>
@@ -109,7 +115,7 @@ export default async function DashboardPage() {
                 <span className="sw" style={{ background: c.sw }} />
                 {c.k}
               </span>
-              <span className="v num">{c.v}</span>
+              <CountUp className="v num" value={c.v} />
               <span className="d">{c.d}</span>
               <Icon name="arrow" size="sm" className="go" />
             </Link>

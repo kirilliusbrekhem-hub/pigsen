@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/Toast";
 import { reachGoalOnce } from "@/lib/analytics/goal";
 import { api, errorMessage } from "@/lib/client/api";
 import { xpMessage } from "@/lib/client/xp";
+import { rewardXp } from "@/components/fx";
 import type { XpResultDTO } from "@/types";
 
 interface Props {
@@ -26,11 +27,13 @@ export function CompleteLessonButton({ lessonId, completed: initial, nextHref, c
 
   async function set(next: boolean) {
     setLoading(true);
+    const origin = document.activeElement;
     try {
       const r = await api<{ xp?: XpResultDTO }>(`/api/lessons/${lessonId}/complete`, { method: next ? "POST" : "DELETE" });
       setCompleted(next);
       if (next) {
         reachGoalOnce("first_lesson");
+        rewardXp(r.xp, origin, isLast ? 3 : 1.5);
         toast.show(xpMessage(r.xp, isLast ? "Курс завершён. Отличная работа!" : "Урок завершён."), {
           action: nextHref ? { label: "Дальше", onClick: () => router.push(nextHref) } : { label: "К курсу", onClick: () => router.push(courseHref) },
         });

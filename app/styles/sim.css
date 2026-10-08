@@ -1,0 +1,57 @@
+/* Business simulator (/sim). Brand: green accent tokens + ink only. */
+.sim { gap: 16px; }
+.sim-limit { margin: 0; }
+.sim-pro { align-self: flex-start; }
+.sim-kinds { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.sim-kind { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 18px; text-align: left; cursor: pointer; font: inherit; color: var(--ink); border: 1px solid var(--line); transition: border-color .15s var(--ease), transform .15s var(--ease); }
+.sim-kind:hover:not(:disabled) { border-color: var(--accent); transform: translateY(-1px); }
+.sim-kind:disabled { opacity: .55; cursor: not-allowed; }
+.sim-kind-emoji { font-size: 28px; line-height: 1; }
+.sim-kind b { font-size: 17px; }
+.sim-kind-cash { margin-top: 4px; font-size: 13px; font-weight: 600; color: var(--accent); }
+.sim-recent { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-top: 1px solid var(--line); color: var(--ink); text-decoration: none; }
+.sim-recent:first-of-type { border-top: 0; }
+.sim-error { margin: 0; color: var(--neg); font-size: 14px; }
+.sim-neg { color: var(--neg); }
+
+.sim-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.sim-week { font-weight: 700; color: var(--ink); }
+.sim-progress { height: 6px; border-radius: 99px; background: var(--accent-soft); overflow: hidden; }
+.sim-progress i { display: block; height: 100%; background: var(--accent); border-radius: inherit; transition: width .4s var(--ease); }
+
+.sim-metrics { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+.sim-metric { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; min-width: 0; }
+.sim-metric b { font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sim-metric span:last-child { font-size: 12px; }
+@media (max-width: 900px) { .sim-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .sim-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.sim-review { border-left: 3px solid var(--accent); }
+.sim-review p { margin: 6px 0 0; line-height: 1.5; }
+
+.sim-turn { gap: 14px; }
+.sim-event { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: var(--r-md); background: var(--accent-soft); border: 1px solid var(--accent-line); }
+.sim-decision { border: 0; margin: 0; padding: 0; min-width: 0; }
+.sim-decision legend { font-weight: 600; margin-bottom: 8px; padding: 0; }
+.sim-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+.sim-option { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; text-align: left; font: inherit; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md); cursor: pointer; min-width: 0; }
+.sim-option span { font-size: 12px; color: var(--ink-3); }
+.sim-option:hover { border-color: var(--accent-line); }
+.sim-option.is-on { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+
+.sim-result { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 28px 20px; border-radius: var(--r-xl); text-align: center; color: #fff; background: radial-gradient(120% 90% at 50% 0%, #1B8F60 0%, #0B3D2A 55%, #070A0B 100%); box-shadow: var(--shadow-2); }
+.sim-result-brand { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; opacity: .75; }
+.sim-result-kind { font-weight: 600; }
+.sim-result-score { font-size: 56px; line-height: 1; font-variant-numeric: tabular-nums; }
+.sim-result-grade { font-weight: 600; color: #8FE3BC; }
+.sim-result-row { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; margin-top: 8px; font-size: 12px; opacity: .9; }
+.sim-result-row span { display: flex; flex-direction: column; gap: 2px; }
+.sim-result-row b { font-size: 15px; }
+.sim-result-reward { margin-top: 6px; padding: 4px 12px; border-radius: 99px; background: rgba(63, 189, 136, .22); border: 1px solid rgba(143, 227, 188, .5); font-weight: 700; font-size: 14px; }
+.sim-result-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.sim-lessons { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; line-height: 1.5; }
+
+.sim-log summary { cursor: pointer; font-weight: 600; }
+.sim-log table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.sim-log th, .sim-log td { padding: 6px 4px; text-align: right; border-top: 1px solid var(--line); }
+.sim-log th:first-child, .sim-log td:first-child { text-align: left; }

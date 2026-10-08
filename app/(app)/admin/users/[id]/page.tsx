@@ -44,7 +44,7 @@ export default async function AdminUser({ params }: { params: Promise<{ id: stri
       </section>
       <section className="card card-pad stack" style={{ gap: 8 }}>
         <b>Платежи</b>
-        {payments.length ? payments.map((p) => <div key={p.id} className="ledger-row"><span className="num">{p.provider === "telegram" ? `${p.amount} ⭐` : rub(p.amount)}</span><span className="muted">{p.plan === "year" ? "Год" : "Месяц"} · {p.status}</span><span className="muted">{dateRu(p.createdAt)}</span></div>) : <p className="muted">Платежей нет.</p>}
+        {payments.length ? payments.map((p) => <div key={p.id} className="ledger-row"><span className="num">{p.provider === "telegram" ? `${p.amount} ★` : rub(p.amount)}</span><span className="muted">{p.plan === "year" ? "Год" : "Месяц"} · {p.status}</span><span className="muted">{dateRu(p.createdAt)}</span></div>) : <p className="muted">Платежей нет.</p>}
       </section>
       <section className="card card-pad stack" style={{ gap: 8 }}>
         <b>Движение PigCoin$</b>

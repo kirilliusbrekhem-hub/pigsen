@@ -1,5 +1,6 @@
 import { handler, HttpError, json, parseBody, requireApiUser } from "@/lib/api/http";
 import { listSaved, saveItem } from "@/lib/content/saved";
+import { trackQuest } from "@/lib/gamification/quests";
 import { saveSchema } from "@/lib/validation/schemas";
 import { CONTENT_TYPES, type ContentType } from "@/types";
 
@@ -15,5 +16,6 @@ export const POST = handler(async (req: Request) => {
   const { contentItemId } = await parseBody(req, saveSchema);
   const saved = await saveItem(user.id, contentItemId);
   if (!saved) throw new HttpError(404, "Материал не найден");
+  await trackQuest(user.id, "save");
   return json({ saved: true }, 201);
 });

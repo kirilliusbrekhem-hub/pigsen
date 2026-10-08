@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db/prisma";
 import { isPro, startOfUtcDay } from "@/lib/billing/plan";
 import { HttpError } from "@/lib/api/http";
 import { advisoryLock } from "@/lib/db/lock";
+import { optionOf, type CosmeticSlot } from "@/lib/profile/cosmetics";
 
 /** PigCoin$: earned for learning and saving, spent in the shop. Every change goes through the CoinTx ledger. */
 export const COINS = {
@@ -83,12 +84,14 @@ export const TITLES: Record<string, string> = {
 };
 
 /** Cosmetics shown on the profile and the leaderboard. Bought = equipped; owned ones can be switched. */
-export const STYLES: Record<string, { field: "nameColor" | "avatarRing"; value: string }> = {
+export const STYLES: Record<string, { field: "nameColor" | "avatarRing" | "profileBg" | "profileEmblem"; value: string }> = {
   "name-gold": { field: "nameColor", value: "gold" },
   "name-emerald": { field: "nameColor", value: "emerald" },
   "name-violet": { field: "nameColor", value: "violet" },
   "ring-gold": { field: "avatarRing", value: "gold" },
   "ring-fire": { field: "avatarRing", value: "fire" },
+  "bg-grid": { field: "profileBg", value: "grid" },
+  "emblem-gem": { field: "profileEmblem", value: "gem" },
 };
 
 export const XP_BOOST_HOURS = 24;
@@ -98,7 +101,7 @@ export const MAX_EXTRA_GOALS = 3;
 export const SHOP: ShopItem[] = [
   // Буст
   { id: "chest", category: "boost", title: "Сундук удачи", description: "От 5 до 120 PigCoin$. До 3 сундуков в день.", price: 60, icon: "coin", repeatable: true, perDay: 3 },
-  { id: "chest-gold", category: "boost", title: "Золотой сундук", description: "От 100 до 600 PigCoin$. Один в день.", price: 300, icon: "sparkle", repeatable: true, perDay: 1 },
+  { id: "chest-gold", category: "boost", title: "Изумрудный сундук", description: "От 100 до 600 PigCoin$. Один в день.", price: 300, icon: "sparkle", repeatable: true, perDay: 1 },
   { id: "boost-chat", category: "boost", title: "+10 вопросов $PIG", description: "Закончились вопросы? Ещё 10 на сегодня.", price: 80, icon: "message", repeatable: true, proDiscount: true, notForPro: true },
   { id: "boost-chat-30", category: "boost", title: "+30 вопросов $PIG", description: "Большой пакет вопросов к $PIG на сегодня.", price: 200, icon: "message", repeatable: true, notForPro: true },
   { id: "xp-boost", category: "boost", title: "Двойной XP на 24 часа", description: "Уроки, квизы и разборы идей дают x2 XP: уровень растёт вдвое быстрее. Монеты и очки лидерборда не удваиваются.", price: 250, icon: "rocket", repeatable: true, proDiscount: true },
@@ -108,11 +111,13 @@ export const SHOP: ShopItem[] = [
   { id: "pro-pass", category: "access", title: "Pro-материалы на 3 дня", description: "Открывает все эксклюзивные курсы и статьи Pro на 3 дня. Пройденные уроки остаются засчитанными.", price: 700, icon: "book", repeatable: true, notForPro: true },
   { id: "goal-slot", category: "access", title: "+1 цель в копилке", description: `Навсегда добавляет место для ещё одной цели. Можно купить до ${MAX_EXTRA_GOALS} раз.`, price: 400, icon: "piggy", repeatable: true, notForPro: true },
   // Стиль
-  { id: "name-emerald", category: "style", title: "Изумрудное имя", description: "Имя зелёным в профиле и лидерборде.", price: 300, icon: "sparkle", proDiscount: true },
-  { id: "name-violet", category: "style", title: "Фиолетовое имя", description: "Имя фиолетовым в профиле и лидерборде.", price: 300, icon: "sparkle", proDiscount: true },
-  { id: "name-gold", category: "style", title: "Золотое имя", description: "Имя с золотым градиентом в профиле и лидерборде.", price: 600, icon: "coin", proDiscount: true },
-  { id: "ring-gold", category: "style", title: "Золотая рамка аватара", description: "Золотое кольцо вокруг аватара в профиле и лидерборде.", price: 500, icon: "target", proDiscount: true },
-  { id: "ring-fire", category: "style", title: "Огненная рамка аватара", description: "Огненное кольцо вокруг аватара в профиле и лидерборде.", price: 800, icon: "rocket", proDiscount: true },
+  { id: "name-emerald", category: "style", title: "Изумрудное имя", description: "Имя изумрудно-зелёным в профиле, лидерборде, комьюнити и чатах.", price: 300, icon: "sparkle", proDiscount: true },
+  { id: "name-violet", category: "style", title: "Малахитовое имя", description: "Глубокий тёмно-зелёный цвет имени: строго и заметно.", price: 300, icon: "sparkle", proDiscount: true },
+  { id: "name-gold", category: "style", title: "Неоновое имя", description: "Имя с неоново-зелёным градиентом везде, где вас видят.", price: 600, icon: "bolt", proDiscount: true },
+  { id: "ring-gold", category: "style", title: "Изумрудная рамка аватара", description: "Изумрудное кольцо вокруг аватара в профиле, лидерборде и комьюнити.", price: 500, icon: "target", proDiscount: true },
+  { id: "ring-fire", category: "style", title: "Неоновая рамка аватара", description: "Светящееся неоново-зелёное кольцо вокруг аватара.", price: 800, icon: "bolt", proDiscount: true },
+  { id: "bg-grid", category: "style", title: "Фон профиля «Сетка»", description: "Тёмный фон карточки профиля с зелёной сеткой.", price: 400, icon: "grid", proDiscount: true },
+  { id: "emblem-gem", category: "style", title: "Эмблема «Кристалл»", description: "Значок-кристалл рядом с вашим именем.", price: 350, icon: "gem", proDiscount: true },
   { id: "title-ninja", category: "style", title: "Титул «Финансовый ниндзя»", description: "Показывается рядом с именем", price: 300, icon: "target", proDiscount: true },
   { id: "title-king", category: "style", title: "Титул «Король копилки»", description: "Для тех, кто копит красиво", price: 500, icon: "piggy", proDiscount: true },
   { id: "title-whale", category: "style", title: "Титул «Крипто-кит»", description: "Редкий титул", price: 800, icon: "rocket", proDiscount: true },
@@ -122,7 +127,7 @@ export const SHOP: ShopItem[] = [
   { id: "theme-rocket", category: "style", title: "Обложка «Свой бизнес»", description: "Для стартового капитала", price: 120, icon: "rocket" },
   { id: "theme-heart", category: "style", title: "Обложка «Для близких»", description: "Подарки, свадьба, семья", price: 120, icon: "heart" },
   { id: "theme-cap", category: "style", title: "Обложка «Учёба»", description: "Курсы, вуз, обучение", price: 120, icon: "cap" },
-  { id: "theme-gold", category: "style", title: "Золотая обложка", description: "Для самой большой мечты", price: 250, icon: "coin" },
+  { id: "theme-gold", category: "style", title: "Изумрудная обложка", description: "Для самой большой мечты", price: 250, icon: "gem" },
 ];
 
 export const TRIAL_DAYS = 7;
@@ -237,6 +242,20 @@ export async function equipItem(userId: string, itemId: string, off = false) {
   if (!(await prisma.purchase.findUnique({ where: { userId_itemId: { userId, itemId } } }))) throw new HttpError(403, "Сначала купите этот товар");
   const data = style ? { [style.field]: off ? "" : style.value } : { title: off ? "" : TITLES[itemId] };
   await prisma.profile.update({ where: { userId }, data });
+}
+
+/** Sets a profile cosmetic after checking the option is free, covered by Pro, or bought in the shop. */
+export async function setCosmetic(userId: string, slot: CosmeticSlot, value: string) {
+  const opt = optionOf(slot, value);
+  if (!opt) throw new HttpError(400, "Такого варианта нет");
+  if (opt.access.tier === "pro") {
+    const p = await prisma.profile.findUnique({ where: { userId }, select: { proUntil: true } });
+    if (!isPro(p)) throw new HttpError(403, "Этот вариант доступен в Pro");
+  } else if (opt.access.tier === "shop" && !(await prisma.purchase.findUnique({ where: { userId_itemId: { userId, itemId: opt.access.item } } }))) {
+    throw new HttpError(403, "Сначала купите это в магазине");
+  }
+  const field = { bg: "profileBg", emblem: "profileEmblem", name: "nameColor", ring: "avatarRing" }[slot];
+  await prisma.profile.update({ where: { userId }, data: { [field]: value } });
 }
 
 /** Credits PigCoin$ bought with Telegram Stars: claims the payment and pays exactly once. */

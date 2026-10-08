@@ -28,7 +28,12 @@ export const DELETE = handler(async () => {
   if (await prisma.adminGrant.findUnique({ where: { userId: user.id } })) {
     if ((await prisma.adminGrant.count()) <= 1) throw new HttpError(409, "Вы единственный администратор. Сначала выдайте права другому аккаунту.");
   }
-  await prisma.user.delete({ where: { id: user.id } });
+  // These tables keep a plain userId (no relation), so clear them alongside the user.
+  await prisma.$transaction([
+    prisma.bizPlan.deleteMany({ where: { userId: user.id } }),
+    prisma.spendAnalysis.deleteMany({ where: { userId: user.id } }),
+    prisma.user.delete({ where: { id: user.id } }),
+  ]);
   await endSession();
   return json({ ok: true });
 });

@@ -3,11 +3,12 @@ import { prisma } from "@/lib/db/prisma";
 import { HttpError } from "@/lib/api/http";
 import { isAdmin } from "@/lib/admin/auth";
 import { avatarUrl } from "@/lib/profile/avatar-url";
+import { LOOK_SELECT, lookOf, type LookFields } from "@/lib/profile/cosmetics";
 
 import type { ChatMsgView, RoomId } from "./meta";
 
-const userSelect = { id: true, name: true, profile: { select: { title: true, avatar: true, proUntil: true, updatedAt: true } } } as const;
-type Raw = { id: string; text: string; createdAt: Date; user: { id: string; name: string; profile: { title: string; avatar: string | null; proUntil: Date | null; updatedAt: Date } | null } };
+const userSelect = { id: true, name: true, profile: { select: { title: true, avatar: true, proUntil: true, updatedAt: true, ...LOOK_SELECT } } } as const;
+type Raw = { id: string; text: string; createdAt: Date; user: { id: string; name: string; profile: ({ title: string; avatar: string | null; proUntil: Date | null; updatedAt: Date } & LookFields) | null } };
 
 function view(m: Raw, viewerId: string, now: number): ChatMsgView {
   const p = m.user.profile;
@@ -16,7 +17,7 @@ function view(m: Raw, viewerId: string, now: number): ChatMsgView {
     text: m.text,
     createdAt: m.createdAt.toISOString(),
     mine: m.user.id === viewerId,
-    author: { id: m.user.id, name: m.user.name, avatarUrl: avatarUrl(m.user.id, p), pro: !!p?.proUntil && p.proUntil.getTime() > now, title: p?.title ?? "" },
+    author: { id: m.user.id, name: m.user.name, avatarUrl: avatarUrl(m.user.id, p), pro: !!p?.proUntil && p.proUntil.getTime() > now, title: p?.title ?? "", look: lookOf(p) },
   };
 }
 

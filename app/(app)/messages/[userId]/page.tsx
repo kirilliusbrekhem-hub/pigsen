@@ -5,6 +5,8 @@ import { requireUser } from "@/lib/auth/session";
 import { isPro } from "@/lib/billing/plan";
 import { Avatar } from "@/components/ui/Avatar";
 import { Icon } from "@/components/ui/Icon";
+import { Emblem } from "@/components/profile/ProfileCard";
+import { nameCls, ringCls } from "@/lib/profile/cosmetics";
 import { DmThread } from "@/components/social/DmThread";
 import { ModerationNote } from "@/components/social/CommunityTabs";
 import { listThread, publicUser } from "@/lib/social/dm";
@@ -22,9 +24,10 @@ export default async function ThreadPage({ params }: { params: Promise<{ userId:
     <>
       <div className="dm-head">
         <Link href="/messages" className="btn btn-secondary btn-sm" aria-label="Назад"><Icon name="back" size="sm" /></Link>
-        <Avatar name={other.name} src={other.avatarUrl} className="dm-av" />
+        <Avatar name={other.name} src={other.avatarUrl} className={`dm-av${ringCls(other.look)}`} />
         <div className="dm-head-name">
-          <b>{other.name}</b>
+          <Link href={`/u/${other.id}`} style={{ color: "inherit" }}><b className={nameCls(other.look)}>{other.name}</b></Link>
+          <Emblem value={other.look?.emblem} />
           {other.pro && <span className="pro-badge">Pro</span>}
           {other.title && <span className="cm-title">{other.title}</span>}
         </div>
