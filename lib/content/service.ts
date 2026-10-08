@@ -1,12 +1,14 @@
 import "server-only";
 import type { Prisma } from "@prisma/client";
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db/prisma";
 import type { ContentCardDTO, ContentType } from "@/types";
 import { toCategoryDTO, toContentCard } from "./mappers";
 import { getSavedIds } from "./saved";
+import { getCategoriesWithCounts } from "./catalog";
 
 export async function listCategories() {
-  const rows = await prisma.category.findMany({ orderBy: { order: "asc" }, include: { _count: { select: { contents: true } } } });
+  const rows = await getCategoriesWithCounts();
   return rows.map((c) => ({ ...toCategoryDTO(c), description: c.description, count: c._count.contents }));
 }
 
@@ -27,15 +29,21 @@ export async function listContent(userId: string, filters: ContentFilters = {}):
   return items.map((i) => toContentCard(i, saved));
 }
 
-export async function countByType(): Promise<Record<string, number>> {
-  const rows = await prisma.contentItem.groupBy({ by: ["type"], _count: { _all: true } });
-  return Object.fromEntries(rows.map((r) => [r.type, r._count._all]));
-}
+export const countByType = unstable_cache(
+  async (): Promise<Record<string, number>> => {
+    const rows = await prisma.contentItem.groupBy({ by: ["type"], _count: { _all: true } });
+    return Object.fromEntries(rows.map((r) => [r.type, r._count._all]));
+  },
+  ["catalog-count-by-type-v1"],
+  { revalidate: 300, tags: ["catalog"] },
+);
 
 export async function getContentBySlug(userId: string, slug: string) {
-  const item = await prisma.contentItem.findUnique({ where: { slug }, include: { category: true, course: true } });
+  const [item, saved] = await Promise.all([
+    prisma.contentItem.findUnique({ where: { slug }, include: { category: true, course: true } }),
+    getSavedIds(userId),
+  ]);
   if (!item) return null;
-  const saved = await getSavedIds(userId);
   return { ...toContentCard(item, saved), body: item.body, url: item.url, tags: item.tags ? item.tags.split(",") : [], course: item.course };
 }
 
@@ -74,12 +82,14 @@ export async function trendingContent(userId: string, take = 6) {
 }
 
 export async function viewHistory(userId: string, take = 20) {
-  const views = await prisma.contentView.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-    take,
-    include: { contentItem: { include: { category: true } } },
-  });
-  const saved = await getSavedIds(userId);
+  const [views, saved] = await Promise.all([
+    prisma.contentView.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take,
+      include: { contentItem: { include: { category: true } } },
+    }),
+    getSavedIds(userId),
+  ]);
   return views.map((v) => ({ at: v.createdAt.toISOString(), item: toContentCard(v.contentItem, saved) }));
 }

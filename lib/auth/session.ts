@@ -57,3 +57,21 @@ export async function requireUser(): Promise<CurrentUser> {
   if (!user) redirect((await getSessionUserId()) ? "/login?gone=1" : "/login");
   return user;
 }
+
+/**
+ * requireUser() plus page data in one DB round trip: `load` starts right away with the id from the signed
+ * session token, while the account check (blocked / revoked sessions) runs alongside. Nothing is returned
+ * unless that check passes, so a revoked session still redirects to /login and never sees the data.
+ */
+export async function requireUserWith<T>(load: (userId: string) => Promise<T>): Promise<[CurrentUser, T]> {
+  const claimedId = await getSessionUserId();
+  if (!claimedId) return [await requireUser(), undefined as never]; // requireUser redirects
+  const pending = load(claimedId).then(
+    (value) => ({ ok: true as const, value }),
+    (error: unknown) => ({ ok: false as const, error }),
+  );
+  const user = await requireUser();
+  const r = await pending;
+  if (!r.ok) throw r.error;
+  return [user, r.value];
+}

@@ -13,7 +13,7 @@ import { DailyBonus } from "@/components/dashboard/DailyBonus";
 import { Orb } from "@/components/ui/Orb";
 import { EmptyState } from "@/components/ui/States";
 import { prisma } from "@/lib/db/prisma";
-import { requireUser } from "@/lib/auth/session";
+import { requireUserWith } from "@/lib/auth/session";
 import { trendingContent } from "@/lib/content/service";
 import { factOfTheDay } from "@/lib/facts";
 import { getGameStats } from "@/lib/gamification/service";
@@ -24,18 +24,19 @@ import { getInterestProfile, getRecommendations } from "@/lib/recommendations/se
 export const metadata: Metadata = { title: "Главная" };
 
 export default async function DashboardPage() {
-  const user = await requireUser();
-  const [stats, activity, courses, recs, interests, trending, saved, convoCount, game] = await Promise.all([
-    learningStats(user.id),
-    learningActivity(user.id, 14),
-    listCoursesWithProgress(user.id),
-    getRecommendations(user.id, 6),
-    getInterestProfile(user.id),
-    trendingContent(user.id, 6),
-    listSaved(user.id),
-    prisma.conversation.count({ where: { userId: user.id } }),
-    getGameStats(user.id),
-  ]);
+  const [user, [stats, activity, courses, recs, interests, trending, saved, convoCount, game]] = await requireUserWith((userId) =>
+    Promise.all([
+      learningStats(userId),
+      learningActivity(userId, 14),
+      listCoursesWithProgress(userId),
+      getRecommendations(userId, 6),
+      getInterestProfile(userId),
+      trendingContent(userId, 6),
+      listSaved(userId),
+      prisma.conversation.count({ where: { userId } }),
+      getGameStats(userId),
+    ]),
+  );
   const pro = isPro(user.profile);
   const weekLessons = activity.slice(-7).reduce((s, d) => s + d.count, 0);
   const coursesInProgress = courses.filter((c) => c.started && c.percent < 100);

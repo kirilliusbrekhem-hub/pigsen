@@ -1,10 +1,12 @@
 import "server-only";
+import { cache } from "react";
 import { prisma } from "@/lib/db/prisma";
 import { parseInterests } from "@/lib/profile/service";
 import { queryTerms } from "@/lib/search/normalize";
 import type { UserSignals } from "./types";
 
-export async function collectSignals(userId: string): Promise<UserSignals> {
+/** Deduped per request (the dashboard asks for recommendations and the interest profile). */
+export const collectSignals = cache(async (userId: string): Promise<UserSignals> => {
   const [profile, saved, views, progress, searches] = await Promise.all([
     prisma.profile.findUnique({ where: { userId }, select: { interests: true } }),
     prisma.savedItem.findMany({ where: { userId }, select: { contentItemId: true, contentItem: { select: { categoryId: true } } } }),
@@ -41,4 +43,4 @@ export async function collectSignals(userId: string): Promise<UserSignals> {
     viewedIds: new Set(views.map((v) => v.contentItemId)),
     completedCourseItemIds: new Set([...completedByCourse].filter(([, v]) => v.done >= v.total).map(([k]) => k)),
   };
-}
+});

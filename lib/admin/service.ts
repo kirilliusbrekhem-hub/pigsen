@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/db/prisma";
+import { invalidateCatalog } from "@/lib/content/catalog";
 import { addCoins, extendPro, spendCoins } from "@/lib/coins/service";
 import { HttpError } from "@/lib/api/http";
 import { buildSearchText } from "@/lib/search/normalize";
@@ -157,13 +158,17 @@ export async function createContent(input: ContentInput) {
   const base = slugify(input.title);
   let slug = base;
   for (let i = 2; await prisma.contentItem.findUnique({ where: { slug } }); i++) slug = `${base}-${i}`;
-  return prisma.contentItem.create({ data: { slug, publishedAt: new Date(), ...(await dataFor(input)) } });
+  const created = await prisma.contentItem.create({ data: { slug, publishedAt: new Date(), ...(await dataFor(input)) } });
+  invalidateCatalog();
+  return created;
 }
 
 export async function updateContent(id: string, input: ContentInput) {
   const item = await prisma.contentItem.findUnique({ where: { id }, select: { type: true } });
   if (!item || item.type === "course") throw new HttpError(404, "Материал не найден");
-  return prisma.contentItem.update({ where: { id }, data: await dataFor(input) });
+  const updated = await prisma.contentItem.update({ where: { id }, data: await dataFor(input) });
+  invalidateCatalog();
+  return updated;
 }
 
 export async function deleteContent(id: string) {
@@ -175,6 +180,7 @@ export async function deleteContent(id: string) {
     prisma.contentItem.delete({ where: { id } }),
     prisma.deletedSlug.upsert({ where: { slug: item.slug }, update: {}, create: { slug: item.slug } }),
   ]);
+  invalidateCatalog();
 }
 
 // ---------- Growth charts (last 30 days, UTC days) ----------

@@ -9,9 +9,8 @@ export const metadata: Metadata = { title: "$PIG" };
 
 export default async function ConversationPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requireUser();
-  const quota = await usage(user.id, "chat");
   const { id } = await params;
-  const [convo, conversations] = await Promise.all([getConversationWithMessages(user.id, id), listConversations(user.id)]);
+  const [quota, convo, conversations] = await Promise.all([usage(user.id, "chat"), getConversationWithMessages(user.id, id), listConversations(user.id)]);
   if (!convo) notFound();
   return (
     <AIChat

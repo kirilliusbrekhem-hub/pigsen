@@ -1,13 +1,13 @@
 import "server-only";
 import { prisma } from "@/lib/db/prisma";
 import { HttpError } from "@/lib/api/http";
-import { isPro } from "@/lib/billing/plan";
+import { hasPremium } from "@/lib/billing/plan";
 
 export const PREMIUM_MESSAGE = "Это эксклюзивный материал Pro. Оформите Pro, чтобы открыть его полностью.";
 
 export async function hasPremiumAccess(userId: string): Promise<boolean> {
-  const p = await prisma.profile.findUnique({ where: { userId }, select: { proUntil: true } });
-  return isPro(p);
+  const p = await prisma.profile.findUnique({ where: { userId }, select: { proUntil: true, passUntil: true } });
+  return hasPremium(p);
 }
 
 /** In a premium course the first lesson is a free preview; the rest need Pro. */

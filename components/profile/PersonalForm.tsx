@@ -23,7 +23,7 @@ async function toAvatarDataUrl(file: File): Promise<string> {
   return canvas.toDataURL("image/jpeg", 0.85);
 }
 
-export function PersonalForm({ name: initialName, email, bio: initialBio, avatar: initialAvatar, memberSince }: { name: string; email: string; bio: string; avatar: string | null; memberSince: string }) {
+export function PersonalForm({ name: initialName, email, bio: initialBio, avatar: initialAvatar, memberSince, ring = "" }: { name: string; email: string; bio: string; avatar: string | null; memberSince: string; ring?: string }) {
   const router = useRouter();
   const toast = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -66,7 +66,7 @@ export function PersonalForm({ name: initialName, email, bio: initialBio, avatar
   return (
     <form className="card card-pad stack" onSubmit={save} noValidate>
       <div className="row" style={{ gap: 16, flexWrap: "wrap" }}>
-        <Avatar name={name || initialName} src={avatar} className="xl" />
+        <Avatar name={name || initialName} src={avatar} className={`xl${ring ? ` ring-${ring}` : ""}`} />
         <div style={{ flex: 1, minWidth: 160 }}>
           <div style={{ fontWeight: 560, fontSize: 16 }}>{name || initialName}</div>
           <div className="muted">С нами с {memberSince}</div>

@@ -1,5 +1,5 @@
 import "server-only";
-import { prisma } from "@/lib/db/prisma";
+import { getCategories } from "@/lib/content/catalog";
 import type { RecommendationDTO } from "@/types";
 import { collectSignals } from "./signals";
 import { ruleEngine } from "./rule-engine";
@@ -21,7 +21,7 @@ export interface InterestWeight {
 
 /** How PIGSEN currently sees the user's interests, for the dashboard "interest profile". */
 export async function getInterestProfile(userId: string, take = 4): Promise<InterestWeight[]> {
-  const [s, cats] = await Promise.all([collectSignals(userId), prisma.category.findMany()]);
+  const [s, cats] = await Promise.all([collectSignals(userId), getCategories()]);
   const scores = cats.map((c) => {
     let v = s.interests.includes(c.slug) ? 3 : 0;
     v += s.savedCategoryIds.filter((id) => id === c.id).length * 2;

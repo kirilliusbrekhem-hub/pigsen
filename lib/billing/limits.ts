@@ -23,7 +23,13 @@ export async function usage(userId: string, kind: LimitKind, db: Db = prisma): P
   if (limit === Infinity) return { tier, used: 0, limit, left: Infinity };
   const since = startOfUtcDay();
   const used = await db.coinTx.count({ where: { userId, reason: `use:${kind}`, createdAt: { gte: since } } });
-  if (kind === "chat") limit += CHAT_BOOST * (await db.coinTx.count({ where: { userId, reason: "shop:boost-chat", createdAt: { gte: since } } }));
+  if (kind === "chat") {
+    const [small, big] = await Promise.all([
+      db.coinTx.count({ where: { userId, reason: "shop:boost-chat", createdAt: { gte: since } } }),
+      db.coinTx.count({ where: { userId, reason: "shop:boost-chat-30", createdAt: { gte: since } } }),
+    ]);
+    limit += CHAT_BOOST * small + 30 * big;
+  }
   return { tier, used, limit, left: Math.max(0, limit - used) };
 }
 

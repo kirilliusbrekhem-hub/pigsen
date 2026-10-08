@@ -1,10 +1,12 @@
 "use client";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { ContentRow } from "@/components/content/ContentCard";
-import { Markdown } from "@/components/content/Markdown";
 import { Icon } from "@/components/ui/Icon";
 import { Orb } from "@/components/ui/Orb";
 import type { ChatMessage } from "./useChatStream";
+
+// react-markdown + remark-gfm are ~150 KB of JS: load them only once an answer is shown, not with the /ai page.
+const Markdown = lazy(() => import("@/components/content/Markdown").then((m) => ({ default: m.Markdown })));
 
 const STEPS = ["Понимаю вопрос", "Ищу материалы в библиотеке PIGSEN", "Формулирую ответ"];
 
@@ -43,7 +45,9 @@ export function AnswerCard({ m, onAsk, last }: { m: ChatMessage; onAsk: (q: stri
       ) : (
         <div className="answer">
           {m.content ? (
-            <Markdown className={streaming ? "streaming" : ""}>{m.content}</Markdown>
+            <Suspense fallback={<div className={`md ${streaming ? "streaming" : ""}`} style={{ whiteSpace: "pre-wrap" }}>{m.content}</div>}>
+              <Markdown className={streaming ? "streaming" : ""}>{m.content}</Markdown>
+            </Suspense>
           ) : (
             <div className="ans-block muted">Ответ не получен.</div>
           )}

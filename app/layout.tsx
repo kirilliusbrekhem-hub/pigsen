@@ -3,8 +3,6 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { Analytics } from "@/components/analytics/Analytics";
 import { ToastProvider } from "@/components/ui/Toast";
-import { getCurrentUser } from "@/lib/auth/session";
-import { profileTheme } from "@/lib/profile/service";
 import "./globals.css";
 import "./styles/growth.css";
 import "./styles/social.css";
@@ -28,11 +26,17 @@ export const viewport: Viewport = {
   ],
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const user = await getCurrentUser();
-  const theme = profileTheme(user?.profile);
+// The theme is applied before first paint from the copy the app layout keeps in localStorage, so this layout
+// reads no cookies and public pages (/, /login, legal) can be prerendered. The app layout re-applies the saved
+// profile theme on every app page (components/layout/ThemeScript).
+const THEME_BOOT = `try{var t=localStorage.getItem("pigsen-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}`;
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru" data-theme={theme === "system" ? undefined : theme} className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="ru" suppressHydrationWarning className={`${GeistSans.variable} ${GeistMono.variable}`}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
+      </head>
       <body>
         <ToastProvider>{children}</ToastProvider>
         <Analytics />

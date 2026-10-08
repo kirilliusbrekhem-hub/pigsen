@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ContentCard } from "@/components/content/ContentCard";
 import { FilterChips, TypeTabs } from "@/components/content/FilterChips";
 import { EmptyState } from "@/components/ui/States";
-import { requireUser } from "@/lib/auth/session";
+import { requireUserWith } from "@/lib/auth/session";
 import { TYPE_LABELS } from "@/lib/content/mappers";
 import { countByType, listCategories, listContent } from "@/lib/content/service";
 import { CONTENT_TYPES, type ContentType } from "@/types";
@@ -11,12 +11,13 @@ import { CONTENT_TYPES, type ContentType } from "@/types";
 export const metadata: Metadata = { title: "Библиотека" };
 
 export default async function LibraryPage({ searchParams }: { searchParams: Promise<{ type?: string; category?: string }> }) {
-  const user = await requireUser();
   const sp = await searchParams;
   const type = (CONTENT_TYPES as readonly string[]).includes(sp.type ?? "") ? (sp.type as ContentType) : undefined;
-  const [categories, counts] = await Promise.all([listCategories(), countByType()]);
+  // The list is fetched alongside the categories with the requested filter; only an unknown category needs a second pass.
+  const asked = sp.category || undefined;
+  const [user, [categories, counts, first]] = await requireUserWith((userId) => Promise.all([listCategories(), countByType(), listContent(userId, { type, category: asked })]));
   const category = categories.some((c) => c.slug === sp.category) ? sp.category : undefined;
-  const items = await listContent(user.id, { type, category });
+  const items = category === asked ? first : await listContent(user.id, { type, category });
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
 
   const href = (t: string | null | undefined, c: string | null | undefined) => {

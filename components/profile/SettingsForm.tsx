@@ -15,6 +15,9 @@ interface Settings {
 }
 
 function applyTheme(theme: Theme) {
+  try {
+    localStorage.setItem("pigsen-theme", theme);
+  } catch {}
   if (theme === "system") document.documentElement.removeAttribute("data-theme");
   else document.documentElement.setAttribute("data-theme", theme);
 }

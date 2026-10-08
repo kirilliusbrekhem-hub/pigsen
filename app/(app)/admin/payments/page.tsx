@@ -24,7 +24,7 @@ export default async function AdminPayments() {
             </span>
             <span className="admin-row-meta">
               <span className={`chip ${p.status === "succeeded" ? "pos" : ""}`}>{STATUS[p.status] ?? p.status}</span>
-              <span className="muted">{p.plan === "year" ? "Год" : "Месяц"}{p.id.startsWith("tgr_") ? " · продление" : ""}</span>
+              <span className="muted">{p.plan.startsWith("coins-") ? `${p.plan.slice(6)} PigCoin$` : p.plan === "year" ? "Год" : "Месяц"}{p.id.startsWith("tgr_") ? " · продление" : ""}</span>
               <span className="muted">{dateRu(p.createdAt)}</span>
             </span>
           </Link>

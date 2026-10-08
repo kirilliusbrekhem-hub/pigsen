@@ -6,9 +6,9 @@ import { SaveButton } from "@/components/content/SaveButton";
 import { LEVELS } from "@/components/learning/CourseCard";
 import { Icon } from "@/components/ui/Icon";
 import { Ring } from "@/components/ui/Ring";
-import { requireUser } from "@/lib/auth/session";
+import { requireUserWith } from "@/lib/auth/session";
 import { getCourseWithProgress } from "@/lib/learning/service";
-import { isPro } from "@/lib/billing/plan";
+import { hasPremium } from "@/lib/billing/plan";
 import { lessonLocked } from "@/lib/learning/premium";
 
 export async function generateMetadata({ params }: { params: Promise<{ course: string }> }): Promise<Metadata> {
@@ -17,12 +17,11 @@ export async function generateMetadata({ params }: { params: Promise<{ course: s
 }
 
 export default async function CoursePage({ params }: { params: Promise<{ course: string }> }) {
-  const user = await requireUser();
   const { course: slug } = await params;
-  const data = await getCourseWithProgress(user.id, slug);
+  const [user, data] = await requireUserWith((userId) => getCourseWithProgress(userId, slug));
   if (!data) notFound();
   const { course, lessons } = data;
-  const pro = isPro(user.profile);
+  const pro = hasPremium(user.profile); // Pro or a PigCoin$ pass
   const next = lessons.find((l) => l.status !== "completed") ?? lessons[0];
   const cta = course.percent === 100 ? "Повторить курс" : course.started ? "Продолжить" : "Начать обучение";
 

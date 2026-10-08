@@ -1,9 +1,9 @@
 import "server-only";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { prisma } from "@/lib/db/prisma";
-import { extendPro } from "@/lib/coins/service";
+import { creditStarsCoins, extendPro } from "@/lib/coins/service";
 import { HttpError } from "@/lib/api/http";
-import { PLANS, type PlanId } from "./plan";
+import { COIN_PACKS, PLANS, type PackId, type PlanId } from "./plan";
 
 // Telegram Stars payments through the PIGSEN bot. Token and webhook secret live only on the server.
 const token = () => process.env.TELEGRAM_BOT_TOKEN?.trim() ?? "";
@@ -43,6 +43,24 @@ export async function createStarsInvoice(userId: string, planId: PlanId): Promis
   return { url, id };
 }
 
+/** Stars invoice for a PigCoin$ pack. Pack id is validated by the caller; price and amount come from the server table. */
+export async function createCoinsInvoice(userId: string, packId: PackId): Promise<{ url: string; id: string }> {
+  if (!starsEnabled()) throw new HttpError(503, "Покупка PigCoin$ за звёзды скоро появится.");
+  const pack = COIN_PACKS[packId];
+  if (!pack) throw new HttpError(400, "Такого пакета нет");
+  const id = `tgc_${randomBytes(12).toString("hex")}`;
+  await prisma.payment.create({ data: { id, userId, plan: pack.id, amount: pack.stars, provider: "telegram" } });
+  const url = await tg<string>("createInvoiceLink", {
+    title: `${pack.coins} PigCoin$`,
+    description: `${pack.coins} PigCoin$ на баланс PIGSEN для магазина. Бонусные баллы без денежной стоимости.`,
+    payload: id,
+    provider_token: "",
+    currency: "XTR",
+    prices: [{ label: `${pack.coins} PigCoin$`, amount: pack.stars }],
+  });
+  return { url, id };
+}
+
 export function validSecret(header: string | null): boolean {
   const a = Buffer.from(header ?? "");
   const b = Buffer.from(webhookSecret());
@@ -78,6 +96,13 @@ export async function handleUpdate(u: Update): Promise<void> {
   if (sp && u.message) {
     const p = await prisma.payment.findUnique({ where: { id: sp.invoice_payload } });
     if (!p || sp.currency !== "XTR" || sp.total_amount < p.amount) return;
+    const pack = COIN_PACKS[p.plan as PackId];
+    if (pack) {
+      // Coin pack: claim + credit in one transaction, so a redelivered update pays once.
+      if (!(await creditStarsCoins(p.id, sp.telegram_payment_charge_id, pack.coins))) return;
+      await tg("sendMessage", { chat_id: u.message.chat.id, text: `Оплата прошла! +${pack.coins} PigCoin$ на вашем балансе PIGSEN. Вернитесь на сайт: страница обновится сама.` }).catch(() => {});
+      return;
+    }
     let fresh: boolean;
     if (sp.is_recurring && !sp.is_first_recurring) {
       // Monthly renewal: one row per Telegram charge, so a redelivered update can't extend Pro twice.

@@ -509,3 +509,18 @@ button.tb { background: none; border: 0; font-family: inherit; cursor: pointer; 
 .site-legal{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:11.5px;color:var(--ink-3,#888)}
 .site-legal a{color:inherit}
 .ai-disclaimer{font-size:11px;color:var(--ink-3,#888);text-align:center;margin:0 0 4px}
+
+/* Shop cosmetics: name colors and avatar rings (profile, leaderboard) */
+.name-emerald { color: #10b981; }
+.name-violet { color: #8b5cf6; }
+.name-gold { background: linear-gradient(90deg, #f59e0b, #fde68a, #d97706); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.avatar.ring-gold { box-shadow: 0 0 0 2px var(--surface, #fff), 0 0 0 4px #f59e0b; }
+.avatar.ring-fire { box-shadow: 0 0 0 2px var(--surface, #fff), 0 0 0 4px #ef4444, 0 0 10px 3px rgba(249, 115, 22, .55); }
+.shop-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.shop-cat { display: flex; flex-direction: column; gap: 10px; }
+.shop-cat h3 { font-size: 16px; font-weight: 600; }
+.shop-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: auto; }
+.shop-actions .btn { margin-top: 0; }
+.packs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.pack { padding: 16px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.pack .btn { margin-top: auto; }

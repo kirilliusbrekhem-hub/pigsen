@@ -106,15 +106,18 @@ export async function listPosts(viewer: Viewer, opts: ListOpts = {}) {
     ...(opts.topic ? { topic: opts.topic } : {}),
     ...(top ? { createdAt: { gte: new Date(now - 7 * 86_400_000) } } : {}),
   };
-  viewer = { ...viewer, admin: await isAdmin(viewer) };
   const sel = postSelect(viewer.id);
-  const rows = await prisma.communityPost.findMany({
-    where,
-    orderBy: top ? [{ likes: { _count: "desc" } }, { createdAt: "desc" }] : [{ createdAt: "desc" }, { id: "desc" }],
-    take: take + 1,
-    ...(opts.before && !top ? { cursor: { id: opts.before }, skip: 1 } : {}),
-    select: { ...sel, replies: { orderBy: { createdAt: "asc" }, take: 50, select: sel } },
-  });
+  const [admin, rows] = await Promise.all([
+    isAdmin(viewer),
+    prisma.communityPost.findMany({
+      where,
+      orderBy: top ? [{ likes: { _count: "desc" } }, { createdAt: "desc" }] : [{ createdAt: "desc" }, { id: "desc" }],
+      take: take + 1,
+      ...(opts.before && !top ? { cursor: { id: opts.before }, skip: 1 } : {}),
+      select: { ...sel, replies: { orderBy: { createdAt: "asc" }, take: 50, select: sel } },
+    }),
+  ]);
+  viewer = { ...viewer, admin };
   const page = rows.slice(0, take);
   return { posts: page.map((p) => view(p, viewer, now, p.replies)), next: !top && rows.length > take ? page[page.length - 1]?.id ?? null : null };
 }

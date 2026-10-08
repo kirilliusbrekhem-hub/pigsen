@@ -9,26 +9,30 @@ import { LessonQuiz } from "@/components/learning/LessonQuiz";
 import { prisma } from "@/lib/db/prisma";
 import { Icon } from "@/components/ui/Icon";
 import { ProgressBar } from "@/components/ui/Ring";
-import { requireUser } from "@/lib/auth/session";
+import { requireUserWith } from "@/lib/auth/session";
 import { getLesson } from "@/lib/learning/service";
 import { Track } from "@/components/ui/Track";
 import { PremiumLock, ProChip } from "@/components/pro/PremiumLock";
-import { isPro } from "@/lib/billing/plan";
+import { hasPremium } from "@/lib/billing/plan";
 import { lessonLocked } from "@/lib/learning/premium";
 import { LessonChallenge } from "@/components/social/LessonChallenge";
 
 export const metadata: Metadata = { title: "Урок" };
 
 export default async function LessonPage({ params }: { params: Promise<{ course: string; lesson: string }> }) {
-  const user = await requireUser();
   const { course: courseSlug, lesson: lessonSlug } = await params;
-  const data = await getLesson(user.id, courseSlug, lessonSlug);
+  const [user, [data, quizzesPassed]] = await requireUserWith((userId) =>
+    Promise.all([
+      getLesson(userId, courseSlug, lessonSlug),
+      prisma.quizAttempt.count({ where: { userId, lesson: { slug: lessonSlug, course: { slug: courseSlug } }, completedAt: { not: null } } }),
+    ]),
+  );
   if (!data) notFound();
   const { course, lessons, lesson, prev, next } = data;
   const courseHref = `/learn/${course.slug}`;
-  const pro = isPro(user.profile);
+  const pro = hasPremium(user.profile); // Pro or a PigCoin$ pass
   const locked = lessonLocked(!!course.premium, lesson.order, pro);
-  const passedQuiz = (await prisma.quizAttempt.count({ where: { userId: user.id, lessonId: lesson.id, completedAt: { not: null } } })) > 0;
+  const passedQuiz = quizzesPassed > 0;
 
   return (
     <>

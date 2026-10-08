@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { BuyPlan, Shop } from "@/components/pro/ProClient";
+import { BuyPlan, CoinPacks, Shop } from "@/components/pro/ProClient";
 import { Coin } from "@/components/ui/Coin";
 import { Icon } from "@/components/ui/Icon";
 import { requireUser } from "@/lib/auth/session";
-import { COMPARE, PLANS, PRO_PERKS, isLite, isPro } from "@/lib/billing/plan";
+import { COIN_PACKS, COMPARE, PLANS, PRO_PERKS, isLite, isPro } from "@/lib/billing/plan";
 import { paymentsEnabled, syncRecentPayments } from "@/lib/billing/yookassa";
 import { starsEnabled } from "@/lib/billing/telegram";
 import { dateRu } from "@/lib/client/format";
-import { SHOP, ownedItems, priceFor } from "@/lib/coins/service";
+import { COINS, MAX_EXTRA_GOALS, SHOP, STYLES, TITLES, ownedItems, priceFor } from "@/lib/coins/service";
 import { prisma } from "@/lib/db/prisma";
 
 export const metadata: Metadata = { title: "Pro и PigCoin$" };
@@ -24,6 +24,14 @@ const REASONS: Record<string, string> = {
   "daily-pro": "Pro-бонус",
   "shop:boost-chat": "+10 вопросов $PIG",
   "shop:streak-freeze": "Заморозка серии",
+  "shop:chest-gold": "Золотой сундук",
+  "shop:boost-chat-30": "+30 вопросов $PIG",
+  "shop:xp-boost": "Двойной XP",
+  "shop:pro-pass": "Pro-материалы на 3 дня",
+  "shop:goal-slot": "+1 цель в копилке",
+  "stars:coins-300": "Покупка за звёзды",
+  "stars:coins-1000": "Покупка за звёзды",
+  "stars:coins-3000": "Покупка за звёзды",
   "referral-welcome": "Бонус за приглашение",
   referral: "Друг прошёл первый урок",
   "referral-milestone": "Бонус за 5 друзей",
@@ -54,7 +62,7 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
           <span className="label">PIGSEN Pro</span>
           <h1>{pro ? "Вы в Pro. Спасибо!" : "Pro: $PIG без ограничений"}</h1>
           <p>
-            Безлимитный чат и коуч, x2 PigCoin$ за всё, +30 монет каждый день и защита серии. Всего около {Math.round(PLANS.year.price / 365)} ₽ в день при оплате за год.
+            Безлимитный чат и коуч, x2 PigCoin$ за всё, +{COINS.proDaily} монет каждый день и защита серии. Всего около {Math.round(PLANS.year.price / 365)} ₽ в день при оплате за год.
             {!pro && " Нет денег сейчас? Накопите 1000 PigCoin$ и возьмите пробный Pro на 7 дней."}
           </p>
         </div>
@@ -110,7 +118,7 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
           <span className="label">Ваш баланс</span>
           <b className="num coins-big">{coins} <Coin size={30} /></b>
           <p className="muted" style={{ fontSize: 13 }}>
-            PigCoin$ начисляются: 1 монета за каждый XP за уроки и квизы, ежедневный бонус до 30 за вход (растёт с серией), +15 за взнос в копилку раз в день, +50 за каждые 25% цели, +20 за отказ от импульсной покупки. В Pro всё x2 и ещё +30 в день.
+            PigCoin$ начисляются: 1 монета за каждые {1 / COINS.perXp} XP за уроки и квизы, ежедневный бонус до {COINS.dailyMax} за вход (растёт с серией), +{COINS.dailyDeposit} за взнос в копилку раз в день, +{COINS.milestone} за каждые 25% цели, +{COINS.resistedSpend} за отказ от импульсной покупки. В Pro монеты за обучение и взносы x2 и ещё +{COINS.proDaily} в день.
           </p>
           {txs.length > 0 && (
             <div className="row-list">
@@ -165,9 +173,19 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
         {pro ? <p className="muted">Скидка Pro 50% уже учтена в ценах.</p> : <p className="muted">В Pro многие товары в 2 раза дешевле.</p>}
         <Shop
           coins={coins}
-          items={SHOP.filter((i) => !(pro && i.id === "pro-trial")).map((i) => {
+          items={SHOP.filter((i) => !(pro && i.notForPro)).map((i) => {
             const isTheme = i.id.startsWith("theme-");
             const price = priceFor(i, pro);
+            const style = STYLES[i.id];
+            const has = !i.repeatable && owned.has(i.id);
+            const equipped = has && (style ? profile?.[style.field] === style.value : !!TITLES[i.id] && profile?.title === TITLES[i.id]);
+            const until = (d: Date | null | undefined, what: string) => (d && d.getTime() > Date.now() ? `${what} до ${dateRu(d)}` : undefined);
+            const note =
+              i.id === "xp-boost" ? until(profile?.xpBoostUntil, "x2 XP активен")
+              : i.id === "pro-pass" ? until(profile?.passUntil, "Открыто")
+              : i.id === "goal-slot" && profile?.extraGoals ? `Куплено ${profile.extraGoals} из ${MAX_EXTRA_GOALS}`
+              : i.id === "streak-freeze" && profile?.streakFreezes ? `У вас ${profile.streakFreezes} из 3`
+              : undefined;
             return {
               id: i.id,
               title: i.title,
@@ -175,12 +193,27 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
               price,
               fullPrice: price !== i.price ? i.price : undefined,
               icon: i.icon,
-              hot: i.id === "pro-trial" || i.id === "chest",
-              owned: !i.repeatable && owned.has(i.id),
+              category: i.category,
+              hot: i.id === "pro-trial" || i.id === "chest" || i.id === "xp-boost",
+              owned: has,
+              equippable: has && (!!style || !!TITLES[i.id]),
+              equipped,
+              note,
               includedInPro: pro && isTheme && !owned.has(i.id),
             };
           })}
         />
+      </section>
+
+      <section className="stack" style={{ gap: 12 }} id="coins">
+        <div>
+          <span className="label">PigCoin$ за звёзды</span>
+          <h2 style={{ fontSize: 20, fontWeight: 500 }}>Пополнить баланс</h2>
+        </div>
+        <p className="muted">
+          Не хотите ждать? Купите PigCoin$ за Telegram Stars, монеты придут сразу после оплаты.{!pro && ` Если нужны лимиты и курсы, Pro на месяц (${PLANS.month.stars} ⭐) выгоднее, чем 1000 монет на пробный Pro.`}
+        </p>
+        <CoinPacks enabled={stars} packs={Object.values(COIN_PACKS).map((p) => ({ id: p.id, coins: p.coins, stars: p.stars, note: p.id === "coins-3000" ? "Выгоднее всего" : undefined }))} />
       </section>
     </div>
   );

@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/db/prisma";
+import { getCategories } from "@/lib/content/catalog";
 import { toCategoryDTO, toContentCard } from "@/lib/content/mappers";
 import { getSavedIds } from "@/lib/content/saved";
 import type { ContentType, SearchResultDTO } from "@/types";
@@ -38,7 +39,7 @@ export async function search(userId: string, rawQuery: string, type?: ContentTyp
           include: { course: true },
           take: 20,
         }),
-    prisma.category.findMany(),
+    getCategories(),
     getSavedIds(userId),
   ]);
 

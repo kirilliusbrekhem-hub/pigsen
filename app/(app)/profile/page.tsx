@@ -43,7 +43,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
       <section className="page-head">
         <div>
           <span className="label">Профиль</span>
-          <h1>{user.name}</h1>
+          <h1 className={profile?.nameColor ? `name-${profile.nameColor}` : undefined}>{user.name}</h1>
         </div>
       </section>
       <div className="prof">
@@ -57,7 +57,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
         </nav>
         <div className="stack fade-in" style={{ minWidth: 0 }} key={sec}>
           <h2 style={{ fontSize: 18 }}>{SECTIONS.find(([id]) => id === sec)?.[1]}</h2>
-          {sec === "personal" && <PersonalForm name={user.name} email={user.email} bio={profile?.bio ?? ""} avatar={profile?.avatar ?? null} memberSince={memberSince} />}
+          {sec === "personal" && <PersonalForm name={user.name} email={user.email} bio={profile?.bio ?? ""} avatar={profile?.avatar ?? null} memberSince={memberSince} ring={profile?.avatarRing ?? ""} />}
           {sec === "interests" && <InterestsSection userInterests={parseInterests(profile)} />}
           {sec === "progress" && <ProgressSection userId={user.id} />}
           {sec === "saved" && <SavedSection userId={user.id} />}

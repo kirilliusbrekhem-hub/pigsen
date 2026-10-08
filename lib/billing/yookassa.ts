@@ -75,7 +75,7 @@ export async function syncPayment(id: string): Promise<"succeeded" | "pending" |
 
 /** After returning from checkout: sync the user's recent pending payments. */
 export async function syncRecentPayments(userId: string): Promise<boolean> {
-  const pending = await prisma.payment.findMany({ where: { userId, status: "pending", createdAt: { gte: new Date(Date.now() - 86_400_000) } }, take: 3 });
+  const pending = await prisma.payment.findMany({ where: { userId, provider: "yookassa", status: "pending", createdAt: { gte: new Date(Date.now() - 86_400_000) } }, take: 3 });
   let ok = false;
   for (const p of pending) if ((await syncPayment(p.id)) === "succeeded") ok = true;
   return ok;

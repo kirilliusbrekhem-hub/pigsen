@@ -1,10 +1,10 @@
-export type Goal = "register" | "first_lesson" | "pro_click" | "pro_trial";
+export type Goal = "register" | "first_lesson" | "pro_click" | "pro_trial" | "coins_click";
 
 type Ym = (id: number, action: "reachGoal", goal: string) => void;
 type Gtag = (cmd: "event", name: string, params?: Record<string, unknown>) => void;
 
 /** GA4 recommended event names where they exist. */
-const GA_NAMES: Record<Goal, string> = { register: "sign_up", first_lesson: "first_lesson", pro_click: "begin_checkout", pro_trial: "pro_trial" };
+const GA_NAMES: Record<Goal, string> = { register: "sign_up", first_lesson: "first_lesson", pro_click: "begin_checkout", pro_trial: "pro_trial", coins_click: "coins_click" };
 
 /** Sends a goal to Yandex.Metrica and GA4. Each provider is optional; safe no-op when missing or not loaded. */
 export function reachGoal(goal: Goal) {

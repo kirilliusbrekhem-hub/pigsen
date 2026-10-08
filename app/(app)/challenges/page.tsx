@@ -1,6 +1,6 @@
 import { Disclaimer, RISKY_CATEGORIES } from "@/components/legal/Disclaimer";
 import type { Metadata } from "next";
-import { requireUser } from "@/lib/auth/session";
+import { requireUserWith } from "@/lib/auth/session";
 import { isPro } from "@/lib/billing/plan";
 import { ProPromo } from "@/components/pro/ProPromo";
 import { ChallengeList, type DoneInfo } from "@/components/social/ChallengeList";
@@ -10,9 +10,8 @@ import { doneChallenges } from "@/lib/social/service";
 export const metadata: Metadata = { title: "Челленджи" };
 
 export default async function ChallengesPage() {
-  const user = await requireUser();
+  const [user, done] = await requireUserWith(doneChallenges);
   const pro = isPro(user.profile);
-  const done = await doneChallenges(user.id);
   const doneMap: Record<string, DoneInfo> = {};
   for (const [id, d] of done) doneMap[id] = { note: d.note, date: d.createdAt.toISOString() };
   return (

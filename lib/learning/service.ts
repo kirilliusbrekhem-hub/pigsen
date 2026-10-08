@@ -5,6 +5,7 @@ import { isUniqueViolation } from "@/lib/db/lock";
 import { prisma } from "@/lib/db/prisma";
 import { toCategoryDTO } from "@/lib/content/mappers";
 import { getSavedIds } from "@/lib/content/saved";
+import { getLessonCount } from "@/lib/content/catalog";
 import type { CourseProgressDTO } from "@/types";
 import { assertLessonAccess } from "./premium";
 
@@ -73,11 +74,15 @@ export async function getCourseWithProgress(userId: string, slug: string) {
 }
 
 export async function getLesson(userId: string, courseSlug: string, lessonSlug: string) {
-  const data = await getCourseWithProgress(userId, courseSlug);
+  // Course (with progress) and lesson body load in parallel: one DB round trip instead of two.
+  const [data, body] = await Promise.all([
+    getCourseWithProgress(userId, courseSlug),
+    prisma.lesson.findFirst({ where: { slug: lessonSlug, course: { slug: courseSlug } }, select: { id: true, body: true } }),
+  ]);
   if (!data) return null;
   const idx = data.lessons.findIndex((l) => l.slug === lessonSlug);
   if (idx < 0) return null;
-  const lesson = await prisma.lesson.findUniqueOrThrow({ where: { id: data.lessons[idx].id } });
+  const lesson = body?.id === data.lessons[idx].id ? body : await prisma.lesson.findUniqueOrThrow({ where: { id: data.lessons[idx].id } });
   return {
     ...data,
     lesson: { ...data.lessons[idx], body: lesson.body },
@@ -136,7 +141,7 @@ export async function learningStats(userId: string) {
   const [completed, inProgressLessons, totalLessons, completedRows] = await Promise.all([
     prisma.progress.count({ where: { userId, status: "completed" } }),
     prisma.progress.findMany({ where: { userId }, select: { lesson: { select: { courseId: true } } } }),
-    prisma.lesson.count(),
+    getLessonCount(),
     prisma.progress.findMany({ where: { userId, status: "completed" }, select: { lesson: { select: { durationMin: true } } } }),
   ]);
   const coursesStarted = new Set(inProgressLessons.map((p) => p.lesson.courseId)).size;

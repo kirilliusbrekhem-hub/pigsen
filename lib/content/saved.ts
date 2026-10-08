@@ -1,12 +1,14 @@
 import "server-only";
+import { cache } from "react";
 import { prisma } from "@/lib/db/prisma";
 import type { ContentCardDTO, ContentType } from "@/types";
 import { toContentCard } from "./mappers";
 
-export async function getSavedIds(userId: string): Promise<Set<string>> {
+/** Deduped per request: several loaders on one page need the same set. */
+export const getSavedIds = cache(async (userId: string): Promise<Set<string>> => {
   const rows = await prisma.savedItem.findMany({ where: { userId }, select: { contentItemId: true } });
   return new Set(rows.map((r) => r.contentItemId));
-}
+});
 
 export async function saveItem(userId: string, contentItemId: string) {
   const exists = await prisma.contentItem.findUnique({ where: { id: contentItemId }, select: { id: true } });
@@ -32,4 +34,4 @@ export async function listSaved(userId: string, type?: ContentType): Promise<Arr
   return rows.map((r) => ({ savedAt: r.createdAt.toISOString(), item: toContentCard(r.contentItem, ids) }));
 }
 
-export const countSaved = (userId: string) => prisma.savedItem.count({ where: { userId } });
+export const countSaved = cache((userId: string) => prisma.savedItem.count({ where: { userId } }));

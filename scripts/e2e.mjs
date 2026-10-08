@@ -11,6 +11,7 @@ const problems = [];
 const log = (step, msg = "ok") => console.log(`✓ ${step}${msg === "ok" ? "" : ` — ${msg}`}`);
 
 function watch(page, label) {
+  page.on("response", (r) => { if (r.status() === 404) problems.push(`[${label}] 404: ${r.url()}`); });
   page.on("console", (m) => {
     if (m.type() === "error" && !m.text().includes("401 (Unauthorized)")) problems.push(`[${label}] console: ${m.text()}`);
   });

@@ -4,7 +4,7 @@ import { FilterChips } from "@/components/content/FilterChips";
 import { CourseCard } from "@/components/learning/CourseCard";
 import { Icon } from "@/components/ui/Icon";
 import { EmptyState } from "@/components/ui/States";
-import { requireUser } from "@/lib/auth/session";
+import { requireUserWith } from "@/lib/auth/session";
 import { isPro } from "@/lib/billing/plan";
 import { ProPromo } from "@/components/pro/ProPromo";
 import { listCategories } from "@/lib/content/service";
@@ -13,14 +13,9 @@ import { learningHistory, learningStats, listCoursesWithProgress } from "@/lib/l
 export const metadata: Metadata = { title: "Обучение" };
 
 export default async function LearnPage({ searchParams }: { searchParams: Promise<{ topic?: string }> }) {
-  const user = await requireUser();
-  const { topic } = await searchParams;
-  const [all, stats, categories, history] = await Promise.all([
-    listCoursesWithProgress(user.id),
-    learningStats(user.id),
-    listCategories(),
-    learningHistory(user.id, 5),
-  ]);
+  const [user, [{ topic }, all, stats, categories, history]] = await requireUserWith((userId) =>
+    Promise.all([searchParams, listCoursesWithProgress(userId), learningStats(userId), listCategories(), learningHistory(userId, 5)]),
+  );
   const topics = categories.filter((c) => all.some((x) => x.category.slug === c.slug));
   const current = topic && topics.some((t) => t.slug === topic) ? topic : null;
   const courses = current ? all.filter((c) => c.category.slug === current) : all;

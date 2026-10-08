@@ -1,6 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/db/prisma";
 import { isPro } from "@/lib/billing/plan";
+import { COINS } from "@/lib/coins/service";
 
 export const XP = {
   lessonCompleted: 20,
@@ -72,8 +73,9 @@ export async function awardXp(userId: string, amount: number): Promise<XpResult>
   const missedOne = profile.lastActiveDay === day(-2) && profile.streak > 0 && (pro || profile.streakFreezes > 0);
   const useFreeze = missedOne && !pro;
   const streak = profile.lastActiveDay === today ? profile.streak : profile.lastActiveDay === day(-1) || missedOne ? profile.streak + 1 : 1;
-  // Every XP grant also pays PigCoin$ equal to the XP (x2 on Pro), recorded in the ledger.
-  const coins = amount * (pro ? 2 : 1);
+  // Every XP grant also pays PigCoin$: half the base XP on Free, equal to it on Pro (x2). The shop's x2 XP boost doubles XP only.
+  const coins = Math.round(amount * COINS.perXp * (pro ? 2 : 1));
+  if (profile.xpBoostUntil && profile.xpBoostUntil.getTime() > Date.now()) amount *= 2;
   const updated = await prisma.profile.update({
     where: { userId },
     data: {
@@ -118,7 +120,7 @@ export async function getGameStats(userId: string): Promise<GameStats> {
 }
 
 async function loadGameStats(userId: string): Promise<GameStats> {
-  const [profile, lessons, perfectQuiz, quizzes, saved, convos, ideas, courses] = await Promise.all([
+  const [profile, lessons, perfectQuiz, quizzes, saved, convos, ideas, courses, doneByCourse] = await Promise.all([
     prisma.profile.findUnique({ where: { userId }, select: { xp: true, streak: true, bestStreak: true, lastActiveDay: true, proUntil: true, streakFreezes: true } }),
     prisma.progress.count({ where: { userId, status: "completed" } }),
     prisma.quizAttempt.findFirst({ where: { userId, completedAt: { not: null }, score: { gt: 0 } }, select: { score: true, total: true }, orderBy: { score: "desc" } }),
@@ -127,8 +129,8 @@ async function loadGameStats(userId: string): Promise<GameStats> {
     prisma.conversation.count({ where: { userId } }),
     prisma.ideaReview.count({ where: { userId } }),
     prisma.course.findMany({ select: { id: true, _count: { select: { lessons: true } } } }),
+    prisma.lesson.groupBy({ by: ["courseId"], where: { progress: { some: { userId, status: "completed" } } }, _count: { _all: true } }),
   ]);
-  const doneByCourse = await prisma.lesson.groupBy({ by: ["courseId"], where: { progress: { some: { userId, status: "completed" } } }, _count: { _all: true } });
   const xp = profile?.xp ?? 0;
   const streak = liveStreak(profile?.streak ?? 0, profile?.lastActiveDay ?? "", isPro(profile) || (profile?.streakFreezes ?? 0) > 0);
   const bestStreak = Math.max(profile?.bestStreak ?? 0, streak);

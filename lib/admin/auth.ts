@@ -1,5 +1,6 @@
 import "server-only";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { getCurrentUser, type CurrentUser } from "@/lib/auth/session";
 import { HttpError } from "@/lib/api/http";
 import { prisma } from "@/lib/db/prisma";
@@ -18,7 +19,16 @@ function inAdminEmails(email: string | null | undefined): boolean {
  */
 export async function isAdmin(user: { id: string; email: string } | null | undefined): Promise<boolean> {
   if (!user) return false;
-  if (await prisma.adminGrant.findUnique({ where: { userId: user.id }, select: { userId: true } })) return true;
+  return isAdminCached(user.id, user.email);
+}
+
+/** Whether the user holds an AdminGrant. Deduped per request; can be started before the account check finishes. */
+export const hasAdminGrant = cache(async (userId: string): Promise<boolean> => !!(await prisma.adminGrant.findUnique({ where: { userId }, select: { userId: true } })));
+
+/** Deduped per request: the app layout and several pages ask for the same user. */
+const isAdminCached = cache(async (id: string, email: string): Promise<boolean> => {
+  const user = { id, email };
+  if (await hasAdminGrant(user.id)) return true;
   if (!inAdminEmails(user.email)) return false;
   return prisma.$transaction(async (tx) => {
     await advisoryLock(tx, "admin-bootstrap");
@@ -26,7 +36,7 @@ export async function isAdmin(user: { id: string; email: string } | null | undef
     await tx.adminGrant.create({ data: { userId: user.id } });
     return true;
   });
-}
+});
 
 /** For admin pages: non-admins get a plain 404, so the panel's existence isn't revealed. */
 export async function requireAdmin(): Promise<CurrentUser> {

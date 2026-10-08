@@ -16,6 +16,7 @@ export default async function CommunityChatPage({ searchParams }: { searchParams
   const pro = isPro(user.profile);
   const { room: raw } = await searchParams;
   const room = raw && isRoom(raw) ? raw : CHAT_ROOMS[0].id;
+  const [initial, admin] = pro ? await Promise.all([listChat(user.id, room), isAdmin(user)]) : [null, false];
   return (
     <>
       <section className="page-head">
@@ -28,7 +29,7 @@ export default async function CommunityChatPage({ searchParams }: { searchParams
       <CommunityTabs active="chat" />
       {pro ? (
         <>
-          <ChatRoom key={room} room={room} initial={await listChat(user.id, room)} admin={await isAdmin(user)} />
+          <ChatRoom key={room} room={room} initial={initial ?? []} admin={admin} />
           <ModerationNote />
         </>
       ) : (

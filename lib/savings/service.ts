@@ -1,7 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/db/prisma";
 import { COINS, addCoins, addDailyCoins, ownedItems } from "@/lib/coins/service";
-import { isPro, limitsFor } from "@/lib/billing/plan";
+import { goalLimit, isPro } from "@/lib/billing/plan";
 import { HttpError } from "@/lib/api/http";
 import { THEMES } from "./themes";
 
@@ -38,14 +38,18 @@ export async function getGoal(userId: string, id: string) {
 }
 
 export async function availableThemes(userId: string, pro: boolean): Promise<Set<string>> {
-  const owned = await ownedItems(userId);
+  return themesFrom(await ownedItems(userId), pro);
+}
+
+/** Themes unlocked by the plan or by shop purchases (`owned` = ownedItems(userId)). */
+export function themesFrom(owned: Set<string>, pro: boolean): Set<string> {
   return new Set(THEMES.filter((t) => !t.premium || pro || owned.has(`theme-${t.id}`)).map((t) => t.id));
 }
 
 export async function createGoal(userId: string, input: { title: string; why: string; target: number; theme: string; deadline: Date | null; initial: number; image?: string | null }) {
-  const profile = await prisma.profile.findUnique({ where: { userId }, select: { proUntil: true, liteUntil: true } });
+  const profile = await prisma.profile.findUnique({ where: { userId }, select: { proUntil: true, liteUntil: true, extraGoals: true } });
   const pro = isPro(profile);
-  const maxGoals = limitsFor(profile).goals;
+  const maxGoals = goalLimit(profile);
   if ((await prisma.savingsGoal.count({ where: { userId } })) >= maxGoals) {
     throw new HttpError(402, `На вашем плане до ${maxGoals} целей. С Pro целей сколько угодно, или удалите старую цель.`);
   }

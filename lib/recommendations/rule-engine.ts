@@ -1,5 +1,5 @@
 import "server-only";
-import { prisma } from "@/lib/db/prisma";
+import { getCatalogItems } from "@/lib/content/catalog";
 import { toContentCard } from "@/lib/content/mappers";
 import type { RecommendationDTO } from "@/types";
 import type { RecommendationEngine, UserSignals } from "./types";
@@ -19,7 +19,7 @@ function tally(ids: string[]): Map<string, number> {
 export const ruleEngine: RecommendationEngine = {
   name: "rules-v1",
   async recommend(_userId: string, s: UserSignals, limit: number): Promise<RecommendationDTO[]> {
-    const items = await prisma.contentItem.findMany({ include: { category: true } });
+    const items = await getCatalogItems();
     const savedCats = tally(s.savedCategoryIds);
     const viewedCats = tally(s.viewedCategoryIds);
     const doneCats = tally(s.completedCategoryIds);
