@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { enforceRateLimit, handler, json, parseBody, requireApiUser } from "@/lib/api/http";
 import { createCheckout } from "@/lib/billing/yookassa";
+import { PLAN_IDS } from "@/lib/billing/plan";
 import { createStarsInvoice, starsEnabled } from "@/lib/billing/telegram";
 
-const Body = z.object({ plan: z.enum(["month", "year"]) });
+const Body = z.object({ plan: z.enum(PLAN_IDS) });
 
 export const POST = handler(async (req: Request) => {
   const user = await requireApiUser();

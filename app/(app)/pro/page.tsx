@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { BuyPlan, CoinPacks, Shop } from "@/components/pro/ProClient";
+import { CoinPacks, Shop } from "@/components/pro/ProClient";
+import { TierPicker } from "@/components/pro/TierPicker";
 import { Coin } from "@/components/ui/Coin";
 import { Icon } from "@/components/ui/Icon";
 import { requireUser } from "@/lib/auth/session";
-import { COIN_PACKS, COMPARE, PLANS, PRO_PERKS, isLite, isPro } from "@/lib/billing/plan";
+import { COIN_PACKS, COMPARE, PLANS, PRO_PERKS, PRO_TIER_NAMES, TEAM_CAPS, isLite, isPro, proTierOf, type ProTier } from "@/lib/billing/plan";
 import { paymentsEnabled, syncRecentPayments } from "@/lib/billing/yookassa";
 import { starsEnabled } from "@/lib/billing/telegram";
 import { dateRu } from "@/lib/client/format";
@@ -59,7 +60,7 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
     <div className="stack" style={{ gap: 24 }}>
       <section className="page-head">
         <div>
-          <span className="label">PIGSEN Pro</span>
+          <span className="label">PìgBiz Pro</span>
           <h1>{pro ? "Вы в Pro. Спасибо!" : "Pro: $PIG без ограничений"}</h1>
           <p>
             Безлимитный чат и коуч, x2 PigCoin$ за всё, +{COINS.proDaily} монет каждый день и защита серии. Всего около {Math.round(PLANS.year.price / 365)} ₽ в день при оплате за год.
@@ -79,7 +80,7 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
       <div className="pro-grid">
         <section className={`card card-pad stack pro-card ${pro ? "is-active" : ""}`} style={{ gap: 12 }}>
           <span className="label">{pro ? "Ваш план" : "Что даёт Pro"}</span>
-          <h2>{pro ? `Pro до ${dateRu(profile!.proUntil!)}` : lite ? `Пробный Pro до ${dateRu(profile!.liteUntil!)}` : "Pro"}</h2>
+          <h2>{pro ? `${PRO_TIER_NAMES[proTierOf(profile) ?? "pro"]} до ${dateRu(profile!.proUntil!)}` : lite ? `Пробный Pro до ${dateRu(profile!.liteUntil!)}` : "Pro"}</h2>
           {lite && <p className="muted" style={{ fontSize: 13 }}>Пробный Pro даёт повышенные лимиты. Полный Pro снимает их совсем и удваивает PigCoin$.</p>}
           <ul className="perk-list">
             {PRO_PERKS.map((p) => (
@@ -88,22 +89,18 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
               </li>
             ))}
           </ul>
-          <div className="plan-row">
-            <div className="plan-opt">
-              <b className="num">{price(PLANS.month)}</b>
-              <span className="muted">{stars ? "в месяц, подписка" : "в месяц"}</span>
-              <BuyPlan plan="month" label={pro ? "Продлить на месяц" : stars ? "Оформить подписку" : "Оформить на месяц"} enabled={enabled} />
-            </div>
-            <div className="plan-opt best">
-              <span className="chip">−30%</span>
-              <b className="num">{price(PLANS.year)}</b>
-              <span className="muted">в год</span>
-              <BuyPlan plan="year" label={pro ? "Продлить на год" : "Оформить на год"} enabled={enabled} />
-            </div>
-          </div>
+          <TierPicker
+            tiers={(["pro", "pro7", "pro10"] as ProTier[]).map((tier) => {
+              const [m, y] = [Object.values(PLANS).find((p) => p.tier === tier && p.recurring)!, Object.values(PLANS).find((p) => p.tier === tier && !p.recurring)!];
+              return { tier, name: PRO_TIER_NAMES[tier], people: TEAM_CAPS[tier], month: { id: m.id, price: price(m) }, year: { id: y.id, price: price(y) } };
+            })}
+            current={proTierOf(profile)}
+            stars={stars}
+            enabled={enabled}
+          />
           {stars && (
             <ol className="pay-steps">
-              <li>Нажмите «Оформить»: откроется Telegram со счётом от бота PIGSEN.</li>
+              <li>Нажмите «Оформить»: откроется Telegram со счётом от бота PìgBiz.</li>
               <li>Нажмите «Оплатить». Нет звёзд? Telegram сам предложит купить их картой.</li>
               <li>Вернитесь сюда: Pro включится автоматически за пару секунд.</li>
             </ol>

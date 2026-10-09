@@ -1,7 +1,7 @@
 @import "./prototype.css";
 
 /* ======================================================================
-   PIGSEN additions. Same tokens, radii, shadows and type scale as the
+   PìgBiz additions. Same tokens, radii, shadows and type scale as the
    prototype; only new surfaces (library, learning, reader, auth) live here.
    ====================================================================== */
 :root { --pig: url("/pig.png"); --font-sans: var(--font-geist-sans), "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; --font-mono: var(--font-geist-mono), "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace; }

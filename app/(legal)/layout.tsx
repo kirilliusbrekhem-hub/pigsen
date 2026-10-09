@@ -7,7 +7,7 @@ export default function LegalLayout({ children }: { children: ReactNode }) {
     <div style={{ minHeight: "100vh", background: "var(--bg, transparent)", color: "inherit" }}>
       <main className="legal">
         <Link href="/" style={{ fontWeight: 800, fontSize: 18, textDecoration: "none", color: "inherit" }}>
-          PIGSEN
+          PìgBiz
         </Link>
         <nav className="legal-nav" aria-label="Юридические документы">
           <Link href="/terms">Условия использования</Link>

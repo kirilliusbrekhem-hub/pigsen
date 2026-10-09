@@ -1,4 +1,4 @@
-# PIGSEN: Make your money Smarter
+# PìgBiz: Make your money Smarter
 
 MVP образовательной платформы о бизнесе, стартапах, финансах и AI с ассистентом **$PIG**.
 
@@ -67,8 +67,8 @@ npm run dev               # http://localhost:3000
 7. Цели: в Метрике «Цели» → «Добавить цель» → тип «JavaScript-событие» → идентификатор `register`. Повторите для `first_lesson`, `pro_click`, `pro_trial`.
 
 **Google Analytics 4 (`NEXT_PUBLIC_GA_ID`)**
-1. analytics.google.com → Admin (шестерёнка) → Create → Property, название PIGSEN, часовой пояс Москва.
-2. Data collection → Web → URL `pigsen.vercel.app`, название потока PIGSEN → Create stream.
+1. analytics.google.com → Admin (шестерёнка) → Create → Property, название PìgBiz, часовой пояс Москва.
+2. Data collection → Web → URL `pigsen.vercel.app`, название потока PìgBiz → Create stream.
 3. Скопируйте Measurement ID вида `G-XXXXXXX`.
 4. Vercel → Settings → Environment Variables → `NEXT_PUBLIC_GA_ID` = `G-…` → Save → Redeploy.
 5. События отправляются автоматически: `sign_up`, `first_lesson`, `begin_checkout`, `pro_trial`. После первого появления (Admin → Events) отметьте `sign_up` и `begin_checkout` как Key events (звёздочка/переключатель «Mark as key event»).

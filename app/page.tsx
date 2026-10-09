@@ -4,53 +4,44 @@ import { Pig, Wordmark } from "@/components/ui/Brand";
 import { Icon } from "@/components/ui/Icon";
 import { Orb } from "@/components/ui/Orb";
 import { HeroVideo } from "@/components/landing/HeroVideo";
-import { ADVANTAGES, COMPARE, FAQ, PROOF, type Cell } from "@/components/landing/data";
-import { LIMITS, PLANS } from "@/lib/billing/plan";
+import { CafeArt } from "@/components/landing/CafeArt";
+import { FAQ, STEPS } from "@/components/landing/data";
+import { LIMITS, PLANS, PRO_TIER_NAMES, TEAM_CAPS } from "@/lib/billing/plan";
 
 export const metadata: Metadata = {
-  title: { absolute: "PIGSEN — Make your money Smarter." },
-  description: "AI-наставник $PIG, короткие курсы с квизами, копилка, челленджи и комьюнити. Разберитесь в деньгах, бизнесе и технологиях — бесплатно.",
-  openGraph: { title: "PIGSEN — Make your money Smarter.", description: "Учитесь финансам и бизнесу с AI-наставником $PIG. Бесплатный старт.", locale: "ru_RU", type: "website" },
+  title: { absolute: "PìgBiz — Make your money Smarter." },
+  description: "Копи по-настоящему — строй свой бизнес. Реальные накопления в копилке превращаются в виртуальную кофейню, которую ты растишь сам или с друзьями вместе с AI-партнёром $PIG.",
+  openGraph: { title: "PìgBiz — Make your money Smarter.", description: "Копи по-настоящему — строй свой бизнес вместе с AI-партнёром $PIG. Бесплатный старт.", locale: "ru_RU", type: "website" },
 };
 
 // Logged-in visitors are redirected to /dashboard by proxy.ts.
 
 const NAV = [
-  { href: "#features", label: "Возможности" },
-  { href: "#compare", label: "Сравнение" },
+  { href: "#how", label: "Как это работает" },
+  { href: "#together", label: "С друзьями" },
   { href: "#pricing", label: "Pro" },
   { href: "#faq", label: "FAQ" },
 ];
 
 const free = LIMITS.free;
+const FREE_PEOPLE = free.team;
+const PRO_TIERS = [
+  { tier: "pro", month: PLANS.month, year: PLANS.year },
+  { tier: "pro7", month: PLANS.month7, year: PLANS.year7 },
+  { tier: "pro10", month: PLANS.month10, year: PLANS.year10 },
+].map((t) => ({ name: PRO_TIER_NAMES[t.tier as keyof typeof TEAM_CAPS], people: TEAM_CAPS[t.tier as keyof typeof TEAM_CAPS], month: t.month.stars, year: t.year.stars }));
 const FREE_FEATURES = [
-  "Все бесплатные курсы, уроки и библиотека",
-  `${free.chat} вопросов $PIG и ${free.quiz} квизов в день`,
-  `${free.goals} цели в копилке, ${free.coach} совет коуча в день`,
-  "3 офлайн-челленджа, комьюнити, PigCoin$",
+  `Своя виртуальная кофейня — вдвоём с другом (${FREE_PEOPLE} человека)`,
+  `${free.goals} цели в копилке, базовые улучшения бизнеса`,
+  `${free.chat} вопросов $PIG и ${free.coach} совет коуча в день`,
+  "Лидерборд бизнесов и челленджи на накопления",
 ];
 const PRO_FEATURES = [
-  "Эксклюзивные курсы: финплан, инвестиции, запуск бизнеса",
-  "Безлимитный $PIG, коуч и разбор бизнес-идей",
-  `До ${LIMITS.pro.quiz} квизов в день и сколько угодно целей`,
-  "x2 PigCoin$, защита серии, все челленджи",
-  "Закрытое комьюнити и скидка 50% в магазине",
+  "Больше со-основателей в одном бизнесе",
+  "Премиальные улучшения: интерьер, меню, команда",
+  "Безлимитный $PIG-партнёр и коуч по накоплениям",
+  "Сколько угодно целей в копилке, x2 PigCoin$",
 ];
-
-const CELL: Record<Cell, { icon: string; text: string }> = {
-  yes: { icon: "check", text: "Есть" },
-  part: { icon: "dots", text: "Частично" },
-  no: { icon: "close", text: "Нет" },
-};
-
-function Mark({ v }: { v: Cell }) {
-  return (
-    <span className={`lp-mark is-${v}`} title={CELL[v].text}>
-      <Icon name={CELL[v].icon} size="sm" />
-      <span className="visually-hidden">{CELL[v].text}</span>
-    </span>
-  );
-}
 
 function SectionHead({ label, title, text }: { label: string; title: React.ReactNode; text?: string }) {
   return (
@@ -70,7 +61,7 @@ export default function Landing() {
       </a>
       <header className="lp-header">
         <div className="lp-wrap lp-header-in">
-          <Link href="/" className="brand" aria-label="PIGSEN — на главную">
+          <Link href="/" className="brand" aria-label="PìgBiz — на главную">
             <Pig />
             <Wordmark />
           </Link>
@@ -99,18 +90,18 @@ export default function Landing() {
           <div className="lp-wrap lp-hero-in">
             <div className="lp-hero-copy">
               <span className="lp-pill">
-                <Orb /> AI-наставник $PIG внутри
+                <Orb /> AI-партнёр $PIG внутри
               </span>
               <h1>
-                Деньги и бизнес — <span className="lp-hl">понятно</span> с первого урока
+                Копи по-настоящему — <span className="lp-hl">строй свой бизнес</span>
               </h1>
-              <p className="lp-lead">Короткие уроки с квизами, AI-наставник $PIG, копилка для целей и задания в реальной жизни. 10 минут в день — и вы уверенно разбираетесь в финансах.</p>
+              <p className="lp-lead">Реальные накопления в копилке превращаются в виртуальную кофейню. Ставишь кофемашину, стулья, нанимаешь бариста — один или с друзьями-кофаундерами. А $PIG помогает, как живой партнёр.</p>
               <div className="lp-cta-row">
                 <Link className="btn btn-accent btn-lg" href="/register">
-                  Создать аккаунт бесплатно <Icon name="arrow" size="sm" />
+                  Открыть свою кофейню <Icon name="arrow" size="sm" />
                 </Link>
-                <a className="btn btn-secondary btn-lg" href="#demo">
-                  <Icon name="play" size="sm" /> Смотреть демо
+                <a className="btn btn-secondary btn-lg" href="#how">
+                  Как это работает
                 </a>
               </div>
               <ul className="lp-ticks">
@@ -118,10 +109,10 @@ export default function Landing() {
                   <Icon name="check" size="sm" /> Бесплатный старт
                 </li>
                 <li>
-                  <Icon name="check" size="sm" /> Без карты
+                  <Icon name="check" size="sm" /> Деньги остаются у тебя
                 </li>
                 <li>
-                  <Icon name="check" size="sm" /> С нуля, без терминов
+                  <Icon name="check" size="sm" /> Бизнес виртуальный
                 </li>
               </ul>
             </div>
@@ -137,94 +128,71 @@ export default function Landing() {
                 <HeroVideo />
               </div>
               <div className="lp-float lp-float-a" aria-hidden="true">
-                <Icon name="coin" size="sm" /> +15 PigCoin$
+                <Icon name="piggy" size="sm" /> +2 000 ₽ → новая кофемашина
               </div>
               <div className="lp-float lp-float-b" aria-hidden="true">
-                <Orb /> «Начни с подушки: 3 расхода в месяц»
+                <Orb /> «Давай сначала стулья — гостям негде сесть»
               </div>
-            </div>
-
-            <dl className="lp-proof">
-              {PROOF.map((p) => (
-                <div key={p.label}>
-                  <dt>{p.label}</dt>
-                  <dd>{p.value}</dd>
-                </div>
-              ))}
-              <div>
-                <dt>чтобы начать</dt>
-                <dd>0 ₽</dd>
-              </div>
-            </dl>
-          </div>
-        </section>
-
-        <section className="lp-sec" id="features">
-          <div className="lp-wrap">
-            <SectionHead label="Возможности" title="Знания, практика и мотивация — в одном месте" text="Не ещё один курс, который бросаешь на третьем уроке." />
-            <div className="lp-bento">
-              {ADVANTAGES.map((a, i) => (
-                <div key={a.title} className={`lp-card${i === 0 ? " is-main" : ""}`}>
-                  <span className="lp-ic">{a.icon === "sparkle" ? <Orb /> : <Icon name={a.icon} />}</span>
-                  <b>{a.title}</b>
-                  <p>{a.text}</p>
-                  {i === 0 && (
-                    <div className="lp-chat" aria-hidden="true">
-                      <span className="lp-msg is-me">С чего начать, если зарплата 60 000?</span>
-                      <span className="lp-msg">Сначала подушка: отложите 10% — 6 000 ₽ в месяц. Через полгода у вас будет запас на 3 месяца трат.</span>
-                    </div>
-                  )}
-                </div>
-              ))}
             </div>
           </div>
         </section>
 
-        <section className="lp-sec lp-sec-alt" id="compare">
+        <section className="lp-sec" id="how">
           <div className="lp-wrap">
-            <SectionHead label="Сравнение" title="Почему PIGSEN, а не…" text="Мы собрали в одном месте то, что обычно разбросано по курсам, роликам и приложениям." />
-            <div className="lp-table-wrap" tabIndex={0} role="region" aria-label="Таблица сравнения">
-              <table className="lp-table">
-                <thead>
-                  <tr>
-                    <th scope="col">
-                      <span className="visually-hidden">Возможность</span>
-                    </th>
-                    <th scope="col" className="is-us">
-                      PIGSEN
-                    </th>
-                    <th scope="col">Курсы</th>
-                    <th scope="col">YouTube</th>
-                    <th scope="col">Банки</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {COMPARE.map((r) => (
-                    <tr key={r.label}>
-                      <th scope="row">{r.label}</th>
-                      <td className="is-us">
-                        <Mark v={r.pigsen} />
-                      </td>
-                      <td>
-                        <Mark v={r.courses} />
-                      </td>
-                      <td>
-                        <Mark v={r.youtube} />
-                      </td>
-                      <td>
-                        <Mark v={r.bank} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <SectionHead label="Как это работает" title="Три шага от копилки к своей кофейне" text="Чем больше откладываешь, тем больше растёт бизнес. Снял деньги — бизнес просел." />
+            <ol className="lp-steps">
+              {STEPS.map((s, i) => (
+                <li key={s.title} className="lp-step">
+                  <CafeArt stage={s.stage} />
+                  <span className="lp-step-n">{String(i + 1).padStart(2, "0")}</span>
+                  <b>{s.title}</b>
+                  <p>{s.text}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        <section className="lp-sec lp-sec-alt" id="together">
+          <div className="lp-wrap">
+            <SectionHead label="Не в одиночку" title="Друзья-кофаундеры и партнёр $PIG" />
+            <div className="lp-duo">
+              <div className="lp-card">
+                <span className="lp-ic">
+                  <Icon name="users" />
+                </span>
+                <b>Вместе с друзьями</b>
+                <p>Позови друзей кофаундерами: каждый копит в своей копилке, а кофейня растёт от общего капитала. Видно, кто сколько вложил — и никому не хочется подвести команду.</p>
+                <ul className="lp-mini">
+                  <li>
+                    <Icon name="check" size="sm" /> Общий бизнес, личные накопления
+                  </li>
+                  <li>
+                    <Icon name="check" size="sm" /> Бесплатно вдвоём, в Pro — до 10 со-основателей
+                  </li>
+                  <li>
+                    <Icon name="check" size="sm" /> Лидерборд бизнесов и челленджи на накопления
+                  </li>
+                </ul>
+              </div>
+              <div className="lp-card is-main">
+                <span className="lp-ic">
+                  <Orb />
+                </span>
+                <b>$PIG — партнёр, а не справочник</b>
+                <p>Советует, что улучшить, радуется твоим взносам и иногда ошибается — как живой партнёр. Поэтому к нему хочется возвращаться, а важные решения остаются за тобой.</p>
+                <div className="lp-chat" aria-hidden="true">
+                  <span className="lp-msg is-me">Отложил 1 500 ₽. Что купим?</span>
+                  <span className="lp-msg">Отлично! Давай второй столик — по вечерам у нас очередь. Хотя… может, сначала бариста? Решай, партнёр.</span>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
         <section className="lp-sec" id="pricing">
           <div className="lp-wrap">
-            <SectionHead label="Тарифы" title="Начните бесплатно. Растите с Pro." text="Free хватает, чтобы учиться каждый день. Pro — когда хочется без ограничений." />
+            <SectionHead label="Тарифы" title="Начни бесплатно. Расти с Pro." text="Free хватает, чтобы копить и развивать кофейню. Pro — когда команда больше двух: до 4, 7 или 10 человек." />
             <div className="lp-plans">
               <div className="lp-plan">
                 <span className="label">Free</span>
@@ -249,12 +217,21 @@ export default function Landing() {
                   <span className="lp-badge">Выгоднее на год</span>
                 </div>
                 <div className="lp-price">
-                  <b>{PLANS.month.stars}★</b>
+                  <b>от {PRO_TIERS[0].month}★</b>
                   <span>в месяц</span>
                 </div>
-                <p className="lp-price-alt">
-                  или <b>{PLANS.year.stars}★</b> в год — оплата через Telegram Stars
-                </p>
+                <ul className="lp-tiers" aria-label="Тарифы Pro по размеру команды">
+                  {PRO_TIERS.map((t) => (
+                    <li key={t.name}>
+                      <b>{t.name}</b>
+                      <span>до {t.people} человек</span>
+                      <span className="lp-tier-price">
+                        {t.month}★/мес · {t.year}★/год
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="lp-price-alt">Оплата через Telegram Stars</p>
                 <ul>
                   {PRO_FEATURES.map((f) => (
                     <li key={f}>
@@ -294,7 +271,7 @@ export default function Landing() {
               <h2>
                 Make your money <em>Smarter.</em>
               </h2>
-              <p>Первый урок займёт меньше 10 минут. $PIG уже ждёт ваш вопрос.</p>
+              <p>Первый взнос в копилку — и у твоей кофейни уже есть капитал. $PIG ждёт партнёра.</p>
               <div className="lp-cta-row">
                 <Link className="btn btn-accent btn-lg" href="/register">
                   Создать аккаунт бесплатно <Icon name="arrow" size="sm" />
@@ -316,7 +293,7 @@ export default function Landing() {
                 <Pig />
                 <Wordmark />
               </div>
-              <p>AI + Business Education + Personalization. Make your money Smarter.</p>
+              <p>Копи по-настоящему — строй свой бизнес. Make your money Smarter.</p>
             </div>
             <nav aria-label="Аккаунт">
               <b>Аккаунт</b>
@@ -334,10 +311,10 @@ export default function Landing() {
           <div className="lp-disclaimer" role="note">
             <Icon name="alert" size="sm" />
             <p>
-              PIGSEN — образовательная платформа. Материалы и ответы $PIG не являются индивидуальной инвестиционной, финансовой, налоговой или юридической рекомендацией. Инвестиции связаны с риском потери денег. $PIG — ИИ-помощник: он может ошибаться, проверяйте важные цифры. PigCoin$ — игровая валюта без денежной стоимости. Сервис для пользователей 18+.
+              PìgBiz — образовательная игра о накоплениях и бизнесе. Бизнес в сервисе виртуальный: мы не принимаем и не храним ваши деньги, накопления остаются у вас. Материалы и ответы $PIG не являются индивидуальной инвестиционной, финансовой, налоговой или юридической рекомендацией. Инвестиции связаны с риском потери денег. $PIG — ИИ-помощник: он может ошибаться, проверяйте важные цифры. PigCoin$ — игровая валюта без денежной стоимости. Сервис для пользователей 18+.
             </p>
           </div>
-          <p className="lp-copy">© {new Date().getFullYear()} PIGSEN</p>
+          <p className="lp-copy">© {new Date().getFullYear()} PìgBiz</p>
         </div>
       </footer>
     </div>

@@ -55,7 +55,7 @@ export default async function InvitePage() {
         <div className="stack" style={{ gap: 4 }}>
           <b>Отзыв за награду</b>
           <span className="muted">
-            Напишите честный отзыв о PIGSEN. После проверки модератором: {REVIEW_REWARD.coins} PigCoin$ и {REVIEW_REWARD.proDays} дня Pro. Один отзыв на аккаунт.
+            Напишите честный отзыв о PìgBiz. После проверки модератором: {REVIEW_REWARD.coins} PigCoin$ и {REVIEW_REWARD.proDays} дня Pro. Один отзыв на аккаунт.
           </span>
         </div>
         <ReviewForm initial={review ? { rating: review.rating, text: review.text, status: review.status } : null} />

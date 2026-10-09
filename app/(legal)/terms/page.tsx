@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import { LEGAL, contactLine } from "@/lib/legal";
 
-export const metadata: Metadata = { title: "Условия использования — PIGSEN" };
+export const metadata: Metadata = { title: "Условия использования — PìgBiz" };
 
 export default function TermsPage() {
   return (
@@ -12,7 +12,7 @@ export default function TermsPage() {
 
       <h2>1. Общие положения</h2>
       <p>
-        PIGSEN — образовательная платформа о бизнесе, деньгах и финансовой грамотности с ИИ-ассистентом «$PIG».
+        PìgBiz — образовательная платформа о бизнесе, деньгах и финансовой грамотности с ИИ-ассистентом «$PIG».
         Сервис предоставляет {LEGAL.owner}. Регистрируясь или пользуясь сервисом, вы принимаете эти условия.
         Если вы не согласны — пожалуйста, не используйте сервис.
       </p>

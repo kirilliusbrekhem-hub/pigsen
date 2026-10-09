@@ -3,7 +3,8 @@ import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/db/prisma";
 import { extendPro } from "@/lib/coins/service";
 import { HttpError } from "@/lib/api/http";
-import { PLANS, type PlanId } from "./plan";
+import { PLANS, isPlanId, type PlanId } from "./plan";
+import { setProTier } from "./tier";
 
 // YooKassa (ЮKassa) payments over REST. Keys live only on the server: YOOKASSA_SHOP_ID and YOOKASSA_SECRET_KEY.
 const API = "https://api.yookassa.ru/v3/payments";
@@ -35,12 +36,12 @@ export async function createCheckout(userId: string, email: string, planId: Plan
       amount: { value: plan.price.toFixed(2), currency: "RUB" },
       capture: true,
       confirmation: { type: "redirect", return_url: `${origin}/pro?paid=1` },
-      description: `PIGSEN ${plan.title}`,
+      description: `PìgBiz ${plan.title}`,
       metadata: { userId, plan: plan.id },
       // Fiscal receipt (54-FZ) only when the shop has receipts enabled: YOOKASSA_RECEIPTS=1.
       ...(process.env.YOOKASSA_RECEIPTS === "1" ? { receipt: {
         customer: { email },
-        items: [{ description: `PIGSEN ${plan.title}`, quantity: "1.00", amount: { value: plan.price.toFixed(2), currency: "RUB" }, vat_code: 1, payment_mode: "full_payment", payment_subject: "service" }],
+        items: [{ description: `PìgBiz ${plan.title}`, quantity: "1.00", amount: { value: plan.price.toFixed(2), currency: "RUB" }, vat_code: 1, payment_mode: "full_payment", payment_subject: "service" }],
       } } : {}),
     }),
   });
@@ -63,7 +64,10 @@ export async function syncPayment(id: string): Promise<"succeeded" | "pending" |
   const p = (await res.json()) as YkPayment;
   if (p.status === "succeeded" && p.paid && p.amount.currency === "RUB" && Number(p.amount.value) >= local.amount) {
     const claimed = await prisma.payment.updateMany({ where: { id, applied: false }, data: { applied: true, status: "succeeded" } });
-    if (claimed.count) await extendPro(local.userId, PLANS[local.plan as PlanId]?.days ?? 30);
+    if (claimed.count) {
+      await extendPro(local.userId, PLANS[local.plan as PlanId]?.days ?? 30);
+      if (isPlanId(local.plan)) await setProTier(local.userId, PLANS[local.plan].tier);
+    }
     return "succeeded";
   }
   if (p.status === "canceled") {

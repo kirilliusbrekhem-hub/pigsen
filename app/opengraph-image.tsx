@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-export const alt = "PIGSEN — Make your money Smarter.";
+export const alt = "PìgBiz — Make your money Smarter.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -28,17 +28,17 @@ export default async function Image() {
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
           <img src={pigSrc} width={44} height={50} alt="" style={{ filter: "invert(1)" }} />
           <div style={{ display: "flex", fontSize: 38, fontWeight: 500, letterSpacing: "-0.03em" }}>
-            PIG<span style={{ color: ACCENT }}>$</span>EN
+            Pìg<span style={{ color: ACCENT }}>Biz</span>
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
           <div style={{ display: "flex", fontSize: 86, fontWeight: 500, letterSpacing: "-0.045em", lineHeight: 1 }}>
             Make your money&nbsp;<span style={{ color: ACCENT }}>Smarter.</span>
           </div>
-          <div style={{ display: "flex", fontSize: 32, color: INK2, fontWeight: 400, maxWidth: 900, lineHeight: 1.3 }}>Деньги, бизнес и технологии — с AI-наставником $PIG</div>
+          <div style={{ display: "flex", fontSize: 32, color: INK2, fontWeight: 400, maxWidth: 900, lineHeight: 1.3 }}>Копи по-настоящему — строй свой бизнес с AI-партнёром $PIG</div>
         </div>
         <div style={{ display: "flex", gap: 14 }}>
-          {["$PIG", "Курсы и квизы", "Копилка", "Челленджи", "PigCoin$"].map((t) => (
+          {["Копилка", "Мой бизнес", "Друзья-кофаундеры", "$PIG"].map((t) => (
             <div key={t} style={{ display: "flex", padding: "10px 20px", borderRadius: 99, border: `1px solid ${LINE}`, color: INK, fontSize: 24 }}>
               {t}
             </div>

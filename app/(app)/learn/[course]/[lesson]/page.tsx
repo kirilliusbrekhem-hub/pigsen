@@ -59,7 +59,7 @@ export default async function LessonPage({ params }: { params: Promise<{ course:
               <Disclaimer kind={RISKY_CATEGORIES.has(course.category.slug) ? "invest" : "general"} compact={!RISKY_CATEGORIES.has(course.category.slug)} />
               {!locked && course.premium && !pro && (
                 <p className="premium-note">
-                  Это бесплатный первый урок эксклюзивного курса. Остальные уроки открыты в <Link href="/pro">PIGSEN Pro</Link>.
+                  Это бесплатный первый урок эксклюзивного курса. Остальные уроки открыты в <Link href="/pro">PìgBiz Pro</Link>.
                 </p>
               )}
             </div>

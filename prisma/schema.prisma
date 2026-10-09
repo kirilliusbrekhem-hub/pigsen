@@ -71,6 +71,8 @@ model Profile {
   // Internal currency (PigCoins) balance; CoinTx is the ledger. Pro is active while proUntil is in the future.
   coins             Int      @default(0)
   proUntil          DateTime?
+  /// Pro tier of the last paid plan: pro | pro7 | pro10 (team size in «Мой бизнес»). Null = pro.
+  proTier           String?
   // Pro trial bought for PigCoin$: raised limits, not full Pro
   liteUntil         DateTime?
   streakFreezes     Int      @default(0)
@@ -616,4 +618,86 @@ model SpendAnalysis {
   createdAt DateTime  @default(now())
 
   @@index([userId, createdAt])
+}
+
+/// «Мой бизнес»: a persistent virtual business that grows only from members' real savings (lib/biz/*).
+/// capital mirrors savings deposits/withdrawals since joining; every number is computed by lib/biz/engine.ts, never by AI.
+model BizBusiness {
+  id         String        @id @default(cuid())
+  kind       String        @default("coffee")
+  name       String
+  founderId  String
+  inviteCode String        @unique
+  capital    Int           @default(0)
+  rating     Float         @default(3)
+  dayNo      Int           @default(1)
+  lastDay    String
+  seed       Int
+  revenue    Int           @default(0)
+  maxLevel   Int           @default(1)
+  state      Json          @default("{}")
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  members    BizMember[]
+  upgrades   BizUpgrade[]
+  events     BizEvent[]
+  chat       BizChat[]
+
+  @@index([founderId])
+}
+
+/// One business per user (userId unique). contributed = net savings delta since joining.
+model BizMember {
+  id          String      @id @default(cuid())
+  businessId  String
+  business    BizBusiness @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  userId      String      @unique
+  name        String
+  role        String      @default("member") // founder | member
+  contributed Int         @default(0)
+  joinedAt    DateTime    @default(now())
+
+  @@index([businessId])
+}
+
+model BizUpgrade {
+  id         String      @id @default(cuid())
+  businessId String
+  business   BizBusiness @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  itemId     String
+  status     String      @default("ok") // ok | broken
+  price      Int
+  boughtBy   String?
+  createdAt  DateTime    @default(now())
+
+  @@unique([businessId, itemId])
+}
+
+/// Team feed / timeline. userId is null for system and $PIG events.
+model BizEvent {
+  id         String      @id @default(cuid())
+  businessId String
+  business   BizBusiness @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  kind       String
+  text       String
+  userId     String?
+  amount     Int?
+  createdAt  DateTime    @default(now())
+
+  @@index([businessId, createdAt])
+  @@index([userId])
+}
+
+/// Team chat. userId null = $PIG.
+model BizChat {
+  id         String      @id @default(cuid())
+  businessId String
+  business   BizBusiness @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  userId     String?
+  name       String
+  text       String
+  createdAt  DateTime    @default(now())
+
+  @@index([businessId, createdAt])
+  @@index([userId])
 }

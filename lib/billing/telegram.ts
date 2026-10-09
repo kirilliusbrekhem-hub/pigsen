@@ -3,9 +3,10 @@ import { randomBytes, timingSafeEqual } from "node:crypto";
 import { prisma } from "@/lib/db/prisma";
 import { creditStarsCoins, extendPro } from "@/lib/coins/service";
 import { HttpError } from "@/lib/api/http";
-import { COIN_PACKS, PLANS, type PackId, type PlanId } from "./plan";
+import { COIN_PACKS, PLANS, isPlanId, type PackId, type PlanId } from "./plan";
+import { setProTier } from "./tier";
 
-// Telegram Stars payments through the PIGSEN bot. Token and webhook secret live only on the server.
+// Telegram Stars payments through the PìgBiz bot. Token and webhook secret live only on the server.
 const token = () => process.env.TELEGRAM_BOT_TOKEN?.trim() ?? "";
 export const webhookSecret = () => process.env.TELEGRAM_WEBHOOK_SECRET?.trim() ?? "";
 
@@ -31,14 +32,14 @@ export async function createStarsInvoice(userId: string, planId: PlanId): Promis
   const id = `tg_${randomBytes(12).toString("hex")}`;
   await prisma.payment.create({ data: { id, userId, plan: plan.id, amount: plan.stars, provider: "telegram" } });
   const url = await tg<string>("createInvoiceLink", {
-    title: `PIGSEN ${plan.title}`,
+    title: `PìgBiz ${plan.title}`,
     description: "Безлимитный $PIG-коуч, разбор трат, все обложки целей и x2 PigCoin$.",
     payload: id,
     provider_token: "",
     currency: "XTR",
     prices: [{ label: plan.title, amount: plan.stars }],
     // Monthly plan is a Telegram Stars subscription: Telegram charges again every 30 days until the user cancels.
-    ...(plan.id === "month" ? { subscription_period: 2_592_000 } : {}),
+    ...(plan.recurring ? { subscription_period: 2_592_000 } : {}),
   });
   return { url, id };
 }
@@ -52,7 +53,7 @@ export async function createCoinsInvoice(userId: string, packId: PackId): Promis
   await prisma.payment.create({ data: { id, userId, plan: pack.id, amount: pack.stars, provider: "telegram" } });
   const url = await tg<string>("createInvoiceLink", {
     title: `${pack.coins} PigCoin$`,
-    description: `${pack.coins} PigCoin$ на баланс PIGSEN для магазина. Бонусные баллы без денежной стоимости.`,
+    description: `${pack.coins} PigCoin$ на баланс PìgBiz для магазина. Бонусные баллы без денежной стоимости.`,
     payload: id,
     provider_token: "",
     currency: "XTR",
@@ -88,7 +89,7 @@ export async function handleUpdate(u: Update): Promise<void> {
     const q = u.pre_checkout_query;
     const p = await prisma.payment.findUnique({ where: { id: q.invoice_payload } });
     // A subscription's renewals reuse the original payload, so an already-paid monthly payment is still valid.
-    const ok = !!p && (p.status === "pending" || p.plan === "month") && q.currency === "XTR" && q.total_amount === p.amount;
+    const ok = !!p && (p.status === "pending" || (isPlanId(p.plan) && PLANS[p.plan].recurring)) && q.currency === "XTR" && q.total_amount === p.amount;
     await tg("answerPreCheckoutQuery", ok ? { pre_checkout_query_id: q.id, ok: true } : { pre_checkout_query_id: q.id, ok: false, error_message: "Счёт устарел. Нажмите «Оформить» на сайте ещё раз." });
     return;
   }
@@ -100,7 +101,7 @@ export async function handleUpdate(u: Update): Promise<void> {
     if (pack) {
       // Coin pack: claim + credit in one transaction, so a redelivered update pays once.
       if (!(await creditStarsCoins(p.id, sp.telegram_payment_charge_id, pack.coins))) return;
-      await tg("sendMessage", { chat_id: u.message.chat.id, text: `Оплата прошла! +${pack.coins} PigCoin$ на вашем балансе PIGSEN. Вернитесь на сайт: страница обновится сама.` }).catch(() => {});
+      await tg("sendMessage", { chat_id: u.message.chat.id, text: `Оплата прошла! +${pack.coins} PigCoin$ на вашем балансе PìgBiz. Вернитесь на сайт: страница обновится сама.` }).catch(() => {});
       return;
     }
     let fresh: boolean;
@@ -116,11 +117,12 @@ export async function handleUpdate(u: Update): Promise<void> {
     }
     if (!fresh) return;
     const until = await extendPro(p.userId, PLANS[p.plan as PlanId]?.days ?? 30);
-    await tg("sendMessage", { chat_id: u.message.chat.id, text: `Оплата прошла! PIGSEN Pro активен до ${until.toLocaleDateString("ru-RU")}.${p.plan === "month" ? " Подписка продлевается каждый месяц, отменить можно в Telegram: Настройки → Мои звёзды." : ""} Вернитесь на сайт: страница обновится сама.` }).catch(() => {});
+    if (isPlanId(p.plan)) await setProTier(p.userId, PLANS[p.plan].tier);
+    await tg("sendMessage", { chat_id: u.message.chat.id, text: `Оплата прошла! PìgBiz Pro активен до ${until.toLocaleDateString("ru-RU")}.${isPlanId(p.plan) && PLANS[p.plan].recurring ? " Подписка продлевается каждый месяц, отменить можно в Telegram: Настройки → Мои звёзды." : ""} Вернитесь на сайт: страница обновится сама.` }).catch(() => {});
     return;
   }
   if (u.message?.text?.startsWith("/start")) {
-    await tg("sendMessage", { chat_id: u.message.chat.id, text: "Привет! Я бот оплаты PIGSEN. Оформить Pro можно на сайте на странице «Pro и PigCoin$»." }).catch(() => {});
+    await tg("sendMessage", { chat_id: u.message.chat.id, text: "Привет! Я бот оплаты PìgBiz. Оформить Pro можно на сайте на странице «Pro и PigCoin$»." }).catch(() => {});
   }
 }
 

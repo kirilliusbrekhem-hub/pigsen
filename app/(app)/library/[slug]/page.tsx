@@ -61,7 +61,7 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
         <article className="card" style={{ overflow: "hidden" }}>
           <div className="reader-main">
             <span className="label" style={{ display: "block", marginBottom: 14 }}>
-              Конспект PIGSEN
+              Конспект PìgBiz
             </span>
             {locked ? (
               <>

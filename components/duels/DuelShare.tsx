@@ -5,7 +5,7 @@ import { Icon } from "@/components/ui/Icon";
 export function DuelShare({ code, stake }: { code: string; stake: number }) {
   const [copied, setCopied] = useState(false);
   const url = () => `${window.location.origin}/duels/j/${code}`;
-  const text = `Вызываю тебя на дуэль по финансам в PIGSEN${stake ? ` на ${stake} PigCoin$` : ""}! 7 вопросов, 15 секунд на каждый.`;
+  const text = `Вызываю тебя на дуэль по финансам в PìgBiz${stake ? ` на ${stake} PigCoin$` : ""}! 7 вопросов, 15 секунд на каждый.`;
   async function copy() {
     try {
       await navigator.clipboard.writeText(url());
@@ -18,7 +18,7 @@ export function DuelShare({ code, stake }: { code: string; stake: number }) {
   async function share() {
     if (navigator.share) {
       try {
-        await navigator.share({ title: "Дуэль PIGSEN", text, url: url() });
+        await navigator.share({ title: "Дуэль PìgBiz", text, url: url() });
         return;
       } catch (e) {
         if (e instanceof DOMException && e.name === "AbortError") return;

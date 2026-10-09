@@ -34,3 +34,11 @@
 .more-sec:last-of-type { margin-bottom: 14px; }
 .more-sec .more-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 .more-sec .more-item { padding: 12px 4px; font-size: 11.5px; overflow-wrap: anywhere; }
+
+/* Sub-headings inside the «Ещё» sidebar group */
+.nav-sec { display: flex; flex-direction: column; gap: 2px; }
+.nav-sec + .nav-sec { margin-top: 6px; }
+.nav-sec-h {
+  padding: 6px 10px 2px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 500;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3);
+}

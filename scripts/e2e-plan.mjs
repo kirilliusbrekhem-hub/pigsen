@@ -107,7 +107,7 @@ const bytes = readFileSync(pdfPath);
 if (bytes.subarray(0, 5).toString() !== "%PDF-") problems.push("not a PDF");
 const text = pdfText(bytes);
 for (const needle of ["Зелёный бобр", "Резюме", "Риски и как их снизить", "Чувствительность", "образовательный"]) if (!text.includes(needle)) problems.push(`PDF lacks "${needle}"`);
-// The diagonal "PIGSEN Free" mark is rotated (pdftotext skips it); the Free footer line is drawn with it.
+// The diagonal "PìgBiz Free" mark is rotated (pdftotext skips it); the Free footer line is drawn with it.
 if (!text.includes("бесплатном тарифе")) problems.push("Free PDF has no watermark");
 try { execFileSync("pdftoppm", ["-png", "-r", "60", "-f", "1", "-l", "1", "-singlefile", pdfPath, `${SHOTS}/plan-pdf-page1`]); } catch { /* optional preview */ }
 ok(`PDF ${bytes.length} bytes, Cyrillic text extracted, watermark present`);

@@ -3,7 +3,7 @@ import { PRO_PERKS } from "@/lib/billing/plan";
 import type { Metadata } from "next";
 import { LEGAL, contactLine } from "@/lib/legal";
 
-export const metadata: Metadata = { title: "Pro, оплата и возвраты — PIGSEN" };
+export const metadata: Metadata = { title: "Pro, оплата и возвраты — PìgBiz" };
 
 export default function OfferPage() {
   return (
@@ -13,7 +13,7 @@ export default function OfferPage() {
 
       <h2>1. Оферта</h2>
       <p>
-        Эта страница — публичная оферта {LEGAL.owner} на предоставление доступа к подписке PIGSEN Pro.
+        Эта страница — публичная оферта {LEGAL.owner} на предоставление доступа к подписке PìgBiz Pro.
         Оплата Pro означает принятие этих условий, а также «Условий использования».
       </p>
 

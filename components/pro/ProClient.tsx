@@ -16,7 +16,7 @@ function openPayWindow(): Window | null {
   return window.open("about:blank", "_blank");
 }
 
-export function BuyPlan({ plan, label, enabled }: { plan: "month" | "year"; label: string; enabled: boolean }) {
+export function BuyPlan({ plan, label, enabled }: { plan: string; label: string; enabled: boolean }) {
   const toast = useToast();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -78,7 +78,7 @@ export function BuyPlan({ plan, label, enabled }: { plan: "month" | "year"; labe
     );
   }
   return (
-    <Button variant={plan === "year" ? "accent" : "primary"} onClick={() => {
+    <Button variant={plan.startsWith("year") ? "accent" : "primary"} onClick={() => {
       reachGoal("pro_click");
       void go();
     }} loading={busy}>

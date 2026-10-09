@@ -3,6 +3,7 @@ import { endSession } from "@/lib/auth/session";
 import { handler, HttpError, json, parseBody, requireApiUser } from "@/lib/api/http";
 import { parseInterests, updateProfile } from "@/lib/profile/service";
 import { profileUpdateSchema } from "@/lib/validation/schemas";
+import { leaveBusiness } from "@/lib/biz/service";
 
 export const GET = handler(async () => {
   const user = await requireApiUser();
@@ -29,7 +30,11 @@ export const DELETE = handler(async () => {
     if ((await prisma.adminGrant.count()) <= 1) throw new HttpError(409, "Вы единственный администратор. Сначала выдайте права другому аккаунту.");
   }
   // These tables keep a plain userId (no relation), so clear them alongside the user.
+  await leaveBusiness(user.id); // «Мой бизнес»: hand the team to another member or close a solo business
   await prisma.$transaction([
+    prisma.bizMember.deleteMany({ where: { userId: user.id } }),
+    prisma.bizChat.deleteMany({ where: { userId: user.id } }),
+    prisma.bizEvent.updateMany({ where: { userId: user.id }, data: { userId: null } }),
     prisma.bizPlan.deleteMany({ where: { userId: user.id } }),
     prisma.spendAnalysis.deleteMany({ where: { userId: user.id } }),
     prisma.user.delete({ where: { id: user.id } }),

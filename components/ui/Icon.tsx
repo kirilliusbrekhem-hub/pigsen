@@ -1,4 +1,4 @@
-// Icon set ported from the PIGSEN prototype (24px grid, 1.6 stroke), plus learning/content glyphs.
+// Icon set ported from the PìgBiz prototype (24px grid, 1.6 stroke), plus learning/content glyphs.
 import type { SVGProps } from "react";
 
 const ICONS = {
@@ -41,6 +41,7 @@ const ICONS = {
   laptop: '<rect x="4.5" y="5" width="15" height="10.5" rx="1.5"/><path d="M2.5 19h19"/>',
   plane: '<path d="M10.5 13.5 3 11l1.5-1.5 8 .5 4.5-4.5a2 2 0 0 1 3 3L15.5 13l.5 8L14.5 22.5 12 15z"/>',
   umbrella: '<path d="M12 3a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9z"/><path d="M12 12v6.5a2 2 0 0 1-4 0"/>',
+  store: '<path d="M3.5 9.5 5 4.5h14l1.5 5"/><path d="M3.5 9.5a2.8 2.8 0 0 0 5.7 0 2.8 2.8 0 0 0 5.6 0 2.8 2.8 0 0 0 5.7 0"/><path d="M5 12v8.5h14V12"/><path d="M10 20.5v-5h4v5"/>',
   piggy: '<path d="M5 11a7 6 0 0 1 12.5-3.5L20 7v4l1.5 1v3l-2 .5a7 7 0 0 1-3 3V21h-3v-2h-3v2h-3v-3.2A6.4 6.4 0 0 1 5 11z"/><circle cx="15" cy="10.5" r=".7" fill="currentColor"/>',
   wallet: '<path d="M4 7.5V18a2 2 0 0 0 2 2h14V9H6a2 2 0 0 1-2-1.5 2 2 0 0 1 2-2.5h12"/><circle cx="16" cy="14.5" r="1" fill="currentColor"/>',
   chart: '<path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 6-7"/>',

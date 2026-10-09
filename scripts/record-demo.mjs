@@ -1,4 +1,4 @@
-// Captures clean, already-loaded states of the real PIGSEN interface for the landing hero video.
+// Captures clean, already-loaded states of the real PìgBiz interface for the landing hero video.
 // Step 1 of 2 (step 2: scripts/compose-demo.mjs renders the final hero.mp4 from these captures).
 //
 // Usage (app built and running, Postgres reachable):

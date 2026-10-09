@@ -8,7 +8,7 @@ export const ContentSchema = z.object({
   type: z.enum(["article", "book", "video", "podcast"]),
   category: z.string().min(1).max(40),
   author: z.string().trim().min(2, "Укажите автора").max(120).transform(sanitizeText),
-  source: z.string().trim().max(120).default("PIGSEN").transform(sanitizeText),
+  source: z.string().trim().max(120).default("PìgBiz").transform(sanitizeText),
   url: z
     .string()
     .trim()

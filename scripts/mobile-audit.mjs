@@ -86,8 +86,8 @@ await page.getByRole("button", { name: "Ещё" }).click();
 await page.getByRole("dialog", { name: "Все разделы" }).waitFor();
 await page.waitForTimeout(600);
 await page.screenshot({ path: `${SHOTS}/more-menu.png` });
-await page.getByRole("dialog").getByRole("link", { name: "Инструменты" }).click();
-await page.waitForURL("**/tools");
+await page.getByRole("dialog").getByRole("link", { name: "Разбор трат" }).click();
+await page.waitForURL("**/analyze");
 if (await page.getByRole("dialog", { name: "Все разделы" }).isVisible()) problems.push("Меню «Ещё» не закрылось после перехода");
 
 await browser.close();

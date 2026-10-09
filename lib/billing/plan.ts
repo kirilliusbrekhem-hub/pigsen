@@ -1,6 +1,6 @@
 import "server-only";
 
-type PlanProfile = { proUntil: Date | null; liteUntil?: Date | null; passUntil?: Date | null; extraGoals?: number } | null | undefined;
+type PlanProfile = { proUntil: Date | null; liteUntil?: Date | null; passUntil?: Date | null; extraGoals?: number; proTier?: string | null } | null | undefined;
 
 /** Pro is active while proUntil is in the future. */
 export function isPro(profile: PlanProfile): boolean {
@@ -25,14 +25,33 @@ export interface Limits {
   spend: number;
   idea: number;
   quiz: number;
+  /** People in a «Мой бизнес» team, founder included (Pro tiers: see TEAM_CAPS). */
+  team: number;
 }
 
 /** Daily allowances per tier; Pro is unlimited (still rate-limited per minute). */
 export const LIMITS: Record<Tier, Limits> = {
-  free: { goals: 2, chat: 7, coach: 1, spend: 2, idea: 1, quiz: 5 },
-  lite: { goals: 5, chat: 25, coach: 5, spend: 10, idea: 5, quiz: 15 },
-  pro: { goals: Infinity, chat: Infinity, coach: Infinity, spend: Infinity, idea: Infinity, quiz: 40 },
+  free: { goals: 2, chat: 7, coach: 1, spend: 2, idea: 1, quiz: 5, team: 2 },
+  lite: { goals: 5, chat: 25, coach: 5, spend: 10, idea: 5, quiz: 15, team: 2 },
+  pro: { goals: Infinity, chat: Infinity, coach: Infinity, spend: Infinity, idea: Infinity, quiz: 40, team: 4 },
 };
+
+/**
+ * Pro tiers by team size. Every tier is full Pro (all perks); only the «Мой бизнес» team cap differs.
+ * The tier of the last paid plan is stored in Profile.proTier.
+ */
+export type ProTier = "pro" | "pro7" | "pro10";
+export const TEAM_CAPS: Record<ProTier, number> = { pro: 4, pro7: 7, pro10: 10 };
+export const PRO_TIER_NAMES: Record<ProTier, string> = { pro: "Pro", pro7: "Pro 7", pro10: "Pro 10" };
+export const proTierOf = (profile: PlanProfile): ProTier | null =>
+  isPro(profile) ? (profile?.proTier === "pro7" || profile?.proTier === "pro10" ? profile.proTier : "pro") : null;
+
+/** Max people (founder included) in a business founded by this user: Free = founder + 1 friend. */
+export function teamCap(user: { profile?: PlanProfile } | PlanProfile): number {
+  const profile = user && "profile" in user ? user.profile : (user as PlanProfile);
+  const tier = proTierOf(profile);
+  return tier ? TEAM_CAPS[tier] : LIMITS.free.team;
+}
 export const FREE_LIMITS = LIMITS.free;
 
 export const limitsFor = (profile: PlanProfile): Limits => LIMITS[tierOf(profile)];
@@ -55,11 +74,18 @@ export const COIN_PACKS = {
 export type PackId = keyof typeof COIN_PACKS;
 export const PACK_IDS = Object.keys(COIN_PACKS) as [PackId, ...PackId[]];
 
+/** Monthly plans are Telegram Stars subscriptions (recurring), yearly ones are one-off payments. */
 export const PLANS = {
-  month: { id: "month", title: "Pro на месяц", price: 299, stars: Number(process.env.STARS_MONTH) || 250, days: 30 },
-  year: { id: "year", title: "Pro на год", price: 2490, stars: Number(process.env.STARS_YEAR) || 2000, days: 365 },
-} as const;
+  month: { id: "month", tier: "pro", title: "Pro на месяц", price: 299, stars: Number(process.env.STARS_MONTH) || 250, days: 30, recurring: true },
+  year: { id: "year", tier: "pro", title: "Pro на год", price: 2490, stars: Number(process.env.STARS_YEAR) || 2000, days: 365, recurring: false },
+  month7: { id: "month7", tier: "pro7", title: "Pro 7 на месяц", price: 379, stars: 320, days: 30, recurring: true },
+  year7: { id: "year7", tier: "pro7", title: "Pro 7 на год", price: 2990, stars: 2500, days: 365, recurring: false },
+  month10: { id: "month10", tier: "pro10", title: "Pro 10 на месяц", price: 459, stars: 390, days: 30, recurring: true },
+  year10: { id: "year10", tier: "pro10", title: "Pro 10 на год", price: 3590, stars: 3000, days: 365, recurring: false },
+} as const satisfies Record<string, { id: string; tier: ProTier; title: string; price: number; stars: number; days: number; recurring: boolean }>;
 export type PlanId = keyof typeof PLANS;
+export const PLAN_IDS = Object.keys(PLANS) as [PlanId, ...PlanId[]];
+export const isPlanId = (id: string): id is PlanId => id in PLANS;
 
 export const PRO_PERKS = [
   "Эксклюзивные курсы и материалы: финплан, инвестиции, запуск бизнеса, переговоры",
@@ -86,6 +112,7 @@ export const COMPARE: { label: string; free: string; lite: string; pro: string }
   { label: "Разбор идей в день", free: "1", lite: "5", pro: "∞" },
   { label: "Квизы по урокам в день", free: "5", lite: "15", pro: "40" },
   { label: "Цели в копилке", free: "2", lite: "5", pro: "∞" },
+  { label: "Команда в «Моём бизнесе»", free: "2", lite: "2", pro: "4 · 7 · 10" },
   { label: "PigCoin$ за обучение", free: "x1", lite: "x1", pro: "x2" },
   { label: "Ежедневный бонус", free: "до 15", lite: "до 15", pro: "до 30" },
   { label: "Защита серии", free: "—", lite: "—", pro: "✓" },

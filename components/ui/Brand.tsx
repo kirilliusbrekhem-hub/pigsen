@@ -4,8 +4,8 @@ export function Pig({ className = "" }: { className?: string }) {
 
 export function Wordmark() {
   return (
-    <span className="wordmark" aria-label="PIGSEN">
-      PIG<b>$</b>EN
+    <span className="wordmark" aria-label="PìgBiz">
+      Pìg<b>Biz</b>
     </span>
   );
 }

@@ -10,6 +10,7 @@ import { ProPromo } from "@/components/pro/ProPromo";
 import { isPro } from "@/lib/billing/plan";
 import { InvitePromo } from "@/components/growth/InvitePromo";
 import { DailyBonus } from "@/components/dashboard/DailyBonus";
+import { BizDashCard } from "@/components/biz/BizDashCard";
 import { Orb } from "@/components/ui/Orb";
 import { EmptyState } from "@/components/ui/States";
 import { prisma } from "@/lib/db/prisma";
@@ -60,6 +61,8 @@ export default async function DashboardPage() {
       <section className="hello">
         <Greeting name={firstName} />
       </section>
+
+      <BizDashCard userId={user.id} />
 
       <DailyBonus pro={pro} />
 
@@ -146,7 +149,7 @@ export default async function DashboardPage() {
             </div>
             <div className="drivers">
               <span className="label" style={{ color: "var(--ai-ink-2)" }}>
-                Как PIGSEN видит ваши интересы
+                Как PìgBiz видит ваши интересы
               </span>
               {interests.length ? (
                 interests.map((i) => (

@@ -1,4 +1,4 @@
-// End-to-end user scenario for PIGSEN (Playwright).
+// End-to-end user scenario for PìgBiz (Playwright).
 // Usage: start the app (npm run build && npm start), then: BASE_URL=http://localhost:3000 npm run e2e
 import { chromium } from "playwright";
 import { mkdirSync } from "node:fs";
@@ -47,11 +47,11 @@ async function desktopScenario() {
   current = page;
   const email = `e2e+${Date.now()}@pigsen.test`;
 
-  // 1. Open PIGSEN
+  // 1. Open PìgBiz
   await page.goto(BASE + "/");
   await page.getByRole("heading", { name: /Make your money/ }).waitFor();
   await shot(page, "01-landing");
-  log("1. Открыть PIGSEN");
+  log("1. Открыть PìgBiz");
 
   // 2. Register (with a validation check first)
   await page.getByRole("link", { name: "Начать" }).click();
@@ -102,9 +102,8 @@ async function desktopScenario() {
   await page.locator(".ans-actions").nth(1).waitFor({ timeout: 90_000 });
   log("6b. Продолжение диалога (follow-up)");
 
-  // Global search from the top bar
-  await page.locator(".top-search input").fill("юнит-экономика");
-  await page.keyboard.press("Enter");
+  // Global search (no longer in the nav; the route still works)
+  await page.goto(BASE + "/search?q=" + encodeURIComponent("юнит-экономика"));
   await page.waitForURL("**/search?q=*");
   await page.getByRole("heading", { name: /юнит-экономика/ }).waitFor();
   const results = await page.locator(".c-card").count();
@@ -113,7 +112,7 @@ async function desktopScenario() {
   log("6c. Глобальный поиск", `${results} карточек`);
 
   // 7. Business content
-  await page.locator(".sidebar").getByRole("link", { name: "Библиотека" }).click();
+  await page.goto(BASE + "/library");
   await page.waitForURL("**/library");
   await page.getByRole("link", { name: /Книги/ }).click();
   await page.waitForURL("**/library?type=book");
@@ -126,7 +125,7 @@ async function desktopScenario() {
   // 8. Open material
   await page.getByRole("link", { name: "Как устроено венчурное финансирование" }).first().click();
   await page.waitForURL("**/library/kak-ustroeno-venchurnoe-finansirovanie");
-  await page.getByText("Конспект PIGSEN").waitFor();
+  await page.getByText("Конспект PìgBiz").waitFor();
   log("8. Открыть материал");
 
   // 9. Save
@@ -137,14 +136,14 @@ async function desktopScenario() {
   log("9. Сохранить");
 
   // 10. Saved
-  await page.locator(".sidebar").getByRole("link", { name: /Сохранённое/ }).click();
+  await page.goto(BASE + "/saved");
   await page.waitForURL("**/saved");
   await page.getByRole("link", { name: "Как устроено венчурное финансирование" }).waitFor();
   await shot(page, "10-saved");
   log("10. Открыть Saved");
 
   // 11. Start learning
-  await page.locator(".sidebar").getByRole("link", { name: "Курсы" }).click();
+  await page.goto(BASE + "/learn");
   await page.waitForURL("**/learn");
   await page.getByRole("link", { name: /Основы предпринимательства/ }).first().click();
   await page.waitForURL("**/learn/osnovy-predprinimatelstva");
@@ -263,8 +262,8 @@ async function mobileScenario(email) {
     await shot(page, name);
   }
   // Tab bar navigation and the AI history sheet
-  await page.locator(".tabbar").getByRole("link", { name: "Обучение" }).click();
-  await page.waitForURL("**/learn");
+  await page.locator(".tabbar").getByRole("link", { name: "Копилка" }).click();
+  await page.waitForURL("**/savings");
   await page.locator(".tabbar").getByRole("link", { name: /\$PIG/ }).click();
   await page.waitForURL("**/ai");
   await page.getByRole("button", { name: /История/ }).click();
@@ -306,3 +305,4 @@ if (problems.length) {
   process.exit(1);
 }
 console.log("\nСценарий пройден без ошибок.");
+

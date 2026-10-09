@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import { LEGAL, contactLine } from "@/lib/legal";
 
-export const metadata: Metadata = { title: "Политика конфиденциальности — PIGSEN" };
+export const metadata: Metadata = { title: "Политика конфиденциальности — PìgBiz" };
 
 export default function PrivacyPage() {
   return (
@@ -12,7 +12,7 @@ export default function PrivacyPage() {
 
       <h2>1. Кто обрабатывает данные</h2>
       <p>
-        Оператор персональных данных — {LEGAL.owner}. Эта политика объясняет, какие данные PIGSEN собирает,
+        Оператор персональных данных — {LEGAL.owner}. Эта политика объясняет, какие данные PìgBiz собирает,
         зачем и как вы можете ими управлять.
       </p>
 

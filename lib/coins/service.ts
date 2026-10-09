@@ -80,7 +80,7 @@ export const TITLES: Record<string, string> = {
   "title-king": "Король копилки",
   "title-whale": "Крипто-кит",
   "title-oracle": "Финансовый оракул",
-  "title-legend": "Легенда PIGSEN",
+  "title-legend": "Легенда PìgBiz",
 };
 
 /** Cosmetics shown on the profile and the leaderboard. Bought = equipped; owned ones can be switched. */
@@ -122,7 +122,7 @@ export const SHOP: ShopItem[] = [
   { id: "title-king", category: "style", title: "Титул «Король копилки»", description: "Для тех, кто копит красиво", price: 500, icon: "piggy", proDiscount: true },
   { id: "title-whale", category: "style", title: "Титул «Крипто-кит»", description: "Редкий титул", price: 800, icon: "rocket", proDiscount: true },
   { id: "title-oracle", category: "style", title: "Титул «Финансовый оракул»", description: "Для тех, кто видит рынок насквозь", price: 1200, icon: "bulb", proDiscount: true },
-  { id: "title-legend", category: "style", title: "Титул «Легенда PIGSEN»", description: "Самый редкий титул магазина", price: 2500, icon: "sparkle", proDiscount: true },
+  { id: "title-legend", category: "style", title: "Титул «Легенда PìgBiz»", description: "Самый редкий титул магазина", price: 2500, icon: "sparkle", proDiscount: true },
   { id: "theme-car", category: "style", title: "Обложка «Машина»", description: "Для цели на автомобиль", price: 120, icon: "car" },
   { id: "theme-rocket", category: "style", title: "Обложка «Свой бизнес»", description: "Для стартового капитала", price: 120, icon: "rocket" },
   { id: "theme-heart", category: "style", title: "Обложка «Для близких»", description: "Подарки, свадьба, семья", price: 120, icon: "heart" },

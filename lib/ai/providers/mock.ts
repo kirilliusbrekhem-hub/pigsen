@@ -96,7 +96,7 @@ function genericAnswer(req: StreamRequest): string {
   const q = req.messages[req.messages.length - 1]?.content ?? "";
   const related = req.context.related;
   const list = related.length
-    ? `\n\n## В библиотеке PIGSEN по теме\n${related.map((r) => `- [${r.title}](${r.href}) — ${r.description}`).join("\n")}`
+    ? `\n\n## В библиотеке PìgBiz по теме\n${related.map((r) => `- [${r.title}](${r.href}) — ${r.description}`).join("\n")}`
     : "";
   return `Хороший вопрос: «${q.slice(0, 140)}».
 

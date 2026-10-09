@@ -8,7 +8,7 @@ import type { ChatMessage } from "./useChatStream";
 // react-markdown + remark-gfm are ~150 KB of JS: load them only once an answer is shown, not with the /ai page.
 const Markdown = lazy(() => import("@/components/content/Markdown").then((m) => ({ default: m.Markdown })));
 
-const STEPS = ["Понимаю вопрос", "Ищу материалы в библиотеке PIGSEN", "Формулирую ответ"];
+const STEPS = ["Понимаю вопрос", "Ищу материалы в библиотеке PìgBiz", "Формулирую ответ"];
 
 export function AnswerCard({ m, onAsk, last }: { m: ChatMessage; onAsk: (q: string) => void; last: boolean }) {
   const [copied, setCopied] = useState(false);
@@ -53,7 +53,7 @@ export function AnswerCard({ m, onAsk, last }: { m: ChatMessage; onAsk: (q: stri
           )}
           {!streaming && m.related.length > 0 && (
             <div className="ans-block">
-              <span className="label">Материалы PIGSEN по теме</span>
+              <span className="label">Материалы PìgBiz по теме</span>
               <div className="row-list" style={{ margin: "0 -12px" }}>
                 {m.related.map((r) => (
                   <ContentRow key={r.id} item={r} />

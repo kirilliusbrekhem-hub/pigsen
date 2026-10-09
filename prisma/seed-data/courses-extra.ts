@@ -1,4 +1,4 @@
-// Second batch of courses (2026-10-05). Editorial PIGSEN material.
+// Second batch of courses (2026-10-05). Editorial PìgBiz material.
 import type { SeedCourse } from "./courses";
 
 export const coursesExtra: SeedCourse[] = [

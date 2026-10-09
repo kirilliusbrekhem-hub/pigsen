@@ -81,7 +81,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
     <form className="auth-card fade-in" onSubmit={onSubmit} noValidate>
       <div className="stack" style={{ gap: 6 }}>
         <span className="label">{mode === "register" ? "Регистрация" : "Вход"}</span>
-        <h1>{mode === "register" ? "Создайте аккаунт PIGSEN" : "С возвращением"}</h1>
+        <h1>{mode === "register" ? "Создайте аккаунт PìgBiz" : "С возвращением"}</h1>
       </div>
       {ref && <p className="growth-ref-note">Вас пригласил друг: после регистрации получите 200 PigCoin$.</p>}
       {formError && <ErrorBox message={formError} />}
@@ -109,7 +109,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
           </>
         ) : (
           <>
-            Впервые в PIGSEN? <Link href="/register">Создать аккаунт</Link>
+            Впервые в PìgBiz? <Link href="/register">Создать аккаунт</Link>
           </>
         )}
       </p>

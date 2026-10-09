@@ -4,11 +4,19 @@ export interface NavItem {
   icon: string;
 }
 
+export interface NavSection {
+  label: string;
+  items: NavItem[];
+}
+
 export interface NavGroup {
   id: string;
   label: string;
   icon: string;
+  /** Every link of the group, flat (derived from `sections` when present). */
   items: NavItem[];
+  /** Optional sub-headings inside the group. */
+  sections?: NavSection[];
   /** Open by default when the user has no stored preference. */
   defaultOpen?: boolean;
 }
@@ -19,46 +27,21 @@ export function isGroup(e: NavEntry): e is NavGroup {
   return "items" in e;
 }
 
-/** Sidebar structure: top-level links and collapsible groups. */
+/** «Ещё» holds only what feeds the savings → business loop; other routes stay reachable by URL. */
+const MORE_ITEMS: NavItem[] = [
+  { href: "/biz/top", label: "Лидерборд бизнесов", icon: "trophy" },
+  { href: "/challenges", label: "Челленджи", icon: "target" },
+  { href: "/analyze", label: "Разбор трат", icon: "chart" },
+  { href: "/invite", label: "Пригласить друга", icon: "link" },
+];
+
+/** Sidebar structure: the core (business + piggy bank + $PIG) on top, the rest under «Ещё». */
 export const NAV_TREE: NavEntry[] = [
   { href: "/dashboard", label: "Главная", icon: "home" },
+  { href: "/biz", label: "Мой бизнес", icon: "store" },
+  { href: "/savings", label: "Копилка", icon: "piggy" },
   { href: "/ai", label: "$PIG", icon: "ai" },
-  {
-    id: "learn",
-    label: "Обучение",
-    icon: "cap",
-    defaultOpen: true,
-    items: [
-      { href: "/learn", label: "Курсы", icon: "cap" },
-      { href: "/library", label: "Библиотека", icon: "book" },
-      { href: "/sim", label: "Бизнес-симулятор", icon: "bolt" },
-      { href: "/duels", label: "Дуэли", icon: "trophy" },
-      { href: "/challenges", label: "Челленджи", icon: "target" },
-      { href: "/saved", label: "Сохранённое", icon: "bookmark" },
-    ],
-  },
-  {
-    id: "money",
-    label: "Деньги",
-    icon: "piggy",
-    items: [
-      { href: "/savings", label: "Копилка", icon: "piggy" },
-      { href: "/analyze", label: "Разбор трат", icon: "chart" },
-      { href: "/plan", label: "Бизнес-план", icon: "book" },
-      { href: "/tools", label: "Инструменты", icon: "sliders" },
-    ],
-  },
-  {
-    id: "community",
-    label: "Сообщество",
-    icon: "users",
-    items: [
-      { href: "/community", label: "Лента", icon: "users" },
-      { href: "/messages", label: "Сообщения", icon: "message" },
-      { href: "/leaderboard", label: "Лидерборд", icon: "chart" },
-      { href: "/invite", label: "Пригласить друга", icon: "link" },
-    ],
-  },
+  { id: "more", label: "Ещё", icon: "grid", items: MORE_ITEMS },
   { href: "/pro", label: "Pro и PigCoin$", icon: "sparkle" },
 ];
 
@@ -69,13 +52,14 @@ export const NAV: NavItem[] = NAV_TREE.flatMap((e) => (isGroup(e) ? e.items : [e
 
 export const TABS: NavItem[] = [
   { href: "/dashboard", label: "Главная", icon: "home" },
-  { href: "/learn", label: "Обучение", icon: "cap" },
-  { href: "/ai", label: "$PIG", icon: "ai" },
+  { href: "/biz", label: "Мой бизнес", icon: "store" },
   { href: "/savings", label: "Копилка", icon: "piggy" },
+  { href: "/ai", label: "$PIG", icon: "ai" },
 ];
 
 export const SECTION_TITLES: Record<string, string> = {
   dashboard: "Главная",
+  biz: "Мой бизнес",
   ai: "$PIG",
   learn: "Обучение",
   library: "Библиотека",
@@ -100,6 +84,7 @@ export const SECTION_TITLES: Record<string, string> = {
 
 export const DOCK_HINTS: Record<string, string[]> = {
   dashboard: ["Объясни, как работает венчурное финансирование"],
+  biz: ["Что улучшить в кофейне первым?"],
   learn: ["Составь мне план обучения на месяц"],
   library: ["Что почитать про стартапы?"],
   saved: ["Кратко перескажи мои сохранённые темы"],

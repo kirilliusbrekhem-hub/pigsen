@@ -5,6 +5,7 @@ import { COINS, addCoins, addDailyCoins, ownedItems } from "@/lib/coins/service"
 import { goalLimit, isPro } from "@/lib/billing/plan";
 import { HttpError } from "@/lib/api/http";
 import { THEMES } from "./themes";
+import { onSavingsChange } from "@/lib/biz/service";
 
 export interface GoalStats {
   percent: number;
@@ -102,6 +103,7 @@ export async function addEntry(userId: string, goalId: string, amount: number, n
     await tx.savingsEntry.create({ data: { goalId, amount, note } });
     return tx.savingsGoal.findUniqueOrThrow({ where: { id: goalId } });
   });
+  await onSavingsChange(userId, amount); // «Мой бизнес» mirrors every real deposit/withdrawal
   let coins = 0;
   let milestone: number | null = null;
   const step = Math.min(4, Math.floor((updated.saved / updated.target) * 4));

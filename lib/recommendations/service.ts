@@ -19,7 +19,7 @@ export interface InterestWeight {
   weight: number; // 0..1, relative to the strongest interest
 }
 
-/** How PIGSEN currently sees the user's interests, for the dashboard "interest profile". */
+/** How PìgBiz currently sees the user's interests, for the dashboard "interest profile". */
 export async function getInterestProfile(userId: string, take = 4): Promise<InterestWeight[]> {
   const [s, cats] = await Promise.all([collectSignals(userId), getCategories()]);
   const scores = cats.map((c) => {

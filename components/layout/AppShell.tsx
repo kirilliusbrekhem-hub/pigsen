@@ -26,9 +26,7 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
   const depth = section === "ai" ? 1 : pathname.split("/").filter(Boolean).length;
   const isAI = section === "ai";
   const dockRef = useRef<HTMLInputElement>(null);
-  const searchRef = useRef<HTMLInputElement>(null);
   const [dock, setDock] = useState("");
-  const [query, setQuery] = useState("");
   const [crumb, setCrumb] = useState<string | null>(null);
   const [more, setMore] = useState(false);
   const navTree = user.admin ? [...NAV_TREE, ADMIN_ITEM] : NAV_TREE;
@@ -38,7 +36,7 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
     { href: "/profile", label: "Профиль", icon: "user" },
   ];
   const moreItems: NavItem[] = [...navGroups.flatMap((g) => g.items), ...moreTop];
-  const groupHas = (g: NavGroup, sec: string) => g.items.some((i) => sectionOf(i.href) === sec);
+  const groupHas = (g: NavGroup, sec: string) => g.items.some((i) => i.href !== "/biz/top" && sectionOf(i.href) === sec);
 
   // Collapsible sidebar groups: default / stored state, auto-open for the current route.
   const [open, setOpen] = useState<Record<string, boolean>>(() =>
@@ -100,15 +98,11 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      const typing = e.target instanceof HTMLElement && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
+
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         if (dockRef.current && dockRef.current.offsetParent) dockRef.current.focus();
         else router.push("/ai");
-      } else if (e.key === "/" && !typing) {
-        e.preventDefault();
-        if (searchRef.current && searchRef.current.offsetParent) searchRef.current.focus();
-        else router.push("/search");
       }
     }
     window.addEventListener("keydown", onKey);
@@ -122,14 +116,8 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
     router.push(`/ai?q=${encodeURIComponent(text)}`);
   }
 
-  function submitSearch(e: React.FormEvent) {
-    e.preventDefault();
-    const q = query.trim();
-    if (!q) return;
-    router.push(`/search?q=${encodeURIComponent(q)}`);
-  }
-
-  const active = (href: string) => sectionOf(href) === section;
+  const active = (href: string) =>
+    href === "/biz/top" ? pathname.startsWith("/biz/top") : href === "/biz" ? section === "biz" && !pathname.startsWith("/biz/top") : sectionOf(href) === section;
 
   function badges(href: string) {
     return (
@@ -170,14 +158,14 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
   }
   const today = new Intl.DateTimeFormat("ru-RU", { weekday: "short", day: "numeric", month: "short" }).format(new Date());
   const parentHref = "/" + pathname.split("/").filter(Boolean).slice(0, -1).join("/");
-  const title = SECTION_TITLES[section] ?? "PIGSEN";
+  const title = SECTION_TITLES[section] ?? "PìgBiz";
 
   return (
     <CrumbContext.Provider value={setCrumb}>
     <div className="shell">
       <div className="app">
         <aside className="sidebar" aria-label="Основная навигация">
-          <Link href="/dashboard" aria-label="PIGSEN, на главную">
+          <Link href="/dashboard" aria-label="PìgBiz, на главную">
             <Brand sub />
           </Link>
           <nav className="nav">
@@ -201,7 +189,16 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
                     <Icon name="chev" size="sm" className="nav-chev" />
                   </button>
                   <div className="nav-group-body" id={`nav-g-${e.id}`} inert={!isOpen}>
-                    <div className="nav-group-inner">{e.items.map((i) => renderLink(i, true))}</div>
+                    <div className="nav-group-inner">
+                      {e.sections
+                        ? e.sections.map((sec) => (
+                            <div key={sec.label} className="nav-sec" role="group" aria-label={sec.label}>
+                              <span className="nav-sec-h" aria-hidden="true">{sec.label}</span>
+                              {sec.items.map((i) => renderLink(i, true))}
+                            </div>
+                          ))
+                        : e.items.map((i) => renderLink(i, true))}
+                    </div>
                   </div>
                 </div>
               );
@@ -252,21 +249,6 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
               )}
             </div>
             <div className="spacer" />
-            {section !== "search" && (
-              <form className="top-search" role="search" onSubmit={submitSearch}>
-                <Icon name="search" />
-                <input
-                  ref={searchRef}
-                  className="input"
-                  placeholder="Поиск статей, книг, курсов..."
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  aria-label="Поиск по PIGSEN"
-                  maxLength={120}
-                />
-                <kbd>/</kbd>
-              </form>
-            )}
             <span className="date-pill">{today}</span>
           </header>
 
@@ -277,15 +259,12 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
                 <span>{title}</span>
               </Link>
             ) : (
-              <Link href="/dashboard" className="brand" aria-label="PIGSEN">
+              <Link href="/dashboard" className="brand" aria-label="PìgBiz">
                 <Pig />
                 {section === "dashboard" ? <Wordmark /> : <span className="wordmark" style={{ letterSpacing: "-.01em" }}>{title}</span>}
               </Link>
             )}
             <div className="spacer" />
-            <Link className="icon-btn" href="/search" aria-label="Поиск">
-              <Icon name="search" />
-            </Link>
             <Link href="/profile" aria-label="Профиль" data-fx-target="coins">
               <Avatar name={user.name} src={user.avatar} />
             </Link>
@@ -359,12 +338,14 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
                 </button>
               </div>
               <div className="modal-body">
-                {navGroups.map((g) => (
-                  <section key={g.id} className="more-sec" aria-labelledby={`more-h-${g.id}`}>
-                    <h3 className="more-h" id={`more-h-${g.id}`}>{g.label}</h3>
-                    <div className="more-grid">{g.items.map(moreLink)}</div>
-                  </section>
-                ))}
+                {navGroups
+                  .flatMap((g) => g.sections?.map((sec, i) => ({ id: `${g.id}-${i}`, ...sec })) ?? [{ id: g.id, label: g.label, items: g.items }])
+                  .map((g) => (
+                    <section key={g.id} className="more-sec" aria-labelledby={`more-h-${g.id}`}>
+                      <h3 className="more-h" id={`more-h-${g.id}`}>{g.label}</h3>
+                      <div className="more-grid">{g.items.map(moreLink)}</div>
+                    </section>
+                  ))}
                 <section className="more-sec" aria-labelledby="more-h-etc">
                   <h3 className="more-h" id="more-h-etc">Аккаунт</h3>
                   <div className="more-grid">{moreTop.map(moreLink)}</div>

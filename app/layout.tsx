@@ -15,10 +15,11 @@ import "./styles/duels.css";
 import "./styles/analyze.css";
 import "./styles/sim.css";
 import "./styles/bizplan.css";
+import "./styles/biz.css";
 
 export const metadata: Metadata = {
-  title: { default: "PIGSEN", template: "%s · PIGSEN" },
-  description: "PIGSEN — AI-платформа для изучения бизнеса, предпринимательства, финансов и технологий. Make your money Smarter.",
+  title: { default: "PìgBiz", template: "%s · PìgBiz" },
+  description: "PìgBiz — AI-платформа для изучения бизнеса, предпринимательства, финансов и технологий. Make your money Smarter.",
   icons: { icon: "/icon.png" },
 };
 
