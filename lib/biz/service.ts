@@ -25,11 +25,20 @@ import {
   pickHint,
   repairPrice,
   withdrawalHit,
+  freshState,
+  moodLabel,
+  priceOf,
   type BizKind,
-  type DayState,
+  type GameState,
   type OwnedItem,
 } from "./engine";
+import { ACCENTS, LOGOS, TEMPLATE_TITLES, isChallengeItem } from "./catalog";
+import { goalText, investorOf, offersFor, rewardText, crisisFor, crisisOf, CRISIS_EXPIRE_DAYS } from "./game";
+import { checkCustom, crisisView, dealView, settleDeal, storyState, type CustomInput } from "./play";
+import { grantApprovedItems } from "./proofs";
 import { challengeView, weekStart } from "./challenges";
+import { confirmedDeposits, confirmedSavingsMany } from "@/lib/savings/proof";
+import { PIG_PARTNER_LOCK } from "@/lib/ai/pigMode";
 import { chatReply, depositLine, hintLine, isForPig, pigVoice, revealLine, teaserLine, withdrawLine } from "./pig";
 
 type Tx = Prisma.TransactionClient;
@@ -47,11 +56,18 @@ const rubs = (n: number) => `${Math.round(n).toLocaleString("ru-RU")} ₽`;
 export const cleanName = (s: string) => s.replace(/[\u0000-\u001F\u007F<>{}]/g, "").replace(/\s+/g, " ").trim().slice(0, 40);
 const newCode = () => randomBytes(12).toString("base64url");
 const lockKey = (id: string) => `biz:${id}`;
-const asJson = (s: DayState) => s as unknown as Prisma.InputJsonValue;
+const asJson = (s: GameState) => s as unknown as Prisma.InputJsonValue;
 
 /** Team size (founder included, $PIG not counted) by the founder's plan: Free 2, Pro 4, Pro 7, Pro 10. */
 async function founderCap(founderId: string) {
   return teamCap(await prisma.profile.findUnique({ where: { userId: founderId }, select: { proUntil: true, proTier: true } }));
+}
+
+/** $PIG acts as a partner in a team only while its founder is on Pro (any tier). */
+async function teamPigPartner(businessId: string): Promise<boolean> {
+  const b = await prisma.bizBusiness.findUnique({ where: { id: businessId }, select: { founderId: true } });
+  if (!b) return false;
+  return isPro(await prisma.profile.findUnique({ where: { userId: b.founderId }, select: { proUntil: true } }));
 }
 
 /** Inserts a one-time claim key; true only for the caller that inserted it. */
@@ -69,8 +85,9 @@ async function requireMember(userId: string) {
 
 // ───────────────────────── create / view ─────────────────────────
 
-export async function createBusiness(user: Actor, kind: BizKind, name: string) {
+export async function createBusiness(user: Actor, kind: BizKind, name: string, customIn: CustomInput | null = null) {
   if (!KINDS[kind]?.available) throw new HttpError(422, "Этот вид бизнеса скоро появится");
+  const custom = customIn ? checkCustom(kind, customIn, isPro(user.profile)) : null;
   const today = dayKey();
   try {
     return await prisma.$transaction(async (tx) => {
@@ -80,12 +97,12 @@ export async function createBusiness(user: Actor, kind: BizKind, name: string) {
       const b = await tx.bizBusiness.create({
         data: {
           kind,
-          name: cleanName(name) || "Кофейня",
+          name: cleanName(name) || KINDS[kind].title,
           founderId: user.id,
           inviteCode: newCode(),
           lastDay: today,
           seed,
-          state: asJson({ mult: 1, event: "Первый день: открываемся!", penalty: 0, hint: null }),
+          state: asJson(freshState(custom)),
           members: { create: { userId: user.id, name: cleanName(user.name) || "Основатель", role: "founder" } },
         },
       });
@@ -95,7 +112,8 @@ export async function createBusiness(user: Actor, kind: BizKind, name: string) {
       await tx.bizChat.create({
         data: { businessId: b.id, name: PIG_NAME, text: `Партнёр, я в деле! Я твой ИИ-сооснователь: подсказываю, иногда ошибаюсь, но всегда признаюсь. Отложи в копилку — и у нас появится капитал. ${hintText}`.trim() },
       });
-      if (hint) await tx.bizBusiness.update({ where: { id: b.id }, data: { state: asJson({ mult: 1, event: "Первый день: открываемся!", penalty: 0, hint: { ...hint, day: 1 } }) } });
+      if (hint) await tx.bizBusiness.update({ where: { id: b.id }, data: { state: asJson({ ...freshState(custom), hint: { ...hint, day: 1 } }) } });
+      await grantApprovedItems(tx, user.id, b.id);
       return b;
     });
   } catch (e) {
@@ -121,10 +139,12 @@ async function rollover(businessId: string, pro: boolean): Promise<{ chat: strin
     let penalty = st.penalty;
     let reveal = "";
     const events: { kind: string; text: string }[] = [];
-    let ev = eventFor(b.seed, dayNo, owned);
+    let ev = eventFor(b.seed, dayNo, owned, b.kind);
+    let crisisLine = "";
+    const noun = kindOf(b.kind).labels.guestsShort;
     for (let i = 0; i < days; i++) {
       dayNo++;
-      ev = eventFor(b.seed, dayNo, owned);
+      ev = eventFor(b.seed, dayNo, owned, b.kind);
       let mult = ev.mult;
       let text = ev.text;
       let dr = ev.rating;
@@ -145,24 +165,48 @@ async function rollover(businessId: string, pro: boolean): Promise<{ chat: strin
           }
         }
       }
-      const m = metrics(b.kind, owned, rating, { mult, penalty });
+      // Crises: an ignored one resolves itself badly; otherwise a new one may start (deterministic per day).
+      if (st.crisis && dayNo - st.crisis.day >= CRISIS_EXPIRE_DAYS) {
+        const c = crisisOf(st.crisis.id);
+        const worst = c ? [...c.options].sort((x, y) => x.chance - y.chance)[0] : null;
+        if (c && worst) {
+          dr += worst.bad.rating;
+          st.reputation = Math.max(0, Math.min(100, st.reputation + worst.bad.reputation - 5));
+          if (worst.bad.days) st.mods.push({ mult: worst.bad.mult, until: dayNo + worst.bad.days });
+          events.push({ kind: "crisis-bad", text: `Кризис «${c.title}» остался без решения: ${worst.bad.text}. Репутация ${worst.bad.reputation - 5}` });
+        }
+        st.crisis = null;
+      } else if (!st.crisis) {
+        const c = crisisFor(b.seed, dayNo, b.kind, st.stats.lastCrisisDay);
+        if (c) {
+          st.crisis = { id: c.id, day: dayNo };
+          st.stats.lastCrisisDay = dayNo;
+          events.push({ kind: "crisis", text: `Кризис: ${c.title}. ${c.text} Команда должна выбрать решение.` });
+          crisisLine = c.pig;
+        }
+      }
+      st.mods = st.mods.filter((x) => x.until >= dayNo);
+      const m = metrics(b.kind, owned, rating, { mult, penalty, boost: st.boost, mods: st.mods }, dayNo);
       const step = Math.max(-0.25, Math.min(0.25, m.targetRating - rating));
       rating = clampRating(rating + step + dr);
-      revenue = Math.min(MAX_CAPITAL, revenue + m.revenue);
-      events.push({ kind: "day", text: `День ${dayNo}: ${text}. Гостей: ${m.guests}, игровая выручка: ${m.revenue.toLocaleString("ru-RU")}` });
+      // Investors take their share of the virtual profit; capital is untouched.
+      const own = Math.round(m.revenue * (1 - st.equity));
+      revenue = Math.min(MAX_CAPITAL, revenue + own);
+      st.stats.guests = Math.min(MAX_CAPITAL, st.stats.guests + m.guests);
+      events.push({ kind: "day", text: `День ${dayNo}: ${text}. ${noun[0].toUpperCase()}${noun.slice(1)}: ${m.guests}, игровая выручка: ${m.revenue.toLocaleString("ru-RU")}${st.equity ? ` (ваша доля ${own.toLocaleString("ru-RU")})` : ""}` });
       penalty = Math.round(penalty * 50) / 100;
       if (penalty < 0.03) penalty = 0;
       st.mult = mult;
       st.event = text;
     }
-    const hint = pickHint(b.kind, owned, pro, b.seed, dayNo);
-    const teaser = eventFor(b.seed, dayNo + 1, owned).teaser;
-    const next: DayState = { mult: st.mult, event: st.event, penalty, hint: hint ? { ...hint, day: dayNo } : null };
+    const hint = pickHint(b.kind, owned, pro, b.seed, dayNo, st.boost.unlocks);
+    const teaser = eventFor(b.seed, dayNo + 1, owned, b.kind).teaser;
+    const next: GameState = { ...st, penalty, hint: hint ? { ...hint, day: dayNo } : null };
     await tx.bizBusiness.update({ where: { id: b.id }, data: { rating, dayNo, revenue, lastDay: today, state: asJson(next) } });
     if (gap > MAX_SIM_DAYS) events.unshift({ kind: "day", text: `Бизнес простоял ${gap - MAX_SIM_DAYS} дн. без присмотра` });
     await tx.bizEvent.createMany({ data: events.map((e) => ({ businessId: b.id, ...e })) });
     const hintItem = hint ? itemOf(b.kind, hint.itemId) : null;
-    const chat = [reveal, hintItem ? hintLine(hintItem.title, hintItem.hint) : "", teaserLine(teaser)].filter(Boolean).join(" ");
+    const chat = [crisisLine, reveal, hintItem ? hintLine(hintItem.title, hintItem.hint) : "", teaserLine(teaser)].filter(Boolean).join(" ");
     return { chat, facts: `день ${dayNo}, событие: ${st.event}; рейтинг ${rating}` };
   });
 }
@@ -181,27 +225,68 @@ export interface BizView {
     rating: number;
     dayNo: number;
     revenueTotal: number;
-    today: { guests: number; check: number; revenue: number; event: string; penalty: number };
+    today: { guests: number; check: number; revenue: number; event: string; penalty: number; churn: number; bugs: number; mood: number; moodLabel: string; mrr: number };
+    template: string;
+    templateTitle: string;
+    emoji: string;
+    accent: string | null;
+    labels: { guests: string; guestsShort: string; check: string; revenue: string; noun: string };
+    reputation: number;
+    /** Investors' share of virtual profit (0..0.49). */
+    equity: number;
+    boost: { mult: number; discount: number };
+    guestsTotal: number;
     invitePath: string | null;
     isFounder: boolean;
     maxMembers: number;
   };
-  members: { userId: string; name: string; role: string; contributed: number; you: boolean }[];
+  /** confirmed: deposits since joining that are confirmed by a bank screenshot (shown with ✓ to teammates). */
+  members: { userId: string; name: string; role: string; contributed: number; confirmed: number; you: boolean }[];
   owned: OwnedItem[];
-  catalog: { id: string; title: string; blurb: string; price: number; repair: number; effect: { guests?: number; check?: number; rating?: number }; premium: boolean; state: string; reason?: string }[];
+  catalog: {
+    id: string;
+    title: string;
+    blurb: string;
+    category: string;
+    slot: string;
+    price: number;
+    basePrice: number;
+    repair: number;
+    effect: { guests?: number; check?: number; rating?: number; churn?: number; bugs?: number };
+    premium: boolean;
+    exclusive: boolean;
+    challenge: boolean;
+    state: string;
+    reason?: string;
+  }[];
+  /** For components/biz/BizScene.tsx: what to draw and how lively. Item ids match lib/biz/catalog.ts. */
+  scene: { kind: BizKind; template: string; level: number; guests: number; mood: number; items: string[]; broken: string[]; challengeItems: string[]; accent: string | null; emoji: string };
+  investors: {
+    offers: { id: string; name: string; avatar: string; personality: string; pitch: string; goal: string; reward: string; deadlineDays: number; share: number }[];
+    deal: { id: string; name: string; avatar: string; goal: string; reward: string; deadline: string; progress: { done: number; total: number; label: string; status: string } } | null;
+    history: { id: string; name: string; status: string }[];
+  };
+  story: { n: number; title: string; text: string; goalText: string; progress: number; target: number; coins: number; xp: number; status: string }[];
+  crisis: ReturnType<typeof crisisView>;
+  custom: { emoji: string; accent: string; names: Record<string, string> } | null;
+  customOptions: { logos: readonly string[]; accents: readonly string[] };
   events: { id: string; kind: string; text: string; at: string }[];
   chat: { id: string; name: string; text: string; pig: boolean; mine: boolean; at: string }[];
   challenges: Awaited<ReturnType<typeof challengeView>>;
   pro: boolean;
+  /** $PIG is a partner (persona, chat, hints, strategy) only when the team's founder is on Pro. */
+  pigPartner: boolean;
 }
 
 export async function getView(user: Actor, opts: { simulate?: boolean } = {}): Promise<BizView | null> {
   const m = await memberOf(user.id);
   if (!m) return null;
   const pro = isPro(user.profile);
+  const pigPartner = await teamPigPartner(m.businessId);
+  await settleDeal(m.businessId);
   if (opts.simulate !== false) {
     const r = await rollover(m.businessId, pro);
-    if (r?.chat) await prisma.bizChat.create({ data: { businessId: m.businessId, name: PIG_NAME, text: await pigVoice(r.chat, r.facts) } });
+    if (r?.chat && pigPartner) await prisma.bizChat.create({ data: { businessId: m.businessId, name: PIG_NAME, text: await pigVoice(r.chat, r.facts) } });
   }
   const b = await prisma.bizBusiness.findUnique({
     where: { id: m.businessId },
@@ -216,8 +301,11 @@ export async function getView(user: Actor, opts: { simulate?: boolean } = {}): P
   const k = kindOf(b.kind);
   const owned: OwnedItem[] = b.upgrades.map((u) => ({ itemId: u.itemId, status: u.status }));
   const st = parseState(b.state);
-  const mt = metrics(b.kind, owned, b.rating, st);
+  const mt = metrics(b.kind, owned, b.rating, st, b.dayNo);
   const level = levelOf(b.kind, owned);
+  const names = st.custom?.names ?? {};
+  const dv = await dealView(b.id, b.kind, st, { level, rating: b.rating, capital: b.capital, dayNo: b.dayNo });
+  const dealInv = dv ? investorOf(dv.investorId) : null;
   const isFounder = b.founderId === user.id;
   const cap = isFounder ? teamCap(user.profile) : await founderCap(b.founderId);
   return {
@@ -234,21 +322,70 @@ export async function getView(user: Actor, opts: { simulate?: boolean } = {}): P
       rating: b.rating,
       dayNo: b.dayNo,
       revenueTotal: b.revenue,
-      today: { guests: mt.guests, check: mt.check, revenue: mt.revenue, event: st.event, penalty: st.penalty },
+      today: { guests: mt.guests, check: mt.check, revenue: mt.revenue, event: st.event, penalty: st.penalty, churn: mt.churn, bugs: mt.bugs, mood: mt.mood, moodLabel: moodLabel(mt.mood), mrr: mt.revenue * 30 },
+      template: k.template,
+      templateTitle: TEMPLATE_TITLES[k.template],
+      emoji: st.custom?.emoji ?? k.emoji,
+      accent: st.custom?.accent ?? null,
+      labels: k.labels,
+      reputation: st.reputation,
+      equity: st.equity,
+      boost: { mult: st.boost.mult, discount: st.boost.discount },
+      guestsTotal: st.stats.guests,
       invitePath: `/biz/join/${b.inviteCode}`,
       isFounder,
       maxMembers: cap,
     },
-    members: b.members.map((x) => ({ userId: x.userId, name: x.name, role: x.role, contributed: x.contributed, you: x.userId === user.id })),
+    members: await Promise.all(
+      b.members.map(async (x) => ({ userId: x.userId, name: x.name, role: x.role, contributed: x.contributed, confirmed: (await confirmedDeposits([x.userId], x.joinedAt)).get(x.userId) ?? 0, you: x.userId === user.id })),
+    ),
     owned,
-    catalog: k.catalog.map((u) => {
-      const a = availability(b.kind, u, owned, pro);
-      return { id: u.id, title: u.title, blurb: u.blurb, price: u.price, repair: repairPrice(u), effect: u.effect, premium: !!u.premium, state: a.state, reason: a.reason };
+    catalog: [...k.catalog, ...owned.filter((o) => isChallengeItem(o.itemId)).map((o) => itemOf(b.kind, o.itemId)).filter((x) => !!x)].map((u) => {
+      const a = availability(b.kind, u, owned, pro, st.boost.unlocks);
+      return {
+        id: u.id,
+        title: names[u.id] ?? u.title,
+        blurb: u.blurb,
+        category: u.category,
+        slot: u.slot,
+        price: priceOf(u, st.boost.discount),
+        basePrice: u.price,
+        repair: repairPrice(u),
+        effect: u.effect,
+        premium: !!u.premium,
+        exclusive: !!u.exclusive,
+        challenge: !!u.challenge,
+        state: a.state,
+        reason: a.reason,
+      };
     }),
+    scene: {
+      kind: k.kind,
+      template: k.template,
+      level,
+      guests: mt.guests,
+      mood: mt.mood,
+      items: owned.filter((o) => o.status === "ok").map((o) => o.itemId),
+      broken: owned.filter((o) => o.status !== "ok").map((o) => o.itemId),
+      challengeItems: owned.filter((o) => isChallengeItem(o.itemId)).map((o) => o.itemId),
+      accent: st.custom?.accent ?? null,
+      emoji: st.custom?.emoji ?? k.emoji,
+    },
+    investors: {
+      offers: offersFor(b.kind, b.dayNo, st.reputation, st.investors, !!st.deal).map((i) => ({ id: i.id, name: i.name, avatar: i.avatar, personality: i.personality, pitch: i.pitch, goal: goalText(i.goal, b.kind), reward: rewardText(i.reward, i.share, b.kind), deadlineDays: i.deadlineDays, share: i.share })),
+      deal: dv && dealInv ? { id: dealInv.id, name: dealInv.name, avatar: dealInv.avatar, goal: goalText(dealInv.goal, b.kind), reward: rewardText(dealInv.reward, dealInv.share, b.kind), deadline: dv.deadline, progress: dv.progress } : null,
+      history: Object.entries(st.investors).map(([id, status]) => ({ id, name: investorOf(id)?.name ?? id, status })),
+    },
+    story: storyState(b.kind, st, { items: owned.filter((o) => !isChallengeItem(o.itemId)).length, guestsToday: mt.guests, level, rating: b.rating }),
+    crisis: crisisView(st, b.capital),
+    custom: st.custom,
+    customOptions: { logos: LOGOS, accents: ACCENTS },
     events: b.events.map((e) => ({ id: e.id, kind: e.kind, text: e.text, at: e.createdAt.toISOString() })),
-    chat: b.chat.reverse().map((c) => ({ id: c.id, name: c.name, text: c.text, pig: c.userId === null, mine: c.userId === user.id, at: c.createdAt.toISOString() })),
+    // Free teams: $PIG stays silent in the chat (the UI shows a locked "$PIG-партнёр доступен в Pro" card instead).
+    chat: b.chat.reverse().filter((c) => pigPartner || c.userId !== null).map((c) => ({ id: c.id, name: c.name, text: c.text, pig: c.userId === null, mine: c.userId === user.id, at: c.createdAt.toISOString() })),
     challenges: await challengeView(b.id, user.id),
     pro,
+    pigPartner,
   };
 }
 
@@ -283,7 +420,7 @@ export async function onSavingsChange(userId: string, delta: number): Promise<vo
         let debt = -capital;
         for (const u of b.upgrades) {
           if (debt <= 0) break;
-          if (u.status !== "ok") continue;
+          if (u.status !== "ok" || isChallengeItem(u.itemId)) continue; // challenge rewards weren't bought, they never break
           await tx.bizUpgrade.update({ where: { id: u.id }, data: { status: "broken" } });
           broken.push(itemOf(b.kind, u.itemId)?.title ?? u.itemId);
           debt -= u.price;
@@ -339,13 +476,16 @@ async function spend(user: Actor, itemId: string, mode: "buy" | "repair") {
     if (!def) throw new HttpError(404, "Такого улучшения нет");
     const owned: OwnedItem[] = b.upgrades;
     const before = levelOf(b.kind, owned);
-    const a = availability(b.kind, def, owned, pro);
+    const st = parseState(b.state);
+    const a = availability(b.kind, def, owned, pro, st.boost.unlocks);
     let price: number;
     if (mode === "buy") {
       if (a.state === "owned" || a.state === "broken") throw new HttpError(409, "Уже куплено");
+      if (a.state === "challenge") throw new HttpError(409, "Это награда за челлендж — её нельзя купить");
+      if (a.state === "investor") throw new HttpError(409, a.reason ?? "Откроется после сделки с инвестором");
       if (a.state === "pro") throw new HttpError(402, "Это премиум-улучшение — доступно в Pro");
       if (a.state === "locked") throw new HttpError(409, a.reason ?? "Пока недоступно");
-      price = def.price;
+      price = priceOf(def, st.boost.discount);
     } else {
       if (a.state !== "broken") throw new HttpError(409, "Чинить нечего");
       price = repairPrice(def);
@@ -393,6 +533,7 @@ export async function joinBusiness(user: Actor, code: string) {
       if (mine) throw new HttpError(409, "Вы уже в другом бизнесе. Сначала выйдите из него.");
       if ((await tx.bizMember.count({ where: { businessId: b.id } })) >= max) throw new HttpError(409, max < 10 ? `Команда заполнена (${max} из ${max}). Больше мест — в Pro у основателя: до 4, 7 или 10 человек.` : "Команда заполнена");
       await tx.bizMember.create({ data: { businessId: b.id, userId: user.id, name: cleanName(user.name) || "Партнёр" } });
+      await grantApprovedItems(tx, user.id, b.id);
       await tx.bizEvent.create({ data: { businessId: b.id, kind: "join", text: `${user.name} стал(а) сооснователем. Теперь его/её взносы в копилку тоже растят бизнес.`, userId: user.id } });
       await tx.bizChat.create({ data: { businessId: b.id, name: PIG_NAME, text: `${user.name}, добро пожаловать в команду! Правило одно: копилка растёт — бизнес растёт. Снимаешь — нам всем больно.` } });
     });
@@ -455,7 +596,7 @@ export async function transferFounder(founderId: string, targetUserId: string) {
 export async function postChat(user: Actor, text: string) {
   const m = await requireMember(user.id);
   await prisma.bizChat.create({ data: { businessId: m.businessId, userId: user.id, name: m.name, text } });
-  if (!isForPig(text)) return;
+  if (!isForPig(text) || !(await teamPigPartner(m.businessId))) return; // $PIG answers in the chat of Pro teams only
   const b = await prisma.bizBusiness.findUniqueOrThrow({ where: { id: m.businessId }, include: { upgrades: true } });
   const best = bestPick(b.kind, b.upgrades, isPro(user.profile), b.capital);
   const reply = chatReply(text, best?.title ?? null, rubs(b.capital));
@@ -466,6 +607,8 @@ export async function postChat(user: Actor, text: string) {
 export async function askAdvice(user: Actor) {
   const m = await requireMember(user.id);
   const pro = isPro(user.profile);
+  // Game strategy is a partner feature: the user's own Pro or a Pro founder unlocks it.
+  if (!pro && !(await teamPigPartner(m.businessId))) throw new HttpError(402, `${PIG_PARTNER_LOCK}: разборы стратегии, идеи и подсказки в чате команды.`);
   const day = dayKey();
   let ok = false;
   for (let n = 1; n <= (pro ? 3 : 1); n++) {
@@ -503,11 +646,10 @@ export async function bizSummary(userId: string) {
 /** «Лидерборд бизнесов»: level, then rating, then net capital growth this week (mirrored savings). */
 export async function leaderboard(limit = 50) {
   const { start } = weekStart();
-  const [biz, growth] = await Promise.all([
-    prisma.bizBusiness.findMany({ select: { id: true, name: true, kind: true, rating: true, founderId: true, upgrades: { select: { itemId: true, status: true } }, members: { select: { userId: true, name: true, role: true } } }, take: 2000, orderBy: { updatedAt: "desc" } }),
-    prisma.bizEvent.groupBy({ by: ["businessId"], where: { kind: { in: ["deposit", "withdraw"] }, createdAt: { gte: start } }, _sum: { amount: true } }),
-  ]);
-  const g = new Map(growth.map((x) => [x.businessId, x._sum.amount ?? 0]));
+  const biz = await prisma.bizBusiness.findMany({ select: { id: true, name: true, kind: true, rating: true, founderId: true, upgrades: { select: { itemId: true, status: true } }, members: { select: { userId: true, name: true, role: true } } }, take: 2000, orderBy: { updatedAt: "desc" } });
+  // Weekly growth counts only deposits confirmed by a bank screenshot (minus withdrawals): see lib/savings/proof.ts.
+  const perUser = await confirmedSavingsMany(biz.flatMap((b) => b.members.map((m) => m.userId)), start);
+  const g = new Map(biz.map((b) => [b.id, b.members.reduce((s, m) => s + (perUser.get(m.userId) ?? 0), 0)]));
   return biz
     .map((b) => {
       const level = levelOf(b.kind, b.upgrades);

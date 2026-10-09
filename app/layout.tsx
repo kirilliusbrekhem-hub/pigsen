@@ -16,6 +16,7 @@ import "./styles/analyze.css";
 import "./styles/sim.css";
 import "./styles/bizplan.css";
 import "./styles/biz.css";
+import "./styles/proof.css";
 
 export const metadata: Metadata = {
   title: { default: "PìgBiz", template: "%s · PìgBiz" },

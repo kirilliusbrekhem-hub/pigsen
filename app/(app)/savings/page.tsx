@@ -10,11 +10,13 @@ import { ProPromo } from "@/components/pro/ProPromo";
 import { listGoals, themesFrom } from "@/lib/savings/service";
 import { quoteOfTheDay } from "@/lib/savings/themes";
 import { toView } from "@/lib/savings/view";
+import { ProofMeter } from "@/components/savings/Proof";
+import { proofMeter } from "@/lib/savings/proof";
 
 export const metadata: Metadata = { title: "Копилка" };
 
 export default async function SavingsPage() {
-  const [user, [goals, owned]] = await requireUserWith((userId) => Promise.all([listGoals(userId), ownedItems(userId)]));
+  const [user, [goals, owned, meter]] = await requireUserWith((userId) => Promise.all([listGoals(userId), ownedItems(userId), proofMeter(userId)]));
   const pro = isPro(user.profile);
   const themes = themesFrom(owned, pro);
   const views = await Promise.all(goals.map(async (g) => (await toView(g)).view));
@@ -30,6 +32,11 @@ export default async function SavingsPage() {
       </section>
       {!pro && <ProPromo place="savings" note={`На вашем плане до ${goalLimit(user.profile)} целей, у вас ${goals.length}.`} />}
       <SavingsHome goals={views} themes={[...themes]} canCreate={goals.length < goalLimit(user.profile)} quote={quote} push={<PushToggle publicKey={vapidPublicKey()} />} />
+      {meter.total > 0 && (
+        <section className="card card-pad">
+          <ProofMeter {...meter} />
+        </section>
+      )}
       <Disclaimer kind="ai" compact />
     </>
   );

@@ -100,8 +100,8 @@ export async function addEntry(userId: string, goalId: string, amount: number, n
       data: { saved: { increment: amount } },
     });
     if (!r.count) throw new HttpError(422, amount < 0 ? "Нельзя снять больше, чем накоплено" : "Слишком большая сумма в копилке");
-    await tx.savingsEntry.create({ data: { goalId, amount, note } });
-    return tx.savingsGoal.findUniqueOrThrow({ where: { id: goalId } });
+    const entry = await tx.savingsEntry.create({ data: { goalId, amount, note } });
+    return { ...(await tx.savingsGoal.findUniqueOrThrow({ where: { id: goalId } })), entryId: entry.id };
   });
   await onSavingsChange(userId, amount); // «Мой бизнес» mirrors every real deposit/withdrawal
   let coins = 0;
@@ -133,11 +133,11 @@ export async function addEntry(userId: string, goalId: string, amount: number, n
     }
   }
   const goalNow = await prisma.savingsGoal.findUniqueOrThrow({ where: { id: goalId } });
-  return { goal: goalNow, coins, milestone };
+  return { goal: goalNow, coins, milestone, entryId: updated.entryId };
 }
 
 export async function listEntries(goalId: string) {
-  return prisma.savingsEntry.findMany({ where: { goalId }, orderBy: { createdAt: "desc" }, take: 50 });
+  return prisma.savingsEntry.findMany({ where: { goalId }, orderBy: { createdAt: "desc" }, take: 50, include: { proof: { select: { status: true } } } });
 }
 
 /** One-line summary of the user's goals for $PIG's system prompt. */

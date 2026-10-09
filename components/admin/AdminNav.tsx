@@ -6,6 +6,8 @@ const TABS = [
   { href: "/admin/payments", label: "Платежи" },
   { href: "/admin/content", label: "Материалы" },
   { href: "/admin/reviews", label: "Отзывы" },
+  { href: "/admin/proofs", label: "Взносы" },
+  { href: "/admin/challenges", label: "Челленджи" },
   { href: "/admin/marketing", label: "Маркетинг" },
 ];
 

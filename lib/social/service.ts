@@ -18,19 +18,7 @@ export async function doneChallenges(userId: string) {
   return new Map(rows.map((r) => [r.challengeId, r]));
 }
 
-export async function completeChallenge(userId: string, id: string, note: string, pro: boolean) {
-  const c = challengeById(id);
-  if (!c) throw new HttpError(404, "Челлендж не найден");
-  if (!canDoChallenge(id, pro)) throw new HttpError(403, "Этот челлендж доступен в Pro");
-  try {
-    await prisma.challengeDone.create({ data: { userId, challengeId: id, note } });
-  } catch (e) {
-    if ((e as { code?: string }).code === "P2002") throw new HttpError(409, "Челлендж уже выполнен");
-    throw e;
-  }
-  const coins = await addCoins(userId, c.reward, `challenge:${id}`);
-  return { coins };
-}
+// Completion goes through admin review: see submitProof / reviewProof in lib/biz/proofs.ts.
 
 export const challengeCount = () => CHALLENGES.length;
 

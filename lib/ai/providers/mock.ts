@@ -92,6 +92,12 @@ _Это образовательный материал, а не персона�
   },
 ];
 
+const GAME_STRATEGY = /(мой бизнес|кофейн|что купить|стратеги|рейтинг)/i;
+const EDU_STRATEGY = `Объясню принцип: в бизнесе вложение окупается, когда дополнительная выручка от него больше его цены за разумный срок.
+
+Стратегию игры «Мой бизнес» и личные идеи даёт **$PIG-партнёр — он доступен в Pro** ([подробнее](/pro)).`;
+const PARTNER_STRATEGY = `По цифрам я бы сначала взял то, что даёт больше гостей на рубль капитала, а уже потом — красоту. Могу ошибиться, но потом честно признаюсь.`;
+
 function genericAnswer(req: StreamRequest): string {
   const q = req.messages[req.messages.length - 1]?.content ?? "";
   const related = req.context.related;
@@ -118,6 +124,10 @@ export const mockProvider: AIProvider = {
     const q = req.messages[req.messages.length - 1]?.content ?? "";
     const hit = ANSWERS.find((a) => a.re.test(q));
     let text = hit ? hit.text : genericAnswer(req);
+    const partner = req.context.mode === "partner";
+    // Plan modes (lib/ai/pigMode.ts), scripted so they can be checked without real AI.
+    if (GAME_STRATEGY.test(q)) text = partner ? PARTNER_STRATEGY : EDU_STRATEGY;
+    if (partner) text = `Партнёр на связи! ${text}\n\n**Давай попробуем:** отложи сегодня 300 ₽ в копилку — это +300 ₽ капитала нашему бизнесу. Завтра проверим, как сработало — заглядывай.`;
     if (hit && req.context.related.length) {
       text += `\n\n## Что изучить дальше\n${req.context.related.slice(0, 2).map((r) => `- [${r.title}](${r.href})`).join("\n")}`;
     }

@@ -6,12 +6,15 @@ import { GoalCover } from "@/components/savings/GoalCover";
 import { GoalImageEdit } from "@/components/savings/GoalImage";
 import { Coach, GoalActions, GoalDanger, GoalNumbers } from "@/components/savings/GoalDetail";
 import { SpendCheck } from "@/components/savings/SpendCheck";
+import { EntryProof, ProofMeter } from "@/components/savings/Proof";
+import { entryProofState, proofMeter } from "@/lib/savings/proof";
 import { Icon } from "@/components/ui/Icon";
 import { requireUser } from "@/lib/auth/session";
 import { dateRu, rub } from "@/lib/client/format";
 import { getGoal, listEntries } from "@/lib/savings/service";
 import { MOTIVATION } from "@/lib/savings/themes";
 import { toView } from "@/lib/savings/view";
+import { isPro } from "@/lib/billing/plan";
 
 export const metadata: Metadata = { title: "Цель" };
 
@@ -20,7 +23,7 @@ export default async function GoalPage({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const goal = await getGoal(user.id, id);
   if (!goal) notFound();
-  const [{ view, pacePerMonth }, entries] = await Promise.all([toView(goal), listEntries(goal.id)]);
+  const [{ view, pacePerMonth }, entries, meter] = await Promise.all([toView(goal), listEntries(goal.id), proofMeter(user.id, goal.id)]);
   const quote = MOTIVATION[(goal.saved + entries.length) % MOTIVATION.length];
   return (
     <div className="stack" style={{ gap: 20 }}>
@@ -47,16 +50,17 @@ export default async function GoalPage({ params }: { params: Promise<{ id: strin
         </div>
       </section>
       <GoalActions goal={view} />
-      <Coach goalId={goal.id} />
+      <Coach goalId={goal.id} partner={isPro(user.profile)} />
       <SpendCheck goals={[{ id: goal.id, title: goal.title }]} defaultGoal={goal.id} />
       <section className="card card-pad stack" style={{ gap: 10 }}>
         <b>История</b>
+        {meter.total > 0 && <ProofMeter {...meter} />}
         {entries.length === 0 ? (
           <p className="muted">Пока пусто. Первый взнос — самый важный.</p>
         ) : (
           <div className="row-list">
             {entries.map((e) => (
-              <div key={e.id} className="ledger-row">
+              <div key={e.id} className="ledger-row has-proof">
                 <span className={`num ${e.amount > 0 ? "pos" : "neg"}`}>
                   {e.amount > 0 ? "+" : "−"}
                   {rub(Math.abs(e.amount))}
@@ -65,6 +69,7 @@ export default async function GoalPage({ params }: { params: Promise<{ id: strin
                 <span className="muted mono" style={{ fontSize: 12 }}>
                   {dateRu(e.createdAt)}
                 </span>
+                {e.amount > 0 && <EntryProof entryId={e.id} state={entryProofState(e.proof)} />}
               </div>
             ))}
           </div>

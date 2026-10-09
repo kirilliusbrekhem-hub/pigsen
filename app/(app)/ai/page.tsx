@@ -17,6 +17,7 @@ export default async function AIPage({ searchParams }: { searchParams: Promise<{
       initialQuestion={q?.trim() ? q.slice(0, 4000) : null}
       firstName={user.name.split(" ")[0]}
       quota={quota.tier === "pro" ? null : { left: quota.left, limit: quota.limit }}
+      mode={quota.tier === "pro" ? "partner" : "edu"}
     />
   );
 }

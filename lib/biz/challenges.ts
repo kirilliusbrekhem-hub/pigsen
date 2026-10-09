@@ -1,14 +1,12 @@
 import "server-only";
 import { prisma } from "@/lib/db/prisma";
-import { advisoryLock } from "@/lib/db/lock";
-import { HttpError } from "@/lib/api/http";
-import { addCoins } from "@/lib/coins/service";
-import { clampRating } from "./engine";
+import { challengeItemFor } from "./catalog";
+import { confirmedSavings } from "@/lib/savings/proof";
 
 /**
- * Savings challenges that feed the business. They complete only through real savings: progress is the member's net
- * deposits (deposits minus withdrawals) mirrored into the business this week. The reward is a game boost (rating) and a
- * few PigCoin$ — never extra capital, so capital keeps mirroring real savings exactly.
+ * Savings challenges that feed the business. A member sends a short proof (text + optional photo); an admin approves it
+ * at /admin/challenges. The reward is the challenge's unique item for the team's business (never sold for capital),
+ * a small rating boost and a few PigCoin$ — never extra capital, so capital keeps mirroring real savings exactly.
  */
 export interface ChallengeDef {
   id: string;
@@ -33,33 +31,30 @@ export function weekStart(d = new Date()): { start: Date; key: string } {
   return { start: s, key: s.toISOString().slice(0, 10) };
 }
 
-async function netSavedThisWeek(businessId: string, userId: string) {
+/** Net savings this week that count publicly: only deposits confirmed by a bank screenshot, minus withdrawals. */
+async function netSavedThisWeek(userId: string) {
   const { start } = weekStart();
-  const r = await prisma.bizEvent.aggregate({ where: { businessId, userId, kind: { in: ["deposit", "withdraw"] }, createdAt: { gte: start } }, _sum: { amount: true } });
-  return Math.max(0, r._sum.amount ?? 0);
+  return Math.max(0, await confirmedSavings(userId, start));
 }
 
+/**
+ * Weekly progress is shown as a hint for the reviewer; completion itself happens only when an admin approves the
+ * team's proof (lib/biz/proofs.ts). The reward is the challenge's unique business item (ch-*), once per team.
+ */
 export async function challengeView(businessId: string, userId: string) {
-  const { key } = weekStart();
-  const saved = await netSavedThisWeek(businessId, userId);
-  const done = new Set((await prisma.dailyClaim.findMany({ where: { userId, key: { startsWith: `biz-ch:${key}:` } }, select: { key: true } })).map((c) => c.key.split(":").pop()));
-  return CHALLENGES.map((c) => ({ ...c, progress: Math.min(saved, c.target), claimed: done.has(c.id) }));
+  const saved = await netSavedThisWeek(userId);
+  const subs = await prisma.challengeSubmission.findMany({
+    where: { source: "biz", OR: [{ businessId }, { userId }] },
+    orderBy: { createdAt: "desc" },
+    select: { challengeId: true, status: true, comment: true, userId: true, businessId: true },
+  });
+  return CHALLENGES.map((c) => {
+    const item = challengeItemFor("biz", c.id)!;
+    const approved = subs.find((s) => s.challengeId === c.id && s.status === "approved" && s.businessId === businessId);
+    const mine = subs.find((s) => s.challengeId === c.id && s.userId === userId && s.businessId === businessId);
+    const status = approved ? "approved" : (mine?.status ?? "none");
+    return { ...c, progress: Math.min(saved, c.target), status, comment: status === "rejected" ? (mine?.comment ?? "") : "", item: { id: item.id, title: item.title, blurb: item.blurb } };
+  });
 }
 
-export async function claimChallenge(userId: string, id: string) {
-  const def = CHALLENGES.find((c) => c.id === id);
-  if (!def) throw new HttpError(404, "Челлендж не найден");
-  const m = await prisma.bizMember.findUnique({ where: { userId } });
-  if (!m) throw new HttpError(404, "У вас пока нет бизнеса");
-  if ((await netSavedThisWeek(m.businessId, userId)) < def.target) throw new HttpError(409, `Отложите в копилку ${def.target.toLocaleString("ru-RU")} ₽ за неделю, чтобы выполнить`);
-  const { key } = weekStart();
-  await prisma.$transaction(async (tx) => {
-    await advisoryLock(tx, `biz:${m.businessId}`);
-    const ins = await tx.dailyClaim.createMany({ data: [{ userId, key: `biz-ch:${key}:${id}` }], skipDuplicates: true });
-    if (!ins.count) throw new HttpError(409, "Уже выполнено на этой неделе");
-    const b = await tx.bizBusiness.findUniqueOrThrow({ where: { id: m.businessId } });
-    await tx.bizBusiness.update({ where: { id: b.id }, data: { rating: clampRating(b.rating + def.rating) } });
-    await tx.bizEvent.create({ data: { businessId: b.id, kind: "challenge", text: `${m.name} выполнил(а) челлендж «${def.title}» — рейтинг +${def.rating}`, userId } });
-  });
-  return addCoins(userId, def.coins, `biz-ch:${id}`);
-}
+export { netSavedThisWeek };

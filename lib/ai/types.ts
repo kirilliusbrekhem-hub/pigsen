@@ -21,6 +21,8 @@ export interface AIContext {
   /** The user's savings goals, so $PIG can coach with real numbers. */
   savingsSummary?: string;
   related: RelatedMaterial[];
+  /** "edu" (Free): educational assistant. "partner" (Pro): business partner persona. Defaults to "edu". */
+  mode?: "edu" | "partner";
 }
 
 export interface StreamRequest {

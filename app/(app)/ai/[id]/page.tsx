@@ -21,6 +21,7 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
       initialQuestion={null}
       firstName={user.name.split(" ")[0]}
       quota={quota.tier === "pro" ? null : { left: quota.left, limit: quota.limit }}
+      mode={quota.tier === "pro" ? "partner" : "edu"}
     />
   );
 }

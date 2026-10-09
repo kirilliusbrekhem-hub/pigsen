@@ -7,15 +7,24 @@ import { Coin } from "@/components/ui/Coin";
 import { useToast } from "@/components/ui/Toast";
 import { api, errorMessage } from "@/lib/client/api";
 import { CHALLENGES, DIFFICULTY_LABEL, type Challenge } from "@/lib/social/challenges";
+import { fileToGoalImage } from "@/components/savings/GoalImage";
 
 export interface DoneInfo {
   note: string;
   date: string;
 }
 
-function Card({ c, done, locked }: { c: Challenge; done?: DoneInfo; locked: boolean }) {
+/** Admin review state of the latest proof: pending («на проверке») or rejected with a reason. */
+export interface ProofInfo {
+  status: string;
+  comment: string;
+  item: string;
+}
+
+function Card({ c, done, locked, proof }: { c: Challenge; done?: DoneInfo; locked: boolean; proof?: ProofInfo }) {
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState("");
+  const [image, setImage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const toast = useToast();
   const router = useRouter();
@@ -25,8 +34,8 @@ function Card({ c, done, locked }: { c: Challenge; done?: DoneInfo; locked: bool
     e.preventDefault();
     setBusy(true);
     try {
-      const r = await api<{ coins: number }>(`/api/challenges/${c.id}/complete`, { method: "POST", body: { note } });
-      toast.show(`Челлендж выполнен! +${r.coins} PigCoin$`);
+      await api(`/api/challenges/${c.id}/complete`, { method: "POST", body: { note, image } });
+      toast.show("Отправлено на проверку. После одобрения — PigCoin$ и уникальный предмет в бизнес");
       router.refresh();
     } catch (err) {
       toast.show(errorMessage(err), { kind: "err" });
@@ -55,6 +64,10 @@ function Card({ c, done, locked }: { c: Challenge; done?: DoneInfo; locked: bool
           <Icon name="check" size="sm" /> Выполнено {new Date(done.date).toLocaleDateString("ru-RU")}
           <p className="muted">{done.note}</p>
         </div>
+      ) : proof?.status === "pending" ? (
+        <div className="ch-done" data-testid="challenge-pending">
+          <Icon name="clock" size="sm" /> На проверке у модератора
+        </div>
       ) : locked ? (
         <Link href="/pro" className="btn btn-secondary btn-sm">
           <Icon name="lock" size="sm" /> Доступно в Pro
@@ -64,31 +77,47 @@ function Card({ c, done, locked }: { c: Challenge; done?: DoneInfo; locked: bool
           <label className="label" htmlFor={`n-${c.id}`}>
             {c.proof}
           </label>
+          {proof?.status === "rejected" && <p className="muted" data-testid="challenge-rejected">Не принято: {proof.comment}. Исправьте и отправьте ещё раз.</p>}
           <textarea id={`n-${c.id}`} className="input textarea" maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Коротко расскажи, как прошло (10–500 символов)" />
+          <label className="muted">
+            Фото (необязательно):{" "}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={async (e) => {
+                const f = e.target.files?.[0];
+                try {
+                  setImage(f ? await fileToGoalImage(f) : null);
+                } catch (err) {
+                  toast.show((err as Error).message, { kind: "err" });
+                }
+              }}
+            />
+          </label>
           <div className="ch-actions">
             <span className="muted">{len}/500</span>
             <button type="button" className="btn btn-secondary btn-sm" onClick={() => setOpen(false)}>
               Отмена
             </button>
             <button className="btn btn-primary btn-sm" disabled={busy || len < 10}>
-              Готово
+              Отправить на проверку
             </button>
           </div>
         </form>
       ) : (
         <button className="btn btn-primary btn-sm" onClick={() => setOpen(true)}>
-          Я выполнил
+          {proof?.status === "rejected" ? "Отправить ещё раз" : "Я выполнил"}
         </button>
       )}
     </article>
   );
 }
 
-export function ChallengeList({ done, pro }: { done: Record<string, DoneInfo>; pro: boolean }) {
+export function ChallengeList({ done, pro, proofs = {} }: { done: Record<string, DoneInfo>; pro: boolean; proofs?: Record<string, ProofInfo> }) {
   return (
     <div className="ch-grid">
       {CHALLENGES.map((c) => (
-        <Card key={c.id} c={c} done={done[c.id]} locked={!pro && !c.free} />
+        <Card key={c.id} c={c} done={done[c.id]} locked={!pro && !c.free} proof={proofs[c.id]} />
       ))}
     </div>
   );

@@ -1,7 +1,19 @@
 {
-  "regions": ["dub1"],
+  "regions": [
+    "dub1"
+  ],
   "crons": [
-    { "path": "/api/cron/push", "schedule": "0 9 * * *" },
-    { "path": "/api/cron/leaderboard", "schedule": "0 6 * * 1" }
+    {
+      "path": "/api/cron/push",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/leaderboard",
+      "schedule": "0 6 * * 1"
+    },
+    {
+      "path": "/api/cron/proofs",
+      "schedule": "30 3 * * *"
+    }
   ]
 }

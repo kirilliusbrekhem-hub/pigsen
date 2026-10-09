@@ -5,6 +5,8 @@ import { consumeAllowance } from "@/lib/billing/limits";
 import { addDailyCoins, COINS } from "@/lib/coins/service";
 import { HttpError } from "@/lib/api/http";
 import { getGoal, goalStats } from "./service";
+import { prisma } from "@/lib/db/prisma";
+import { pigModeOf, type PigMode } from "@/lib/ai/pigMode";
 
 const rub = (n: number) => `${Math.round(n).toLocaleString("ru-RU")} ₽`;
 
@@ -15,15 +17,22 @@ const CoachSchema = z.object({
   plan: z.array(z.string().min(2).max(300)).min(1).max(5),
   challenge: z.string().min(5).max(300),
 });
-export type CoachAdvice = z.infer<typeof CoachSchema> & { demo: boolean };
+export type CoachAdvice = z.infer<typeof CoachSchema> & { demo: boolean; mode: PigMode };
 
-const COACH_SYSTEM = `Ты — $PIG, дружелюбный коуч по накоплениям на платформе PìgBiz. Тебе дают цель пользователя и цифры.
-Поддержи человека, оцени реалистичность цели и дай конкретный план. Пиши тепло, на «ты», без морализаторства, с цифрами в рублях.
+/** Free: explains what the numbers mean and how to plan — no personal plan, no partner persona. */
+const EDU_SYSTEM = `Ты — $PIG, образовательный ассистент по накоплениям на платформе PìgBiz (план Free). Тебе дают цель пользователя и цифры.
+Объясни простым языком, что значат эти цифры (темп, сколько нужно в месяц, срок) и какие общие принципы помогают копить. Не составляй персональный план с конкретными суммами для пользователя и не предлагай идей от себя — только объяснения и как посчитать самому. Нейтральный тон, без образа персонажа.
 Верни ТОЛЬКО JSON без markdown:
-{"message":"2–3 предложения поддержки и честной оценки","plan":["3 конкретных шага с суммами"],"challenge":"одно маленькое задание на эту неделю"}
-Не давай персональных инвестиционных рекомендаций и не советуй конкретные акции или монеты.`;
+{"message":"2–3 предложения: что показывают цифры цели","plan":["3 объяснения принципов: как считать взнос, зачем автоперевод, что такое подушка"],"challenge":"одно упражнение, чтобы разобраться в своих цифрах"}
+Это обучение, а не индивидуальная рекомендация. Не советуй конкретные акции или монеты.`;
 
-function fallbackCoach(title: string, s: Awaited<ReturnType<typeof goalStats>>): Omit<CoachAdvice, "demo"> {
+const COACH_SYSTEM = `Ты — $PIG, личный партнёр по накоплениям (план Pro): дружелюбный, немного дерзкий, на платформе PìgBiz. Тебе дают цель пользователя и цифры.
+Поддержи человека, оцени реалистичность цели и дай личный план. Предложи одну идею от себя в формате «Давай попробуем: …» и закончи напоминанием заглянуть завтра. Пиши тепло, на «ты», без морализаторства, с цифрами в рублях.
+Верни ТОЛЬКО JSON без markdown:
+{"message":"2–3 предложения поддержки и честной оценки","plan":["3 конкретных шага с суммами, последний — «Давай попробуем: …»"],"challenge":"одно маленькое задание на эту неделю"}
+Это обучение, а не индивидуальная инвестиционная рекомендация: не советуй конкретные акции или монеты.`;
+
+function fallbackCoach(title: string, s: Awaited<ReturnType<typeof goalStats>>): Omit<CoachAdvice, "demo" | "mode"> {
   const weekly = s.needPerMonth !== null ? s.needPerMonth / 4.3 : null;
   const message =
     s.percent >= 100
@@ -36,9 +45,22 @@ function fallbackCoach(title: string, s: Awaited<ReturnType<typeof goalStats>>):
     plan: [
       weekly !== null && weekly > 0 ? `Откладывай по ${rub(weekly)} в неделю, чтобы успеть к сроку.` : "Выбери фиксированную сумму и откладывай её каждую неделю в один и тот же день.",
       "Настрой автоперевод в день зарплаты: сначала платишь себе, потом тратишь остальное.",
-      "Перед каждой покупкой дороже 2 000 ₽ проверяй её в «Что если потрачу».",
+      "Давай попробуем: перед каждой покупкой дороже 2 000 ₽ проверяй её в «Что если потрачу». Завтра сверим, сколько сэкономили.",
     ],
     challenge: "Неделя без одной привычной траты (доставка, такси или кофе с собой). Сэкономленное — сразу в копилку.",
+  };
+}
+
+/** Free: explanations of the numbers and principles, no personal plan. */
+function fallbackEdu(title: string, s: Awaited<ReturnType<typeof goalStats>>): Omit<CoachAdvice, "demo" | "mode"> {
+  return {
+    message: `Цель «${title}» выполнена на ${s.percent}%. Темп — это сколько в среднем вы откладывали за последние 1–2 месяца; если он ниже нужного взноса в месяц, срок сдвигается.`,
+    plan: [
+      "Как посчитать взнос: оставшаяся сумма ÷ число месяцев до срока. Округлите вверх — так появится запас.",
+      "Почему работает автоперевод: деньги уходят в копилку до того, как вы начнёте их тратить («сначала заплати себе»).",
+      "Подушка безопасности — 3–6 месяцев обязательных расходов. Её копят раньше остальных целей.",
+    ],
+    challenge: "Выпишите обязательные расходы за месяц и посчитайте, какой взнос вам комфортен без ущерба для них.",
   };
 }
 
@@ -46,17 +68,19 @@ export async function coachAdvice(userId: string, goalId: string): Promise<Coach
   const goal = await getGoal(userId, goalId);
   if (!goal) throw new HttpError(404, "Цель не найдена");
   const s = await goalStats(goal);
+  const mode = pigModeOf(await prisma.profile.findUnique({ where: { userId }, select: { proUntil: true } }));
+  const fallback = () => ({ ...(mode === "partner" ? fallbackCoach(goal.title, s) : fallbackEdu(goal.title, s)), demo: true, mode });
   const allowed = await consumeAllowance(userId, "coach");
-  if (!allowed) return { ...fallbackCoach(goal.title, s), demo: true };
+  if (!allowed) return fallback();
   const prompt = `Цель: «${goal.title}». Зачем: ${goal.why || "не указано"}.
 Нужно: ${rub(goal.target)}. Накоплено: ${rub(goal.saved)} (${s.percent}%). Осталось: ${rub(s.left)}.
 Срок: ${goal.deadline ? `${goal.deadline.toISOString().slice(0, 10)} (через ${s.daysLeft} дн.), нужно ${rub(s.needPerMonth ?? 0)} в месяц` : "не задан"}.
 Текущий темп: ${rub(s.pacePerDay * 30)} в месяц.${s.eta ? ` При таком темпе цель будет достигнута около ${s.eta.toISOString().slice(0, 10)}.` : ""}`;
-  const ai = await completeJson(COACH_SYSTEM, prompt, (raw) => {
+  const ai = await completeJson(mode === "partner" ? COACH_SYSTEM : EDU_SYSTEM, prompt, (raw) => {
     const r = CoachSchema.safeParse(raw);
     return r.success ? r.data : null;
   });
-  return ai ? { ...ai, demo: false } : { ...fallbackCoach(goal.title, s), demo: true };
+  return ai ? { ...ai, demo: false, mode } : fallback();
 }
 
 // ---------- "What if I spend it?" ----------

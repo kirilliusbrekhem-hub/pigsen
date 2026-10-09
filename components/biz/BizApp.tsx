@@ -9,14 +9,45 @@ import { rub } from "@/lib/client/format";
 import { useToast } from "@/components/ui/Toast";
 import { Button, btnClass } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
-import { BizScene } from "./BizScene";
+import dynamic from "next/dynamic";
+import { ChallengesPanel, CrisisCard, CustomPanel, InvestorsPanel, StoryPanel, SwitchBusiness } from "./BizGame";
+
+// Scene is heavy SVG + an animation loop: load it lazily, client-only.
+const BizScene = dynamic(() => import("./BizScene"), { ssr: false, loading: () => <div className="bz-scene-skel" aria-hidden /> });
 
 const POLL_MS = 8000;
 const n = (x: number) => Math.round(x).toLocaleString("ru-RU");
 const time = (iso: string) => new Date(iso).toLocaleString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
-function effectText(e: { guests?: number; check?: number; rating?: number }) {
-  return [e.guests ? `+${e.guests} гостей` : "", e.check ? `+${e.check} к чеку` : "", e.rating ? `+${e.rating} ★` : ""].filter(Boolean).join(" · ");
+function effectText(e: { guests?: number; check?: number; rating?: number; churn?: number; bugs?: number }, noun = "гостей") {
+  return [
+    e.guests ? `+${e.guests} ${noun}` : "",
+    e.check ? `+${e.check} к чеку` : "",
+    e.rating ? `+${e.rating} ★` : "",
+    e.churn ? `${e.churn < 0 ? "−" : "+"}${Math.round(Math.abs(e.churn) * 100)}% отток` : "",
+    e.bugs ? `${e.bugs < 0 ? "−" : "+"}${Math.abs(e.bugs)} багов` : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+/** Free teams: $PIG is not a partner here — upsell to Pro (founder's plan). */
+function PigPartnerLock({ compact = false }: { compact?: boolean }) {
+  return (
+    <div className="pig-lock" data-testid="pig-lock">
+      <span className="ic" aria-hidden>
+        <Icon name="lock" size="sm" />
+      </span>
+      <div>
+        <b>$PIG-партнёр доступен в Pro</b>
+        {!compact && <p>Сооснователь в чате команды, идеи «давай попробуем…», стратегия игры и разборы по цифрам. Включается, когда основатель команды на Pro.</p>}
+        {compact && <p>В Free $PIG не отвечает в чате команды — он работает как ассистент в разделе «$PIG».</p>}
+        <Link href="/pro" className={btnClass("primary", "sm")}>
+          Открыть Pro
+        </Link>
+      </div>
+    </div>
+  );
 }
 
 export function BizApp({ initial }: { initial: BizView }) {
@@ -106,9 +137,14 @@ export function BizApp({ initial }: { initial: BizView }) {
       <section className="biz-head">
         <div>
           <span className="label">
-            {b.kindTitle} · день {b.dayNo}
+            {b.kindTitle} · {b.templateTitle} · день {b.dayNo}
           </span>
-          <h1>{b.name}</h1>
+          <h1 className="bg-title" style={b.accent ? ({ "--bg-accent": b.accent } as React.CSSProperties) : undefined}>
+            <span className="bg-logo" aria-hidden>
+              {b.emoji}
+            </span>
+            {b.name}
+          </h1>
           <div className="biz-levels" aria-label="Уровень бизнеса">
             {b.levels.map((l, i) => (
               <span key={l} className={`biz-lvl ${i + 1 === b.level ? "is-on" : i + 1 < b.level ? "is-done" : ""}`}>
@@ -129,9 +165,14 @@ export function BizApp({ initial }: { initial: BizView }) {
       </section>
 
       <section className="card biz-stage">
-        <BizScene owned={view.owned} level={b.level} guests={b.today.guests} name={b.name} />
-        <p className="biz-event">
+        <div className="bz-scene-wrap">
+          <BizScene owned={view.owned} level={b.level} guests={b.today.guests} name={b.name} kind={b.kind} kindTitle={b.kindTitle} rating={b.rating} mood={b.today.mood} catalog={view.catalog} onPick={(id) => document.querySelector(`[data-testid="up-${id}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" })} />
+        </div>
+        <p className="biz-event" data-mood={b.today.mood}>
           <Icon name="sparkle" size="sm" /> {b.today.event}
+          <span className="badge" data-testid="biz-mood">
+            {b.today.moodLabel} · {b.today.mood}/100
+          </span>
           {b.today.penalty > 0 && <span className="badge neg">−{Math.round(b.today.penalty * 100)}% гостей после снятия</span>}
         </p>
       </section>
@@ -145,12 +186,12 @@ export function BizApp({ initial }: { initial: BizView }) {
           <span className="d">= ваши взносы в копилку</span>
         </div>
         <div className="card biz-metric">
-          <span className="k">Гостей в день</span>
+          <span className="k">{b.labels.guests}</span>
           <b className="num" data-testid="biz-guests">{n(b.today.guests)}</b>
-          <span className="d">игровое число</span>
+          <span className="d">{b.template === "it" ? `отток ${Math.round(b.today.churn * 100)}% · багов ${b.today.bugs}` : `всего ${n(b.guestsTotal)} · игровое`}</span>
         </div>
         <div className="card biz-metric">
-          <span className="k">Средний чек</span>
+          <span className="k">{b.labels.check}</span>
           <b className="num">{n(b.today.check)}</b>
           <span className="d">игровые монеты</span>
         </div>
@@ -162,9 +203,11 @@ export function BizApp({ initial }: { initial: BizView }) {
           </span>
         </div>
         <div className="card biz-metric">
-          <span className="k">Выручка дня</span>
-          <b className="num">{n(b.today.revenue)}</b>
-          <span className="d">всего {n(b.revenueTotal)} · игровая</span>
+          <span className="k">{b.template === "it" ? "MRR" : b.labels.revenue}</span>
+          <b className="num">{n(b.template === "it" ? b.today.mrr : b.today.revenue)}</b>
+          <span className="d">
+            всего {n(b.revenueTotal)} · игровая{b.equity ? ` · инвесторам ${Math.round(b.equity * 100)}%` : ""}
+          </span>
         </div>
       </section>
 
@@ -185,44 +228,23 @@ export function BizApp({ initial }: { initial: BizView }) {
                 <span className="muted">иногда ошибается — и честно признаётся</span>
               </div>
             </div>
-            {pigLast && <p className="biz-pig-text">{pigLast.text}</p>}
-            <div className="row" style={{ flexWrap: "wrap" }}>
-              <Button size="sm" variant="secondary" loading={busy === "advice"} onClick={() => act("advice", "/api/biz/advice", {}, () => "$PIG посчитал — смотрите чат").then(() => setTab("chat"))}>
-                Разбор по цифрам
-              </Button>
-              <span className="muted biz-small">{view.pro ? "3 разбора в день" : "1 разбор в день · 3 с Pro"}</span>
-            </div>
+            {view.pigPartner && pigLast && <p className="biz-pig-text">{pigLast.text}</p>}
+            {view.pigPartner || view.pro ? (
+              <div className="row" style={{ flexWrap: "wrap" }}>
+                <Button size="sm" variant="secondary" loading={busy === "advice"} onClick={() => act("advice", "/api/biz/advice", {}, () => "$PIG посчитал — смотрите чат").then(() => setTab("chat"))}>
+                  Разбор по цифрам
+                </Button>
+                <span className="muted biz-small">{view.pro ? "3 разбора в день" : "1 разбор в день · 3 с Pro"}</span>
+              </div>
+            ) : (
+              <PigPartnerLock />
+            )}
           </section>
 
-          <section className="card card-pad stack" style={{ gap: 12 }} data-testid="biz-challenges">
-            <div className="biz-sec-head">
-              <h2>Челленджи недели</h2>
-              <span className="muted biz-small">засчитываются только реальные взносы в копилку</span>
-            </div>
-            <div className="biz-chs">
-              {view.challenges.map((c) => (
-                <div key={c.id} className={`biz-ch ${c.claimed ? "is-done" : ""}`}>
-                  <b>{c.title}</b>
-                  <span className="muted biz-small">{c.blurb}</span>
-                  <span className="biz-bar">
-                    <i style={{ width: `${Math.round((c.progress / c.target) * 100)}%` }} />
-                  </span>
-                  <div className="biz-up-foot">
-                    <span className="biz-small num">
-                      {rub(c.progress)} из {rub(c.target)} · ★ +{c.rating}
-                    </span>
-                    {c.claimed ? (
-                      <span className="badge pos">Выполнено</span>
-                    ) : (
-                      <Button size="sm" variant="accent" disabled={c.progress < c.target} loading={busy === `ch-${c.id}`} onClick={() => act<{ coins: number; view: BizView }>(`ch-${c.id}`, "/api/biz/challenges", { id: c.id }, (r) => `Челлендж выполнен: рейтинг +${c.rating}, +${r.coins} PigCoin$`)}>
-                        Забрать
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
+          <CrisisCard view={view} act={act} busy={busy} />
+          <StoryPanel view={view} act={act} busy={busy} />
+          <InvestorsPanel view={view} act={act} busy={busy} />
+          <ChallengesPanel view={view} act={act} busy={busy} />
 
           <section className="card card-pad stack" style={{ gap: 12 }}>
             <div className="biz-sec-head">
@@ -237,11 +259,13 @@ export function BizApp({ initial }: { initial: BizView }) {
                     <div className="biz-up-top">
                       <b>{u.title}</b>
                       {u.premium && <span className="badge pos">Pro</span>}
+                      {u.exclusive && <span className="badge pos">Инвестор</span>}
+                      {u.challenge && <span className="badge pos bg-badge">за челлендж</span>}
                     </div>
                     <span className="muted biz-small">{u.blurb}</span>
-                    <span className="biz-fx">{effectText(u.effect)}</span>
+                    <span className="biz-fx">{effectText(u.effect, b.labels.guestsShort)}</span>
                     <div className="biz-up-foot">
-                      <span className="num biz-price">{rub(u.state === "broken" ? u.repair : u.price)}</span>
+                      <span className="num biz-price">{u.challenge ? "" : rub(u.state === "broken" ? u.repair : u.price)}</span>
                       {u.state === "open" && (
                         <Button size="sm" variant={short ? "secondary" : "accent"} disabled={short} loading={busy === `buy-${u.id}`} onClick={() => buy(u.id, u.title)} title={short ? `Не хватает ${rub(u.price - b.capital)}` : undefined}>
                           {short ? `Ещё ${rub(u.price - b.capital)}` : "Купить"}
@@ -262,7 +286,7 @@ export function BizApp({ initial }: { initial: BizView }) {
                           <Icon name="lock" /> Pro
                         </Link>
                       )}
-                      {u.state === "locked" && <span className="muted biz-small">{u.reason}</span>}
+                      {(u.state === "locked" || u.state === "investor" || u.state === "challenge") && <span className="muted biz-small">{u.reason}</span>}
                     </div>
                   </article>
                 );
@@ -292,6 +316,11 @@ export function BizApp({ initial }: { initial: BizView }) {
                     </b>
                     <span className="muted biz-small">
                       {m.role === "founder" ? "основатель" : "сооснователь"} · вклад {rub(m.contributed)}
+                      {m.confirmed > 0 && (
+                        <span className="proof-badge is-confirmed" title="Подтверждено скриншотом перевода" data-testid="member-confirmed">
+                          {" "}✓ {rub(m.confirmed)}
+                        </span>
+                      )}
                     </span>
                   </span>
                   {b.isFounder && !m.you && (
@@ -328,10 +357,13 @@ export function BizApp({ initial }: { initial: BizView }) {
                 {b.invitePath}
               </code>
             )}
+            <SwitchBusiness view={view} act={act} busy={busy} />
             <button className="biz-link neg" onClick={leave} disabled={!!busy}>
               {view.members.length > 1 ? "Выйти из бизнеса" : "Закрыть бизнес"}
             </button>
           </section>
+
+          <CustomPanel key={view.custom ? JSON.stringify(view.custom) : "none"} view={view} act={act} busy={busy} />
 
           <section className="card card-pad stack biz-feedbox" style={{ gap: 10 }}>
             <div className="biz-tabs" role="tablist">
@@ -356,6 +388,7 @@ export function BizApp({ initial }: { initial: BizView }) {
               </ol>
             ) : (
               <>
+                {!view.pigPartner && <PigPartnerLock compact />}
                 <div className="biz-chat" data-testid="biz-chat">
                   {view.chat.map((c) => (
                     <div key={c.id} className={`biz-msg ${c.pig ? "pig" : ""} ${c.mine ? "mine" : ""}`}>

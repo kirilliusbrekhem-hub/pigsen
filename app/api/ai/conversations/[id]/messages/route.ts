@@ -1,5 +1,6 @@
 import { consumeAllowance } from "@/lib/billing/limits";
 import { savingsSummary } from "@/lib/savings/service";
+import { pigModeOf } from "@/lib/ai/pigMode";
 import { prisma } from "@/lib/db/prisma";
 import { enforceDbRateLimit } from "@/lib/api/rate-limit-db";
 import { enforceRateLimit, handler, HttpError, parseBody, requireApiUser } from "@/lib/api/http";
@@ -57,6 +58,7 @@ export const POST = handler(async (req: Request, { params }: Ctx) => {
     interests: parseInterests(user.profile).map((s) => catName.get(s) ?? s),
     learningSummary: `пройдено ${stats.lessonsCompleted} из ${stats.totalLessons} уроков, начато курсов: ${stats.coursesStarted}`,
     savingsSummary: savings,
+    mode: pigModeOf(user.profile),
     related: related.map((r) => ({ title: r.title, type: TYPE_LABELS[r.type].one, description: r.description, href: r.href })),
   };
   const turns: ChatTurn[] = history.map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", content: m.content }));
@@ -69,7 +71,7 @@ export const POST = handler(async (req: Request, { params }: Ctx) => {
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
-      send(controller, { type: "meta", userMessageId: userMsg.id, provider: provider.label, mock: provider.isMock, related, followUps });
+      send(controller, { type: "meta", userMessageId: userMsg.id, provider: provider.label, mock: provider.isMock, related, followUps, mode: context.mode });
       let answer = "";
       try {
         for await (const delta of streamReply(turns, context, req.signal)) {

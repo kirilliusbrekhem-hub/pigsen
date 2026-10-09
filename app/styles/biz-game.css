@@ -1,0 +1,34 @@
+/* PìgBiz game layer: story, investors, crises, custom skin, challenge proofs. Brand: green + ink only. */
+.bg-title { display: flex; align-items: center; gap: 10px; }
+.bg-logo { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--bg-accent, var(--accent)); font-size: 22px; flex: none; }
+.bg-crisis { border-left: 3px solid var(--ink); background: linear-gradient(180deg, var(--accent-soft), var(--surface) 80%); }
+.bg-pigsay { margin: 0; padding: 8px 12px; border-radius: 12px; background: var(--accent-soft); color: var(--ink-2); }
+.bg-opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.bg-opts .muted { font-weight: 500; }
+.bg-chapters { display: flex; gap: 6px; margin: 0; padding: 0; list-style: none; flex-wrap: wrap; }
+.bg-chapters li span { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; font-size: 12px; font-weight: 700; color: var(--ink-3); box-shadow: inset 0 0 0 1px var(--line); }
+.bg-chapters li.is-done span { background: var(--accent); color: #fff; box-shadow: none; }
+.bg-chapters li.is-current span, .bg-chapters li.is-ready span { color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); }
+.bg-chapter { display: flex; flex-direction: column; gap: 6px; padding: 12px; border-radius: var(--r-md); background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); }
+.bg-chapter p { margin: 0; font-size: 14px; line-height: 1.5; }
+.bg-offer { display: flex; gap: 12px; padding: 12px; border-radius: var(--r-md); background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); min-width: 0; }
+.bg-ava { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; background: var(--accent-soft); font-size: 22px; flex: none; }
+.bg-deal { display: flex; flex-direction: column; gap: 6px; padding: 12px; border-radius: var(--r-md); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent-line); }
+.bg-badge { display: inline-block; padding: 1px 7px; border-radius: 99px; background: var(--ink); color: #8fe3bc; font-size: 11px; font-weight: 600; }
+.bg-reject { color: var(--neg); }
+.bg-locked { opacity: .92; background: var(--surface-2); }
+.bg-preview { display: flex; gap: 8px; filter: grayscale(.2); }
+.bg-preview span { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; font-size: 20px; }
+.bg-logos { display: flex; flex-wrap: wrap; gap: 6px; }
+.bg-logos button { width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); font-size: 19px; cursor: pointer; }
+.bg-logos button.is-on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-soft); }
+.bg-accents { display: flex; flex-wrap: wrap; gap: 8px; }
+.bg-accents button { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--line); cursor: pointer; }
+.bg-accents button.is-on { box-shadow: 0 0 0 2px var(--ink); }
+.bg-rename { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.bg-dialog { max-width: min(640px, calc(100vw - 32px)); width: 100%; border: 0; color: var(--ink); }
+.bg-dialog::backdrop { background: rgba(7, 10, 11, .55); }
+.bg-proof-img { max-width: 260px; max-height: 260px; border-radius: 12px; object-fit: cover; box-shadow: inset 0 0 0 1px var(--line); }
+.bg-mod { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.bg-mod .input { flex: 1; min-width: 180px; }
+@media (max-width: 480px) { .bg-rename { grid-template-columns: minmax(0, 1fr); } }

@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
@@ -9,12 +10,14 @@ import { api, errorMessage } from "@/lib/client/api";
 import { reward } from "@/components/fx";
 import { dateRu, rub } from "@/lib/client/format";
 import type { GoalView } from "./SavingsHome";
+import { ProofPicker } from "./Proof";
 
 interface Advice {
   message: string;
   plan: string[];
   challenge: string;
   demo: boolean;
+  mode: "edu" | "partner";
 }
 
 const QUICK = [500, 1000, 5000];
@@ -24,6 +27,7 @@ export function GoalActions({ goal }: { goal: GoalView }) {
   const toast = useToast();
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
+  const [proof, setProof] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [celebrate, setCelebrate] = useState<number | null>(null);
 
@@ -32,12 +36,15 @@ export function GoalActions({ goal }: { goal: GoalView }) {
     if (!n || n < 0) return;
     setBusy(true);
     try {
-      const r = await api<{ coins: number; milestone: number | null }>(`/api/savings/${goal.id}/entries`, { method: "POST", body: { amount: sign * n, note } });
+      const withProof = sign > 0 && proof ? { proof } : {};
+      const r = await api<{ coins: number; milestone: number | null; proof?: { label: string } | null; proofError?: string }>(`/api/savings/${goal.id}/entries`, { method: "POST", body: { amount: sign * n, note, ...withProof } });
       setAmount("");
       setNote("");
+      setProof(null);
+      if (r.proofError) toast.show(`Взнос сохранён, но скриншот не принят: ${r.proofError}`, { kind: "err" });
       if (r.milestone) setCelebrate(r.milestone);
       if (sign > 0) reward({ coins: r.coins, origin: document.activeElement, power: r.milestone ? (r.milestone >= 100 ? 3 : 2) : r.coins ? 0.8 : 0 });
-      toast.show(sign > 0 ? `+${rub(n)} в копилку${r.coins ? `, +${r.coins} PigCoin$` : ""}` : `Снято ${rub(n)}`);
+      if (!r.proofError) toast.show(sign > 0 ? `+${rub(n)} в копилку${r.coins ? `, +${r.coins} PigCoin$` : ""}${r.proof ? ` · ${r.proof.label}` : ""}` : `Снято ${rub(n)}`);
       router.refresh();
     } catch (err) {
       toast.show(errorMessage(err), { kind: "err" });
@@ -84,11 +91,12 @@ export function GoalActions({ goal }: { goal: GoalView }) {
           Снять
         </Button>
       </form>
+      <ProofPicker value={proof} onChange={setProof} disabled={busy} />
     </section>
   );
 }
 
-export function Coach({ goalId }: { goalId: string }) {
+export function Coach({ goalId, partner = false }: { goalId: string; partner?: boolean }) {
   const toast = useToast();
   const [busy, setBusy] = useState(false);
   const [advice, setAdvice] = useState<Advice | null>(null);
@@ -110,9 +118,9 @@ export function Coach({ goalId }: { goalId: string }) {
         <div className="row" style={{ gap: 12 }}>
           <Orb thinking={busy} />
           <div>
-            <b>$PIG-коуч</b>
+            <b>{partner ? "$PIG-партнёр" : "$PIG-коуч"}</b>
             <p className="muted" style={{ fontSize: 13 }}>
-              Оценит темп, составит план и даст задание на неделю.
+              {partner ? "Личный план под твою цель, идеи «давай попробуем…» и задание на неделю." : "Объяснит, что значат ваши цифры и как посчитать план самому."}
             </p>
           </div>
         </div>
@@ -122,6 +130,9 @@ export function Coach({ goalId }: { goalId: string }) {
       </div>
       {advice && (
         <div className="stack fade-in" style={{ gap: 10 }}>
+          <span className="label" data-testid="coach-mode" data-mode={advice.mode}>
+            {advice.mode === "partner" ? "Личный план партнёра" : "Объяснение"}
+          </span>
           <p>{advice.message}</p>
           <ol className="coach-plan">
             {advice.plan.map((p, i) => (
@@ -131,9 +142,23 @@ export function Coach({ goalId }: { goalId: string }) {
           <div className="coach-challenge">
             <Icon name="target" size="sm" />
             <span>
-              <b>Челлендж недели:</b> {advice.challenge}
+              <b>{advice.mode === "partner" ? "Челлендж недели:" : "Упражнение:"}</b> {advice.challenge}
             </span>
           </div>
+          {advice.mode === "edu" && (
+            <div className="pig-lock" data-testid="coach-lock">
+              <span className="ic" aria-hidden>
+                <Icon name="lock" size="sm" />
+              </span>
+              <div>
+                <b>Личный план от $PIG-партнёра — в Pro</b>
+                <p>Партнёр сам предложит, сколько и когда откладывать под вашу цель, подкинет идеи и напомнит завтра.</p>
+                <Link href="/pro" className="btn btn-primary btn-sm">
+                  Открыть Pro
+                </Link>
+              </div>
+            </div>
+          )}
           {advice.demo && <span className="muted" style={{ fontSize: 12 }}>Базовый совет. Лимит советов $PIG на сегодня исчерпан или AI недоступен; в Pro советы без ограничений.</span>}
         </div>
       )}

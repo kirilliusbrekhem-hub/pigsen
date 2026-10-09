@@ -3,7 +3,7 @@ import { enforceDbRateLimit } from "@/lib/api/rate-limit-db";
 import { handler, json, parseBody, requireApiUser } from "@/lib/api/http";
 import { buyUpgrade, getView, repairUpgrade } from "@/lib/biz/service";
 
-const Body = z.object({ itemId: z.string().regex(/^[a-z0-9]{1,24}$/), repair: z.boolean().default(false) }).strict();
+const Body = z.object({ itemId: z.string().max(40).regex(/^[a-z0-9]+(-[a-z0-9]+)*$/), repair: z.boolean().default(false) }).strict();
 
 /** Spends business capital (mirrored savings) on an upgrade or a repair. Race-safe under an advisory lock. */
 export const POST = handler(async (req: Request) => {

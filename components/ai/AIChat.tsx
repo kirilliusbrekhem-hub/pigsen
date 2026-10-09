@@ -31,9 +31,24 @@ interface Props {
   firstName: string;
   /** Today's free questions; null on Pro (unlimited). */
   quota?: { left: number; limit: number } | null;
+  /** "edu" (Free): educational assistant; "partner" (Pro): business partner. */
+  mode?: "edu" | "partner";
 }
 
-export function AIChat({ conversations: initialList, conversationId, initialMessages, initialQuestion, firstName, quota = null }: Props) {
+/** Which $PIG the user talks to; Free gets an upsell to the Pro partner. */
+function PigModeBadge({ mode }: { mode: "edu" | "partner" }) {
+  return mode === "partner" ? (
+    <span className="pig-mode is-partner" data-testid="pig-mode" data-mode="partner">
+      <Icon name="sparkle" size="sm" /> Режим партнёра: идеи, стратегия игры и план на завтра
+    </span>
+  ) : (
+    <span className="pig-mode" data-testid="pig-mode" data-mode="edu">
+      <Icon name="book" size="sm" /> Режим ассистента: объясняю темы и отвечаю на вопросы · <Link href="/pro">$PIG-партнёр доступен в Pro</Link>
+    </span>
+  );
+}
+
+export function AIChat({ conversations: initialList, conversationId, initialMessages, initialQuestion, firstName, quota = null, mode = "edu" }: Props) {
   const router = useRouter();
   const toast = useToast();
   const [list, setList] = useState(initialList);
@@ -148,7 +163,8 @@ export function AIChat({ conversations: initialList, conversationId, initialMess
           <div className="ai-thread" aria-live="polite">
             {!messages.length ? (
               <div className="ai-intro">
-                <span className="label">$PIG · ваш AI-наставник</span>
+                <span className="label">$PIG · {mode === "partner" ? "ваш бизнес-партнёр" : "ваш AI-наставник"}</span>
+                <PigModeBadge mode={mode} />
                 <h1>
                   {firstName}, спросите о бизнесе что угодно. <span>Объясню простыми словами и подскажу, что изучить дальше.</span>
                 </h1>
@@ -193,6 +209,7 @@ export function AIChat({ conversations: initialList, conversationId, initialMess
         </div>
         <div className="composer-wrap">
           <p className="ai-disclaimer">$PIG — ИИ и может ошибаться. Это не финансовая консультация, решения принимайте сами.</p>
+          {mode === "edu" && messages.length > 0 && <PigModeBadge mode={mode} />}
           {left !== null && quota && (
             <div className="chat-quota" data-testid="chat-quota">
               {left > 0 ? `Осталось ${left} из ${quota.limit} вопросов на сегодня.` : "Вопросы на сегодня закончились."}{" "}
