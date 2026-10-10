@@ -3,13 +3,13 @@ import { getAIProvider } from "@/lib/ai/aiService";
 import type { AIContext } from "@/lib/ai/types";
 import { PROFILES, templateReview, type SimState, type WeekReport } from "./engine";
 
-const SYSTEM = `Ты $PIG — AI-наставник PìgBiz по бизнесу. Пользователь играет в учебный бизнес-симулятор.
+const SYSTEM = `Ты CAP — AI-наставник Kapital по бизнесу. Пользователь играет в учебный бизнес-симулятор.
 Дай короткий разбор недели: 2–3 предложения, по-русски, без markdown и списков, на «вы».
 Опирайся только на приведённые цифры (называй их), объясни причину результата и дай один конкретный совет на следующую неделю.`;
 
 const TIMEOUT_MS = 9_000;
 
-/** $PIG's take on the week; falls back to template text in demo mode, on errors or on timeout. */
+/** CAP's take on the week; falls back to template text in demo mode, on errors or on timeout. */
 export async function reviewWeek(r: WeekReport, s: SimState): Promise<{ text: string; ai: boolean }> {
   const fallback = { text: templateReview(r, s.kind), ai: false };
   const provider = getAIProvider();

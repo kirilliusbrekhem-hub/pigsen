@@ -53,7 +53,7 @@ export default async function DashboardPage() {
     { k: "Уроков пройдено", v: stats.lessonsCompleted, d: `из ${stats.totalLessons} в каталоге`, href: "/learn", sw: "var(--ink)" },
     { k: "Курсов в процессе", v: coursesInProgress.length, d: `${courses.length} курса доступно`, href: "/learn", sw: "var(--accent)" },
     { k: "Сохранено", v: saved.length, d: "материалов в библиотеке", href: "/saved", sw: "var(--accent-2)" },
-    { k: "Разговоров с $PIG", v: convoCount, d: "история сохраняется", href: "/ai", sw: "var(--accent-3)" },
+    { k: "Разговоров с CAP", v: convoCount, d: "история сохраняется", href: "/ai", sw: "var(--accent-3)" },
   ];
 
   return (
@@ -75,9 +75,9 @@ export default async function DashboardPage() {
 
       <section className="tool-tabs h-scroll" aria-label="Инструменты">
         {[
-          { href: "/savings", label: "Умная копилка", desc: "Цели и $PIG-коуч", icon: "piggy" },
+          { href: "/savings", label: "Умная копилка", desc: "Цели и CAP-коуч", icon: "piggy" },
           { href: "/savings#spend", label: "Что если потрачу?", desc: "Проверить покупку", icon: "wallet" },
-          { href: "/tools?tab=idea", label: "Разбор идеи", desc: "$PIG оценит бизнес-идею", icon: "rocket" },
+          { href: "/tools?tab=idea", label: "Разбор идеи", desc: "CAP оценит бизнес-идею", icon: "rocket" },
           { href: "/tools?tab=compound", label: "Сложный процент", desc: "Как растут вложения", icon: "trendUp" },
           { href: "/tools?tab=unit", label: "Юнит-экономика", desc: "LTV, CAC, окупаемость", icon: "chart" },
         ].map((t) => (
@@ -127,10 +127,10 @@ export default async function DashboardPage() {
       </section>
 
       {hero && (
-        <section className="ai-card" aria-label="Рекомендация $PIG">
+        <section className="ai-card" aria-label="Рекомендация CAP">
           <div className="ai-tag">
             <span className="live" />
-            $PIG · подобрал для вас
+            CAP · подобрал для вас
           </div>
           <div className="ai-grid">
             <div>
@@ -143,13 +143,13 @@ export default async function DashboardPage() {
                   Открыть материал <Icon name="arrow" size="sm" />
                 </Link>
                 <Link className="btn btn-outline" href={`/ai?q=${encodeURIComponent(`Объясни главные идеи материала «${hero.item.title}»`)}`}>
-                  Разобрать с $PIG
+                  Разобрать с CAP
                 </Link>
               </div>
             </div>
             <div className="drivers">
               <span className="label" style={{ color: "var(--ai-ink-2)" }}>
-                Как PìgBiz видит ваши интересы
+                Как Kapital видит ваши интересы
               </span>
               {interests.length ? (
                 interests.map((i) => (
@@ -174,7 +174,7 @@ export default async function DashboardPage() {
       <Link className="m-ask card clickable" href="/ai" style={{ padding: "14px 16px", alignItems: "center", gap: 12, borderRadius: 16 }}>
         <Orb />
         <span className="muted" style={{ flex: 1 }}>
-          Спросите $PIG о бизнесе и деньгах...
+          Спросите CAP о бизнесе и деньгах...
         </span>
         <Icon name="arrow" size="sm" />
       </Link>

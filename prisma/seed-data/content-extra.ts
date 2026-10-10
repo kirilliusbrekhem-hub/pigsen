@@ -1,8 +1,8 @@
 // Second batch of library items (2026-10-05). Same rules as content.ts:
-// original PìgBiz summaries; `url` only where the original is well known, otherwise null.
+// original Kapital summaries; `url` only where the original is well known, otherwise null.
 import type { SeedContent } from "./content";
 
-const ed = { author: "Редакция PìgBiz", source: "PìgBiz", url: null, type: "article" as const };
+const ed = { author: "Редакция Kapital", source: "Kapital", url: null, type: "article" as const };
 
 export const contentExtra: SeedContent[] = [
   {
@@ -381,7 +381,7 @@ export const contentExtra: SeedContent[] = [
 - Больше слушайте, меньше говорите.
 
 ## Для кого
-Для всех, кто проверяет идею продукта. Читается за вечер. Конспект подходов — в статье PìgBiz «Интервью с клиентами без самообмана».`,
+Для всех, кто проверяет идею продукта. Читается за вечер. Конспект подходов — в статье Kapital «Интервью с клиентами без самообмана».`,
   },
   {
     slug: "measure-what-matters",
@@ -404,7 +404,7 @@ export const contentExtra: SeedContent[] = [
 - Амбициозность: выполнение на 70% у смелых целей — успех.
 
 ## Для кого
-Для основателей и руководителей, которым нужно согласовать работу команды. Краткое введение — в статье PìgBiz «OKR простыми словами».`,
+Для основателей и руководителей, которым нужно согласовать работу команды. Краткое введение — в статье Kapital «OKR простыми словами».`,
   },
   {
     slug: "rich-dad-poor-dad",

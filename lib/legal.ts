@@ -1,6 +1,6 @@
 // Шаблон юридического документа. Подлежит проверке юристом перед публикацией в окончательной редакции.
 export const LEGAL = {
-  owner: process.env.LEGAL_OWNER || "Владелец сервиса PìgBiz",
+  owner: process.env.LEGAL_OWNER || "Владелец сервиса Kapital",
   email: process.env.SUPPORT_EMAIL || "",
   updated: "7 октября 2026",
 };

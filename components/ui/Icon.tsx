@@ -1,4 +1,4 @@
-// Icon set ported from the PìgBiz prototype (24px grid, 1.6 stroke), plus learning/content glyphs.
+// Icon set ported from the Kapital prototype (24px grid, 1.6 stroke), plus learning/content glyphs.
 import type { SVGProps } from "react";
 
 const ICONS = {

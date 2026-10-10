@@ -36,7 +36,7 @@ export const POST = handler(async (req: Request, { params }: Ctx) => {
   const last = await prisma.message.findFirst({ where: { conversationId: convo.id }, orderBy: { createdAt: "desc" } });
   const retry = last && last.role === "user" && last.content === content;
   if (!retry && !(await consumeAllowance(user.id, "chat"))) {
-    throw new HttpError(402, "Вопросы $PIG на сегодня закончились. В Pro чат без лимитов, или возьмите +10 вопросов в магазине за PigCoin$ (раздел Pro).");
+    throw new HttpError(402, "Вопросы CAP на сегодня закончились. В Pro чат без лимитов, или возьмите +10 вопросов в магазине за PigCoin$ (раздел Pro).");
   }
   const userMsg = retry ? last : await appendMessage(convo.id, "user", content);
   if (!retry) await trackQuest(user.id, "ask_pig");
@@ -78,7 +78,7 @@ export const POST = handler(async (req: Request, { params }: Ctx) => {
           answer += delta;
           send(controller, { type: "delta", text: delta });
         }
-        if (!answer.trim()) throw new AIProviderError("empty", "$PIG не смог сформулировать ответ. Попробуйте ещё раз.");
+        if (!answer.trim()) throw new AIProviderError("empty", "CAP не смог сформулировать ответ. Попробуйте ещё раз.");
         const saved = await appendMessage(convo.id, "assistant", answer, {
           provider: provider.label,
           related: related.map((r) => r.id),

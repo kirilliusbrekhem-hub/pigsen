@@ -20,7 +20,7 @@ export default async function PlansPage() {
         <div>
           <span className="label">Инструменты</span>
           <h1>Бизнес-план за 10 минут</h1>
-          <p>Ответьте на 10 вопросов: финмодель посчитается сама, а $PIG напишет резюме, маркетинг и разбор рисков. В конце — PDF.</p>
+          <p>Ответьте на 10 вопросов: финмодель посчитается сама, а CAP напишет резюме, маркетинг и разбор рисков. В конце — PDF.</p>
         </div>
         {canCreate ? (
           <Link className="btn btn-primary" href="/plan/new" data-testid="bp-new">

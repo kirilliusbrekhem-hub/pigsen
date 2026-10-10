@@ -127,7 +127,7 @@ export function SimGame({ initial, kinds, recent, runsLeft, pro }: { initial: Ru
 
       {last && (
         <div className="card card-pad sim-review" data-testid="sim-review">
-          <span className="label">$PIG о неделе {last.report.week}{last.ai ? "" : " · шаблон"}</span>
+          <span className="label">CAP о неделе {last.report.week}{last.ai ? "" : " · шаблон"}</span>
           <p>{last.review}</p>
         </div>
       )}
@@ -204,10 +204,10 @@ function ResultCard({ run }: { run: RunView }) {
     router.push("/sim");
     router.refresh();
   }
-  const text = `Я прошёл бизнес-симулятор PìgBiz: ${run.title}, ${run.status === "bankrupt" ? `продержался ${run.state.week} нед.` : `12 недель, капитал ${rub(r.netWorth)}`} — ${r.score} очков («${r.grade}»).`;
+  const text = `Я прошёл бизнес-симулятор Kapital: ${run.title}, ${run.status === "bankrupt" ? `продержался ${run.state.week} нед.` : `12 недель, капитал ${rub(r.netWorth)}`} — ${r.score} очков («${r.grade}»).`;
   async function share() {
     try {
-      if (navigator.share) await navigator.share({ title: "PìgBiz · Бизнес-симулятор", text });
+      if (navigator.share) await navigator.share({ title: "Kapital · Бизнес-симулятор", text });
       else {
         await navigator.clipboard.writeText(text);
         setCopied(true);
@@ -219,7 +219,7 @@ function ResultCard({ run }: { run: RunView }) {
   return (
     <>
       <div className="sim-result" data-testid="sim-result">
-        <span className="sim-result-brand">PìgBiz · Бизнес-симулятор</span>
+        <span className="sim-result-brand">Kapital · Бизнес-симулятор</span>
         <span className="sim-result-kind">{run.emoji} {run.title}</span>
         <b className="sim-result-score">{r.score}</b>
         <span className="sim-result-grade">{r.grade}</span>

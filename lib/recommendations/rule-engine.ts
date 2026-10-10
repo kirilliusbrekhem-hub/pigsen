@@ -44,7 +44,7 @@ export const ruleEngine: RecommendationEngine = {
         score += sc + dc + vc + hits * W.search;
         if (s.viewedIds.has(item.id)) score += W.seenPenalty;
         reasons.sort((a, b) => b[0] - a[0]);
-        const reason = reasons[0]?.[1] ?? (item.trending >= 7 ? "Сейчас популярно в PìgBiz" : "Выбор редакции PìgBiz");
+        const reason = reasons[0]?.[1] ?? (item.trending >= 7 ? "Сейчас популярно в Kapital" : "Выбор редакции Kapital");
         return { item, score, reason };
       })
       .sort((a, b) => b.score - a.score);

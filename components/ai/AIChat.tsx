@@ -35,7 +35,7 @@ interface Props {
   mode?: "edu" | "partner";
 }
 
-/** Which $PIG the user talks to; Free gets an upsell to the Pro partner. */
+/** Which CAP the user talks to; Free gets an upsell to the Pro partner. */
 function PigModeBadge({ mode }: { mode: "edu" | "partner" }) {
   return mode === "partner" ? (
     <span className="pig-mode is-partner" data-testid="pig-mode" data-mode="partner">
@@ -43,7 +43,7 @@ function PigModeBadge({ mode }: { mode: "edu" | "partner" }) {
     </span>
   ) : (
     <span className="pig-mode" data-testid="pig-mode" data-mode="edu">
-      <Icon name="book" size="sm" /> Режим ассистента: объясняю темы и отвечаю на вопросы · <Link href="/pro">$PIG-партнёр доступен в Pro</Link>
+      <Icon name="book" size="sm" /> Режим ассистента: объясняю темы и отвечаю на вопросы · <Link href="/pro">CAP-партнёр доступен в Pro</Link>
     </span>
   );
 }
@@ -163,7 +163,7 @@ export function AIChat({ conversations: initialList, conversationId, initialMess
           <div className="ai-thread" aria-live="polite">
             {!messages.length ? (
               <div className="ai-intro">
-                <span className="label">$PIG · {mode === "partner" ? "ваш бизнес-партнёр" : "ваш AI-наставник"}</span>
+                <span className="label">CAP · {mode === "partner" ? "ваш бизнес-партнёр" : "ваш AI-наставник"}</span>
                 <PigModeBadge mode={mode} />
                 <h1>
                   {firstName}, спросите о бизнесе что угодно. <span>Объясню простыми словами и подскажу, что изучить дальше.</span>
@@ -208,7 +208,7 @@ export function AIChat({ conversations: initialList, conversationId, initialMess
           </div>
         </div>
         <div className="composer-wrap">
-          <p className="ai-disclaimer">$PIG — ИИ и может ошибаться. Это не финансовая консультация, решения принимайте сами.</p>
+          <p className="ai-disclaimer">CAP — ИИ и может ошибаться. Это не финансовая консультация, решения принимайте сами.</p>
           {mode === "edu" && messages.length > 0 && <PigModeBadge mode={mode} />}
           {left !== null && quota && (
             <div className="chat-quota" data-testid="chat-quota">
@@ -228,9 +228,9 @@ export function AIChat({ conversations: initialList, conversationId, initialMess
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={busy ? "$PIG отвечает..." : "Спросите о бизнесе, стартапах, финансах или AI..."}
+              placeholder={busy ? "CAP отвечает..." : "Спросите о бизнесе, стартапах, финансах или AI..."}
               autoComplete="off"
-              aria-label="Вопрос для $PIG"
+              aria-label="Вопрос для CAP"
               maxLength={MAX}
               disabled={busy}
             />
@@ -246,19 +246,19 @@ export function AIChat({ conversations: initialList, conversationId, initialMess
           </form>
           <div className="composer-foot">
             <Icon name="shield" />
-            $PIG обучает и объясняет. Это не персональная финансовая или юридическая консультация.
+            CAP обучает и объясняет. Это не персональная финансовая или юридическая консультация.
           </div>
         </div>
       </div>
       <aside className="ctx" aria-label="История разговоров">
         <div className="stack" style={{ gap: 6 }}>
-          <span className="label">$PIG</span>
+          <span className="label">CAP</span>
           <h3>
             <Orb />
             Разговоры
           </h3>
           <p className="muted" style={{ fontSize: 12.5 }}>
-            Продолжайте любой разговор: $PIG помнит его контекст.
+            Продолжайте любой разговор: CAP помнит его контекст.
           </p>
         </div>
         {history}

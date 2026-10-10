@@ -80,7 +80,7 @@ export const TITLES: Record<string, string> = {
   "title-king": "Король копилки",
   "title-whale": "Крипто-кит",
   "title-oracle": "Финансовый оракул",
-  "title-legend": "Легенда PìgBiz",
+  "title-legend": "Легенда Kapital",
 };
 
 /** Cosmetics shown on the profile and the leaderboard. Bought = equipped; owned ones can be switched. */
@@ -102,12 +102,12 @@ export const SHOP: ShopItem[] = [
   // Буст
   { id: "chest", category: "boost", title: "Сундук удачи", description: "От 5 до 120 PigCoin$. До 3 сундуков в день.", price: 60, icon: "coin", repeatable: true, perDay: 3 },
   { id: "chest-gold", category: "boost", title: "Изумрудный сундук", description: "От 100 до 600 PigCoin$. Один в день.", price: 300, icon: "sparkle", repeatable: true, perDay: 1 },
-  { id: "boost-chat", category: "boost", title: "+10 вопросов $PIG", description: "Закончились вопросы? Ещё 10 на сегодня.", price: 80, icon: "message", repeatable: true, proDiscount: true, notForPro: true },
-  { id: "boost-chat-30", category: "boost", title: "+30 вопросов $PIG", description: "Большой пакет вопросов к $PIG на сегодня.", price: 200, icon: "message", repeatable: true, notForPro: true },
+  { id: "boost-chat", category: "boost", title: "+10 вопросов CAP", description: "Закончились вопросы? Ещё 10 на сегодня.", price: 80, icon: "message", repeatable: true, proDiscount: true, notForPro: true },
+  { id: "boost-chat-30", category: "boost", title: "+30 вопросов CAP", description: "Большой пакет вопросов к CAP на сегодня.", price: 200, icon: "message", repeatable: true, notForPro: true },
   { id: "xp-boost", category: "boost", title: "Двойной XP на 24 часа", description: "Уроки, квизы и разборы идей дают x2 XP: уровень растёт вдвое быстрее. Монеты и очки лидерборда не удваиваются.", price: 250, icon: "rocket", repeatable: true, proDiscount: true },
   { id: "streak-freeze", category: "boost", title: "Заморозка серии", description: "Пропустите день, и серия не сгорит. Можно копить до 3 штук.", price: 150, icon: "shield", repeatable: true, proDiscount: true, notForPro: true },
   // Доступ
-  { id: "pro-trial", category: "access", title: "Пробный Pro на 7 дней", description: "Лимиты больше в 3–5 раз: 25 вопросов $PIG в день, 5 целей, 5 советов коуча. Без эксклюзивных курсов, x2 монет и скидок полного Pro.", price: 1000, icon: "sparkle", repeatable: true, notForPro: true },
+  { id: "pro-trial", category: "access", title: "Пробный Pro на 7 дней", description: "Лимиты больше в 3–5 раз: 25 вопросов CAP в день, 5 целей, 5 советов коуча. Без эксклюзивных курсов, x2 монет и скидок полного Pro.", price: 1000, icon: "sparkle", repeatable: true, notForPro: true },
   { id: "pro-pass", category: "access", title: "Pro-материалы на 3 дня", description: "Открывает все эксклюзивные курсы и статьи Pro на 3 дня. Пройденные уроки остаются засчитанными.", price: 700, icon: "book", repeatable: true, notForPro: true },
   { id: "goal-slot", category: "access", title: "+1 цель в копилке", description: `Навсегда добавляет место для ещё одной цели. Можно купить до ${MAX_EXTRA_GOALS} раз.`, price: 400, icon: "piggy", repeatable: true, notForPro: true },
   // Стиль
@@ -122,7 +122,7 @@ export const SHOP: ShopItem[] = [
   { id: "title-king", category: "style", title: "Титул «Король копилки»", description: "Для тех, кто копит красиво", price: 500, icon: "piggy", proDiscount: true },
   { id: "title-whale", category: "style", title: "Титул «Крипто-кит»", description: "Редкий титул", price: 800, icon: "rocket", proDiscount: true },
   { id: "title-oracle", category: "style", title: "Титул «Финансовый оракул»", description: "Для тех, кто видит рынок насквозь", price: 1200, icon: "bulb", proDiscount: true },
-  { id: "title-legend", category: "style", title: "Титул «Легенда PìgBiz»", description: "Самый редкий титул магазина", price: 2500, icon: "sparkle", proDiscount: true },
+  { id: "title-legend", category: "style", title: "Титул «Легенда Kapital»", description: "Самый редкий титул магазина", price: 2500, icon: "sparkle", proDiscount: true },
   { id: "theme-car", category: "style", title: "Обложка «Машина»", description: "Для цели на автомобиль", price: 120, icon: "car" },
   { id: "theme-rocket", category: "style", title: "Обложка «Свой бизнес»", description: "Для стартового капитала", price: 120, icon: "rocket" },
   { id: "theme-heart", category: "style", title: "Обложка «Для близких»", description: "Подарки, свадьба, семья", price: 120, icon: "heart" },

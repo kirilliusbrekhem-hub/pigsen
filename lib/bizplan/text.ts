@@ -39,7 +39,7 @@ function facts(input: PlanInput, m: PlanModel): string {
   ].join("\n");
 }
 
-const SYSTEM = `Ты — $PIG, наставник по предпринимательству на платформе PìgBiz. Помоги начинающему предпринимателю оформить разделы бизнес-плана.
+const SYSTEM = `Ты — CAP, наставник по предпринимательству на платформе Kapital. Помоги начинающему предпринимателю оформить разделы бизнес-плана.
 Цифры уже посчитаны финансовой моделью: используй только их, не придумывай новых чисел, долей рынка и статистики.
 Верни ТОЛЬКО JSON без markdown:
 {"summary":"резюме проекта, 3–4 предложения","market":"клиенты и конкуренты, чем проект отличается, 3–4 предложения","marketing":"план продвижения по указанным каналам, 3–4 предложения","risks":[{"risk":"риск","mitigation":"как его снизить, конкретно"}]}
@@ -79,14 +79,14 @@ export async function writeSections(input: PlanInput, m: PlanModel): Promise<{ s
 
 const HintSchema = z.object({ hint: z.string().min(10).max(600) });
 
-/** A short $PIG hint for one wizard step, based on what the user has filled so far. */
+/** A short CAP hint for one wizard step, based on what the user has filled so far. */
 export async function stepHint(step: StepId, input: Partial<PlanInput>): Promise<{ hint: string; demo: boolean }> {
   const base = STEPS.find((s) => s.id === step)!;
   const ctx = [input.title && `Проект: ${input.title}`, input.idea && `Идея: ${input.idea}`, input.audience && `Клиенты: ${input.audience}`, input.price && `Цена: ${input.price} ₽, себестоимость ${input.unitCost ?? 0} ₽`]
     .filter(Boolean)
     .join("\n");
   const ai = await completeJson(
-    `Ты — $PIG, наставник по предпринимательству. Пользователь заполняет шаг «${base.title}» мастера бизнес-плана. Дай один конкретный совет для его проекта, 2–3 предложения, без выдуманных цифр. Верни ТОЛЬКО JSON: {"hint":"..."}`,
+    `Ты — CAP, наставник по предпринимательству. Пользователь заполняет шаг «${base.title}» мастера бизнес-плана. Дай один конкретный совет для его проекта, 2–3 предложения, без выдуманных цифр. Верни ТОЛЬКО JSON: {"hint":"..."}`,
     ctx || "Проект ещё не описан.",
     (raw) => {
       const r = HintSchema.safeParse(raw);

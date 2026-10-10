@@ -41,10 +41,8 @@ async function run(viewport, tag) {
   await page.getByLabel("Пароль").fill("supersecret1");
   await page.getByLabel(/Мне есть 18/).check();
   await page.getByRole("button", { name: "Зарегистрироваться" }).click();
-  await page.waitForURL("**/onboarding");
-  await page.getByRole("button", { name: /^Crypto/ }).click();
-  await page.getByRole("button", { name: /Продолжить/ }).click();
-  await page.waitForURL("**/dashboard");
+  await page.waitForURL("**/new");
+  await page.goto(BASE + "/dashboard");
 
   // Create a goal with a deadline and a starting amount
   await page.goto(BASE + "/savings");
@@ -74,7 +72,7 @@ async function run(viewport, tag) {
   await page.getByText("Упражнение:").waitFor({ timeout: 60_000 });
   await page.getByTestId("coach-lock").waitFor();
   if ((await page.getByTestId("coach-mode").getAttribute("data-mode")) !== "edu") problems.push(`[${tag}] Free coach is not in edu mode`);
-  log(`[${tag}] $PIG-коуч (Free: объяснения + Pro-апселл)`);
+  log(`[${tag}] CAP-коуч (Free: объяснения + Pro-апселл)`);
 
   if (tag === "desktop") await proofFlow(page, ctx);
 
@@ -145,10 +143,8 @@ async function register(ctx, tag) {
   await page.getByLabel("Пароль").fill("supersecret1");
   await page.getByLabel(/Мне есть 18/).check();
   await page.getByRole("button", { name: "Зарегистрироваться" }).click();
-  await page.waitForURL("**/onboarding");
-  await page.getByRole("button", { name: /^Crypto/ }).click();
-  await page.getByRole("button", { name: /Продолжить/ }).click();
-  await page.waitForURL("**/dashboard");
+  await page.waitForURL("**/new");
+  await page.goto(BASE + "/dashboard");
   return { page, id: sql(`SELECT id FROM "User" WHERE email = '${email}'`) };
 }
 
@@ -265,14 +261,14 @@ async function proofFlow(page, ctx) {
   await page.goto(BASE + "/savings/" + goalId);
 }
 
-/** $PIG by plan: Free = educational assistant (no partner features), Pro = business partner. Gating only (mock AI). */
+/** CAP by plan: Free = educational assistant (no partner features), Pro = business partner. Gating only (mock AI). */
 async function pigModes() {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, colorScheme: "light" });
   const u = await register(ctx, "pig");
   const page = u.page;
   const askPig = async (q) => {
     await page.goto(BASE + "/ai");
-    await page.getByLabel("Вопрос для $PIG").fill(q);
+    await page.getByLabel("Вопрос для CAP").fill(q);
     await page.getByRole("button", { name: "Отправить" }).click();
     await page.getByRole("button", { name: "Копировать ответ" }).last().waitFor({ timeout: 90_000 });
     return page.locator(".answer .md").last().innerText();
@@ -281,36 +277,36 @@ async function pigModes() {
   await page.goto(BASE + "/ai");
   if ((await page.getByTestId("pig-mode").getAttribute("data-mode")) !== "edu") problems.push("Free /ai is not in edu mode");
   const freeA = await askPig("Что купить в моей кофейне, чтобы поднять рейтинг?");
-  if (!/доступен в Pro/.test(freeA) || /Партнёр на связи/.test(freeA)) problems.push("Free $PIG gave game strategy / partner persona");
+  if (!/доступен в Pro/.test(freeA) || /Партнёр на связи/.test(freeA)) problems.push("Free CAP gave game strategy / partner persona");
   await page.screenshot({ path: `${PROJ}/pig-free.png`, fullPage: false });
   const biz = await page.request.post(BASE + "/api/biz", { data: { kind: "coffee", name: "Кофейня Фри" } });
   if (!biz.ok()) problems.push(`create biz → ${biz.status()}`);
   const adv = await page.request.post(BASE + "/api/biz/advice");
   if (adv.status() !== 402) problems.push(`Free advice → ${adv.status()}`);
-  await page.request.post(BASE + "/api/biz/chat", { data: { text: "$PIG, что купить?" } });
+  await page.request.post(BASE + "/api/biz/chat", { data: { text: "CAP, что купить?" } });
   const fv = (await (await page.request.get(BASE + "/api/biz")).json()).view;
-  if (fv.pigPartner || fv.chat.some((c) => c.pig)) problems.push("$PIG talks in a Free team chat");
+  if (fv.pigPartner || fv.chat.some((c) => c.pig)) problems.push("CAP talks in a Free team chat");
   await page.goto(BASE + "/biz");
   await page.getByTestId("pig-lock").first().waitFor();
   await page.screenshot({ path: `${PROJ}/pig-free-biz.png`, fullPage: false });
-  log("Free: $PIG — ассистент, без стратегии игры, без чата команды, апселл в Pro");
+  log("Free: CAP — ассистент, без стратегии игры, без чата команды, апселл в Pro");
 
   // Pro (any tier)
   sql(`UPDATE "Profile" SET "proUntil" = now() + interval '30 days', "proTier" = 'pro7' WHERE "userId" = '${u.id}'`);
   await page.goto(BASE + "/ai");
   if ((await page.getByTestId("pig-mode").getAttribute("data-mode")) !== "partner") problems.push("Pro /ai is not in partner mode");
   const proA = await askPig("Что купить в моей кофейне, чтобы поднять рейтинг?");
-  if (!/Партнёр на связи/.test(proA) || !/Давай попробуем/.test(proA) || !/заглядывай/.test(proA)) problems.push("Pro $PIG is not a partner");
+  if (!/Партнёр на связи/.test(proA) || !/Давай попробуем/.test(proA) || !/заглядывай/.test(proA)) problems.push("Pro CAP is not a partner");
   await page.screenshot({ path: `${PROJ}/pig-pro.png`, fullPage: false });
   const adv2 = await page.request.post(BASE + "/api/biz/advice");
   if (!adv2.ok()) problems.push(`Pro advice → ${adv2.status()}`);
-  await page.request.post(BASE + "/api/biz/chat", { data: { text: "$PIG, привет?" } });
+  await page.request.post(BASE + "/api/biz/chat", { data: { text: "CAP, привет?" } });
   const pv = (await (await page.request.get(BASE + "/api/biz")).json()).view;
-  if (!pv.pigPartner || pv.chat.at(-1)?.pig !== true) problems.push("$PIG doesn't answer in a Pro team chat");
+  if (!pv.pigPartner || pv.chat.at(-1)?.pig !== true) problems.push("CAP doesn't answer in a Pro team chat");
   const g = await page.request.post(BASE + "/api/savings", { data: { title: "Подушка", target: 100000 } });
   const coach = await (await page.request.post(`${BASE}/api/savings/${(await g.json()).goal.id}/coach`)).json();
   if (coach.mode !== "partner") problems.push(`Pro coach mode ${coach.mode}`);
-  log("Pro: $PIG — партнёр (идеи, стратегия, чат команды, крючок на завтра)");
+  log("Pro: CAP — партнёр (идеи, стратегия, чат команды, крючок на завтра)");
   await ctx.close();
 }
 

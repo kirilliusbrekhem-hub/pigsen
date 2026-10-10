@@ -55,7 +55,7 @@ export function createYandexProvider(apiKey: string, folderId: string): AIProvid
           /* non-JSON body */
         }
         if (res.status === 401) throw new AIProviderError(detail, `YandexGPT не принял ключ (${reason}). Проверьте YANDEX_API_KEY и роль ai.languageModels.user.`);
-        if (res.status === 429 || res.status >= 500) throw new AIProviderError(detail, `$PIG сейчас перегружен (${reason}). Попробуйте через минуту.`);
+        if (res.status === 429 || res.status >= 500) throw new AIProviderError(detail, `CAP сейчас перегружен (${reason}). Попробуйте через минуту.`);
         throw new AIProviderError(`${res.status} ${detail}`, `YandexGPT вернул ошибку (${reason}).`);
       }
 
@@ -95,7 +95,7 @@ export function createYandexProvider(apiKey: string, folderId: string): AIProvid
       }
 
       if (status === "ALTERNATIVE_STATUS_CONTENT_FILTER") {
-        yield "\n\n_$PIG не может ответить на этот запрос. Попробуйте переформулировать вопрос._";
+        yield "\n\n_CAP не может ответить на этот запрос. Попробуйте переформулировать вопрос._";
       } else if (status === "ALTERNATIVE_STATUS_TRUNCATED_FINAL") {
         yield "\n\n_Ответ получился длинным и был обрезан. Попросите продолжить._";
       }

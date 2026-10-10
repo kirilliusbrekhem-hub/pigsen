@@ -27,22 +27,15 @@ export function isGroup(e: NavEntry): e is NavGroup {
   return "items" in e;
 }
 
-/** «Ещё» holds only what feeds the savings → business loop; other routes stay reachable by URL. */
-const MORE_ITEMS: NavItem[] = [
-  { href: "/biz/top", label: "Лидерборд бизнесов", icon: "trophy" },
-  { href: "/challenges", label: "Челленджи", icon: "target" },
-  { href: "/analyze", label: "Разбор трат", icon: "chart" },
-  { href: "/invite", label: "Пригласить друга", icon: "link" },
-];
-
-/** Sidebar structure: the core (business + piggy bank + $PIG) on top, the rest under «Ещё». */
+/**
+ * Kapital navigation: the four prototype tabs. Legacy sections (dashboard, piggy bank, courses, duels…) stay
+ * reachable by URL but are no longer in the menu.
+ */
 export const NAV_TREE: NavEntry[] = [
-  { href: "/dashboard", label: "Главная", icon: "home" },
-  { href: "/biz", label: "Мой бизнес", icon: "store" },
-  { href: "/savings", label: "Копилка", icon: "piggy" },
-  { href: "/ai", label: "$PIG", icon: "ai" },
-  { id: "more", label: "Ещё", icon: "grid", items: MORE_ITEMS },
-  { href: "/pro", label: "Pro и PigCoin$", icon: "sparkle" },
+  { href: "/business", label: "Бизнес", icon: "store" },
+  { href: "/cap", label: "CAP", icon: "ai" },
+  { href: "/team", label: "Команда", icon: "users" },
+  { href: "/me", label: "Профиль", icon: "user" },
 ];
 
 export const ADMIN_ITEM: NavItem = { href: "/admin", label: "Админка", icon: "shield" };
@@ -50,17 +43,12 @@ export const ADMIN_ITEM: NavItem = { href: "/admin", label: "Админка", ic
 /** Flat list of every sidebar link (kept for compatibility). */
 export const NAV: NavItem[] = NAV_TREE.flatMap((e) => (isGroup(e) ? e.items : [e]));
 
-export const TABS: NavItem[] = [
-  { href: "/dashboard", label: "Главная", icon: "home" },
-  { href: "/biz", label: "Мой бизнес", icon: "store" },
-  { href: "/savings", label: "Копилка", icon: "piggy" },
-  { href: "/ai", label: "$PIG", icon: "ai" },
-];
+export const TABS: NavItem[] = NAV_TREE.filter((e): e is NavItem => !isGroup(e));
 
 export const SECTION_TITLES: Record<string, string> = {
   dashboard: "Главная",
   biz: "Мой бизнес",
-  ai: "$PIG",
+  ai: "CAP",
   learn: "Обучение",
   library: "Библиотека",
   saved: "Сохранённое",

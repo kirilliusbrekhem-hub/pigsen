@@ -29,10 +29,8 @@ async function register(name, viewport = { width: 1280, height: 900 }) {
   await page.getByLabel("Пароль").fill("supersecret1");
   await page.getByLabel(/Мне есть 18/).check();
   await page.getByRole("button", { name: "Зарегистрироваться" }).click();
-  await page.waitForURL("**/onboarding");
-  await page.getByRole("button", { name: /^Finance/ }).click();
-  await page.getByRole("button", { name: /Продолжить/ }).click();
-  await page.waitForURL("**/dashboard");
+  await page.waitForURL("**/new");
+  await page.goto(BASE + "/dashboard");
   const user = await prisma.user.findUnique({ where: { email } });
   return { ctx, page, user };
 }
@@ -71,7 +69,7 @@ await page.getByLabel("Себестоимость").fill("70");
 await page.getByRole("button", { name: /Совет для моего проекта/ }).click();
 await page.getByText(/Маржа .*%/).first().waitFor();
 await page.screenshot({ path: `${SHOTS}/plan-wizard-pricing.png`, fullPage: true });
-ok("$PIG hint on pricing step");
+ok("CAP hint on pricing step");
 for (let i = 0; i < 3; i++) await page.getByRole("button", { name: /Далее/ }).click(); // startup, monthly → sales
 await page.getByLabel("Продаж в первый месяц").fill("900");
 await page.getByLabel("Рост в месяц").fill("12");
@@ -107,7 +105,7 @@ const bytes = readFileSync(pdfPath);
 if (bytes.subarray(0, 5).toString() !== "%PDF-") problems.push("not a PDF");
 const text = pdfText(bytes);
 for (const needle of ["Зелёный бобр", "Резюме", "Риски и как их снизить", "Чувствительность", "образовательный"]) if (!text.includes(needle)) problems.push(`PDF lacks "${needle}"`);
-// The diagonal "PìgBiz Free" mark is rotated (pdftotext skips it); the Free footer line is drawn with it.
+// The diagonal "Kapital Free" mark is rotated (pdftotext skips it); the Free footer line is drawn with it.
 if (!text.includes("бесплатном тарифе")) problems.push("Free PDF has no watermark");
 try { execFileSync("pdftoppm", ["-png", "-r", "60", "-f", "1", "-l", "1", "-singlefile", pdfPath, `${SHOTS}/plan-pdf-page1`]); } catch { /* optional preview */ }
 ok(`PDF ${bytes.length} bytes, Cyrillic text extracted, watermark present`);

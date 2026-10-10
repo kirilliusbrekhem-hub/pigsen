@@ -101,10 +101,10 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           <EmptyState
             icon="search"
             title="Ничего не нашлось"
-            text="Попробуйте другое слово или задайте вопрос $PIG: он объяснит тему и подскажет материалы."
+            text="Попробуйте другое слово или задайте вопрос CAP: он объяснит тему и подскажет материалы."
             action={
               <Link className="btn btn-primary" href={`/ai?q=${encodeURIComponent(q)}`}>
-                Спросить $PIG
+                Спросить CAP
               </Link>
             }
           />
@@ -159,7 +159,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
               <Icon name="sparkle" />
             </span>
             <span style={{ flex: 1 }}>
-              <b style={{ fontWeight: 540 }}>Спросить $PIG про «{q}»</b>
+              <b style={{ fontWeight: 540 }}>Спросить CAP про «{q}»</b>
               <span className="muted" style={{ display: "block", fontSize: 12.5 }}>
                 Объяснение простыми словами и подборка материалов
               </span>

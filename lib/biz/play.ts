@@ -25,7 +25,7 @@ import {
 } from "./game";
 
 /**
- * PìgBiz game actions: business switching, Pro custom skin, investor deals, story chapters and crises.
+ * Kapital game actions: business switching, Pro custom skin, investor deals, story chapters and crises.
  * Every mutation runs under the business advisory lock and re-reads state inside the transaction.
  * None of them adds capital: capital only moves with real savings (lib/biz/service.ts onSavingsChange) or is spent.
  */
@@ -37,7 +37,7 @@ interface Actor {
   profile: { proUntil: Date | null; proTier?: string | null } | null | undefined;
 }
 
-const PIG = "$PIG";
+const PIG = "CAP";
 const lockKey = (id: string) => `biz:${id}`;
 const asJson = (s: GameState) => s as unknown as Prisma.InputJsonValue;
 const rubs = (n: number) => `${Math.round(n).toLocaleString("ru-RU")} ₽`;

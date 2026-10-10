@@ -50,7 +50,7 @@ interface Actor {
 }
 
 const MAX_CAPITAL = 1_500_000_000;
-export const PIG_NAME = "$PIG";
+export const PIG_NAME = "CAP";
 const rubs = (n: number) => `${Math.round(n).toLocaleString("ru-RU")} ₽`;
 /** Business/team display names: no control chars, markup or runs of whitespace. */
 export const cleanName = (s: string) => s.replace(/[\u0000-\u001F\u007F<>{}]/g, "").replace(/\s+/g, " ").trim().slice(0, 40);
@@ -58,12 +58,12 @@ const newCode = () => randomBytes(12).toString("base64url");
 const lockKey = (id: string) => `biz:${id}`;
 const asJson = (s: GameState) => s as unknown as Prisma.InputJsonValue;
 
-/** Team size (founder included, $PIG not counted) by the founder's plan: Free 2, Pro 4, Pro 7, Pro 10. */
+/** Team size (founder included, CAP not counted) by the founder's plan: Free 2, Pro 4, Pro 7, Pro 10. */
 async function founderCap(founderId: string) {
   return teamCap(await prisma.profile.findUnique({ where: { userId: founderId }, select: { proUntil: true, proTier: true } }));
 }
 
-/** $PIG acts as a partner in a team only while its founder is on Pro (any tier). */
+/** CAP acts as a partner in a team only while its founder is on Pro (any tier). */
 async function teamPigPartner(businessId: string): Promise<boolean> {
   const b = await prisma.bizBusiness.findUnique({ where: { id: businessId }, select: { founderId: true } });
   if (!b) return false;
@@ -158,7 +158,7 @@ async function rollover(businessId: string, pro: boolean): Promise<{ chat: strin
           if (bought && st.hint.wrong) {
             mult *= 0.92;
             dr -= 0.1;
-            text = `${text}. «${item.title}» гостям не зашла — $PIG ошибся с советом`;
+            text = `${text}. «${item.title}» гостям не зашла — CAP ошибся с советом`;
           } else if (bought) {
             dr += 0.1;
             text = `${text}. Гости хвалят «${item.title}»`;
@@ -274,7 +274,7 @@ export interface BizView {
   chat: { id: string; name: string; text: string; pig: boolean; mine: boolean; at: string }[];
   challenges: Awaited<ReturnType<typeof challengeView>>;
   pro: boolean;
-  /** $PIG is a partner (persona, chat, hints, strategy) only when the team's founder is on Pro. */
+  /** CAP is a partner (persona, chat, hints, strategy) only when the team's founder is on Pro. */
   pigPartner: boolean;
 }
 
@@ -381,7 +381,7 @@ export async function getView(user: Actor, opts: { simulate?: boolean } = {}): P
     custom: st.custom,
     customOptions: { logos: LOGOS, accents: ACCENTS },
     events: b.events.map((e) => ({ id: e.id, kind: e.kind, text: e.text, at: e.createdAt.toISOString() })),
-    // Free teams: $PIG stays silent in the chat (the UI shows a locked "$PIG-партнёр доступен в Pro" card instead).
+    // Free teams: CAP stays silent in the chat (the UI shows a locked "CAP-партнёр доступен в Pro" card instead).
     chat: b.chat.reverse().filter((c) => pigPartner || c.userId !== null).map((c) => ({ id: c.id, name: c.name, text: c.text, pig: c.userId === null, mine: c.userId === user.id, at: c.createdAt.toISOString() })),
     challenges: await challengeView(b.id, user.id),
     pro,
@@ -596,14 +596,14 @@ export async function transferFounder(founderId: string, targetUserId: string) {
 export async function postChat(user: Actor, text: string) {
   const m = await requireMember(user.id);
   await prisma.bizChat.create({ data: { businessId: m.businessId, userId: user.id, name: m.name, text } });
-  if (!isForPig(text) || !(await teamPigPartner(m.businessId))) return; // $PIG answers in the chat of Pro teams only
+  if (!isForPig(text) || !(await teamPigPartner(m.businessId))) return; // CAP answers in the chat of Pro teams only
   const b = await prisma.bizBusiness.findUniqueOrThrow({ where: { id: m.businessId }, include: { upgrades: true } });
   const best = bestPick(b.kind, b.upgrades, isPro(user.profile), b.capital);
   const reply = chatReply(text, best?.title ?? null, rubs(b.capital));
   await prisma.bizChat.create({ data: { businessId: m.businessId, name: PIG_NAME, text: await pigVoice(reply, `вопрос: ${text.slice(0, 200)}`) } });
 }
 
-/** Honest numbers-based advice from $PIG: Free 1 per day, Pro 3 per day. */
+/** Honest numbers-based advice from CAP: Free 1 per day, Pro 3 per day. */
 export async function askAdvice(user: Actor) {
   const m = await requireMember(user.id);
   const pro = isPro(user.profile);
@@ -617,7 +617,7 @@ export async function askAdvice(user: Actor) {
       break;
     }
   }
-  if (!ok) throw new HttpError(429, pro ? "На сегодня советы закончились — $PIG ждёт вас завтра" : "Совет на сегодня уже получен. С Pro — 3 совета в день.");
+  if (!ok) throw new HttpError(429, pro ? "На сегодня советы закончились — CAP ждёт вас завтра" : "Совет на сегодня уже получен. С Pro — 3 совета в день.");
   const b = await prisma.bizBusiness.findUniqueOrThrow({ where: { id: m.businessId }, include: { upgrades: true } });
   const best = bestPick(b.kind, b.upgrades, pro, b.capital);
   let text: string;

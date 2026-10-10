@@ -1,4 +1,4 @@
-/** The $PIG glyph: a lens with a moving focal point (from the prototype). */
+/** The CAP glyph: a lens with a moving focal point (from the prototype). */
 export function Orb({ thinking = false, className = "" }: { thinking?: boolean; className?: string }) {
   return (
     <span className={`orb ${thinking ? "thinking" : ""} ${className}`} aria-hidden="true">

@@ -140,7 +140,7 @@ export async function listEntries(goalId: string) {
   return prisma.savingsEntry.findMany({ where: { goalId }, orderBy: { createdAt: "desc" }, take: 50, include: { proof: { select: { status: true } } } });
 }
 
-/** One-line summary of the user's goals for $PIG's system prompt. */
+/** One-line summary of the user's goals for CAP's system prompt. */
 export async function savingsSummary(userId: string): Promise<string> {
   const goals = await prisma.savingsGoal.findMany({ where: { userId }, take: 5, orderBy: { createdAt: "asc" } });
   if (!goals.length) return "целей накоплений пока нет";

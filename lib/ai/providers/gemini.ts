@@ -2,7 +2,7 @@ import "server-only";
 import { AIProviderError, type AIProvider, type StreamRequest } from "../types";
 
 // Lighter model first; if Google doesn't know it (404) or it stays overloaded, fall back to the full model.
-// Free-tier quotas are per model, so extra models keep $PIG answering when one hits its limit.
+// Free-tier quotas are per model, so extra models keep CAP answering when one hits its limit.
 const DEFAULT_MODELS = ["gemini-3.8-flash-lite", "gemini-3.8-flash", "gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-flash-lite"];
 const BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
@@ -72,7 +72,7 @@ export function createGeminiProvider(apiKey: string): AIProvider {
           /* non-JSON body */
         }
         if (status === 429) throw new AIProviderError(detail, `У ключа Gemini закончился лимит запросов (${reason}). Попробуйте позже или включите оплату в Google AI Studio.`);
-        if (status === 503) throw new AIProviderError(detail, `$PIG сейчас перегружен (${reason}). Попробуйте через минуту.`);
+        if (status === 503) throw new AIProviderError(detail, `CAP сейчас перегружен (${reason}). Попробуйте через минуту.`);
         throw new AIProviderError(`${status} ${detail}`, `Gemini вернул ошибку (${reason}).`);
       }
 
@@ -102,7 +102,7 @@ export function createGeminiProvider(apiKey: string): AIProvider {
       }
 
       if (finish === "SAFETY" || finish === "PROHIBITED_CONTENT") {
-        yield "\n\n_$PIG не может ответить на этот запрос. Попробуйте переформулировать вопрос._";
+        yield "\n\n_CAP не может ответить на этот запрос. Попробуйте переформулировать вопрос._";
       } else if (finish === "MAX_TOKENS") {
         yield "\n\n_Ответ получился длинным и был обрезан. Попросите продолжить._";
       }

@@ -22,7 +22,7 @@ export const POST = handler(async (req: Request) => {
   const exists = await prisma.user.findUnique({ where: { email }, select: { id: true } });
   if (exists) throw new HttpError(409, "Аккаунт с таким email уже существует", { email: "Этот email уже зарегистрирован" });
   const user = await prisma.user.create({
-    data: { name, email, passwordHash: await hashPassword(password), profile: { create: {} } },
+    data: { name, email, passwordHash: await hashPassword(password), profile: { create: { onboarded: true } } },
   });
   let referred = false;
   try {

@@ -19,7 +19,7 @@ export default async function EditPlanPage({ params }: { params: Promise<{ id: s
         <div>
           <Link href={`/plan/${plan.id}`} className="label">← К плану</Link>
           <h1>{plan.title}</h1>
-          <p>Измените ответы — модель пересчитается, $PIG перепишет тексты.</p>
+          <p>Измените ответы — модель пересчитается, CAP перепишет тексты.</p>
         </div>
       </section>
       <Wizard initial={plan.input} planId={plan.id} />

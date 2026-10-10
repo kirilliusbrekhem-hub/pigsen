@@ -25,10 +25,8 @@ async function newUser(label, width = 1280) {
   await p.getByLabel("Пароль").fill("supersecret1");
   await p.getByLabel(/Мне есть 18/).check();
   await p.getByRole("button", { name: "Зарегистрироваться" }).click();
-  await p.waitForURL("**/onboarding");
-  await p.getByRole("button", { name: /^Finance/ }).click();
-  await p.getByRole("button", { name: /Продолжить/ }).click();
-  await p.waitForURL("**/dashboard");
+  await p.waitForURL("**/new");
+  await p.goto(BASE + "/dashboard");
   const u = await prisma.user.findUnique({ where: { email } });
   await prisma.adminGrant.create({ data: { userId: u.id } }); // harmless now that duels are public; kept per original brief
   await prisma.profile.update({ where: { userId: u.id }, data: { coins: 1000 } });

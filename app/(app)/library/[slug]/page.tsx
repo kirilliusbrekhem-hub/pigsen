@@ -61,7 +61,7 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
         <article className="card" style={{ overflow: "hidden" }}>
           <div className="reader-main">
             <span className="label" style={{ display: "block", marginBottom: 14 }}>
-              Конспект PìgBiz
+              Конспект Kapital
             </span>
             {locked ? (
               <>
@@ -93,12 +93,12 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
           <div className="ai-card" style={{ padding: 22 }}>
             <div className="ai-tag">
               <span className="live" />
-              $PIG
+              CAP
             </div>
-            <p style={{ marginTop: 14, fontSize: 15 }}>Разберите материал с $PIG: главные идеи, примеры и как применить на практике.</p>
+            <p style={{ marginTop: 14, fontSize: 15 }}>Разберите материал с CAP: главные идеи, примеры и как применить на практике.</p>
             <div className="stack" style={{ gap: 8, marginTop: 16 }}>
               <Link className="btn btn-light btn-sm" href={`/ai?q=${encodeURIComponent(`Объясни главные идеи «${item.title}» (${item.author}) и как их применить`)}`}>
-                Обсудить с $PIG <Icon name="arrow" size="sm" />
+                Обсудить с CAP <Icon name="arrow" size="sm" />
               </Link>
             </div>
           </div>

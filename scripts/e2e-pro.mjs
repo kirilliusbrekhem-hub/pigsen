@@ -21,10 +21,8 @@ await page.getByLabel("Email").fill(email);
 await page.getByLabel("Пароль").fill("supersecret1");
   await page.getByLabel(/Мне есть 18/).check();
 await page.getByRole("button", { name: "Зарегистрироваться" }).click();
-await page.waitForURL("**/onboarding");
-await page.getByRole("button", { name: /^Finance/ }).click();
-await page.getByRole("button", { name: /Продолжить/ }).click();
-await page.waitForURL("**/dashboard");
+await page.waitForURL("**/new");
+  await page.goto(BASE + "/dashboard");
 const user = await prisma.user.findUnique({ where: { email } });
 
 await page.getByTestId("daily-bonus").waitFor();

@@ -1,4 +1,4 @@
-// Premium courses (2026-10-06). Editorial PìgBiz material: education, not individual advice.
+// Premium courses (2026-10-06). Editorial Kapital material: education, not individual advice.
 import type { SeedCourse } from "./courses";
 
 export const coursesPremium: (SeedCourse & { premium: true })[] = [

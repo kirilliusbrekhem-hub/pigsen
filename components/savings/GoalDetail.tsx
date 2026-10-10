@@ -118,7 +118,7 @@ export function Coach({ goalId, partner = false }: { goalId: string; partner?: b
         <div className="row" style={{ gap: 12 }}>
           <Orb thinking={busy} />
           <div>
-            <b>{partner ? "$PIG-партнёр" : "$PIG-коуч"}</b>
+            <b>{partner ? "CAP-партнёр" : "CAP-коуч"}</b>
             <p className="muted" style={{ fontSize: 13 }}>
               {partner ? "Личный план под твою цель, идеи «давай попробуем…» и задание на неделю." : "Объяснит, что значат ваши цифры и как посчитать план самому."}
             </p>
@@ -151,7 +151,7 @@ export function Coach({ goalId, partner = false }: { goalId: string; partner?: b
                 <Icon name="lock" size="sm" />
               </span>
               <div>
-                <b>Личный план от $PIG-партнёра — в Pro</b>
+                <b>Личный план от CAP-партнёра — в Pro</b>
                 <p>Партнёр сам предложит, сколько и когда откладывать под вашу цель, подкинет идеи и напомнит завтра.</p>
                 <Link href="/pro" className="btn btn-primary btn-sm">
                   Открыть Pro
@@ -159,7 +159,7 @@ export function Coach({ goalId, partner = false }: { goalId: string; partner?: b
               </div>
             </div>
           )}
-          {advice.demo && <span className="muted" style={{ fontSize: 12 }}>Базовый совет. Лимит советов $PIG на сегодня исчерпан или AI недоступен; в Pro советы без ограничений.</span>}
+          {advice.demo && <span className="muted" style={{ fontSize: 12 }}>Базовый совет. Лимит советов CAP на сегодня исчерпан или AI недоступен; в Pro советы без ограничений.</span>}
         </div>
       )}
     </section>

@@ -34,5 +34,5 @@ export function HeroVideo() {
     };
   }, []);
 
-  return <video ref={ref} className="lp-video" muted loop playsInline preload="none" poster={HERO_VIDEO.poster} width={HERO_VIDEO.width} height={HERO_VIDEO.height} aria-label="Демо: как выглядит PìgBiz изнутри" />;
+  return <video ref={ref} className="lp-video" muted loop playsInline preload="none" poster={HERO_VIDEO.poster} width={HERO_VIDEO.width} height={HERO_VIDEO.height} aria-label="Демо: как выглядит Kapital изнутри" />;
 }

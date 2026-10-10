@@ -26,8 +26,8 @@ export default async function SavingsPage() {
       <section className="page-head">
         <div>
           <span className="label">Умная копилка</span>
-          <h1>Копите с $PIG</h1>
-          <p>Ставьте цели, откладывайте понемногу и проверяйте покупки: $PIG подскажет, как дойти до мечты быстрее. За взносы начисляются PigCoin$.</p>
+          <h1>Копите с CAP</h1>
+          <p>Ставьте цели, откладывайте понемногу и проверяйте покупки: CAP подскажет, как дойти до мечты быстрее. За взносы начисляются PigCoin$.</p>
         </div>
       </section>
       {!pro && <ProPromo place="savings" note={`На вашем плане до ${goalLimit(user.profile)} целей, у вас ${goals.length}.`} />}

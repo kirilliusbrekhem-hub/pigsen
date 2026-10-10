@@ -26,7 +26,7 @@ export async function aiCategorizeUnknown(descriptions: string[]): Promise<Map<s
 }
 export const scrubKey = scrub;
 
-/** $PIG's 3 recommendations from aggregates only (no transactions). Null → keep rule-based ones. */
+/** CAP's 3 recommendations from aggregates only (no transactions). Null → keep rule-based ones. */
 export async function aiRecommendations(r: AnalysisResult): Promise<string[] | null> {
   const facts = [
     `Период: ${r.from ?? "?"} — ${r.to ?? "?"}, месяцев: ${r.months}. Всего трат: ${r.total} ₽, в среднем ${r.monthlyAvg} ₽/мес.`,
@@ -37,7 +37,7 @@ export async function aiRecommendations(r: AnalysisResult): Promise<string[] | n
   ].join("\n");
   const Schema = z.object({ recommendations: z.array(z.string().trim().min(20).max(260)).length(3) });
   const res = await completeJson(
-    'Ты $PIG, финансовый помощник. Дай ровно 3 конкретных совета по сокращению трат с цифрами в рублях из данных. Без общих фраз, без ссылок, без инвестиционных рекомендаций. Ответ только JSON: {"recommendations":["...","...","..."]}',
+    'Ты CAP, финансовый помощник. Дай ровно 3 конкретных совета по сокращению трат с цифрами в рублях из данных. Без общих фраз, без ссылок, без инвестиционных рекомендаций. Ответ только JSON: {"recommendations":["...","...","..."]}',
     facts,
     (raw) => {
       const p = Schema.safeParse(raw);

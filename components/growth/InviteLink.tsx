@@ -5,7 +5,7 @@ import { Icon } from "@/components/ui/Icon";
 export function InviteLink({ path }: { path: string }) {
   const [copied, setCopied] = useState(false);
   const full = () => `${window.location.origin}${path}`;
-  const text = "Учусь управлять деньгами в PìgBiz. Регистрируйся по ссылке и получи 200 PigCoin$:";
+  const text = "Учусь управлять деньгами в Kapital. Регистрируйся по ссылке и получи 200 PigCoin$:";
 
   async function copy() {
     try {
@@ -21,7 +21,7 @@ export function InviteLink({ path }: { path: string }) {
     const url = full();
     if (navigator.share) {
       try {
-        await navigator.share({ title: "PìgBiz", text, url });
+        await navigator.share({ title: "Kapital", text, url });
         return;
       } catch (e) {
         if (e instanceof DOMException && e.name === "AbortError") return;

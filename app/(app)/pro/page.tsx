@@ -23,10 +23,10 @@ const REASONS: Record<string, string> = {
   chest: "Выигрыш из сундука",
   daily: "Ежедневный бонус",
   "daily-pro": "Pro-бонус",
-  "shop:boost-chat": "+10 вопросов $PIG",
+  "shop:boost-chat": "+10 вопросов CAP",
   "shop:streak-freeze": "Заморозка серии",
   "shop:chest-gold": "Изумрудный сундук",
-  "shop:boost-chat-30": "+30 вопросов $PIG",
+  "shop:boost-chat-30": "+30 вопросов CAP",
   "shop:xp-boost": "Двойной XP",
   "shop:pro-pass": "Pro-материалы на 3 дня",
   "shop:goal-slot": "+1 цель в копилке",
@@ -60,8 +60,8 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
     <div className="stack" style={{ gap: 24 }}>
       <section className="page-head">
         <div>
-          <span className="label">PìgBiz Pro</span>
-          <h1>{pro ? "Вы в Pro. Спасибо!" : "Pro: $PIG без ограничений"}</h1>
+          <span className="label">Kapital Pro</span>
+          <h1>{pro ? "Вы в Pro. Спасибо!" : "Pro: CAP без ограничений"}</h1>
           <p>
             Безлимитный чат и коуч, x2 PigCoin$ за всё, +{COINS.proDaily} монет каждый день и защита серии. Всего около {Math.round(PLANS.year.price / 365)} ₽ в день при оплате за год.
             {!pro && " Нет денег сейчас? Накопите 1000 PigCoin$ и возьмите пробный Pro на 7 дней."}
@@ -100,7 +100,7 @@ export default async function ProPage({ searchParams }: { searchParams: Promise<
           />
           {stars && (
             <ol className="pay-steps">
-              <li>Нажмите «Оформить»: откроется Telegram со счётом от бота PìgBiz.</li>
+              <li>Нажмите «Оформить»: откроется Telegram со счётом от бота Kapital.</li>
               <li>Нажмите «Оплатить». Нет звёзд? Telegram сам предложит купить их картой.</li>
               <li>Вернитесь сюда: Pro включится автоматически за пару секунд.</li>
             </ol>

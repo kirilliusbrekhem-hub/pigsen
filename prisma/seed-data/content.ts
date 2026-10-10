@@ -1,5 +1,5 @@
 // Seed library. Mock/editorial data only: kept separate from business logic.
-// Bodies are original PìgBiz summaries; `url` points to the original where one exists.
+// Bodies are original Kapital summaries; `url` points to the original where one exists.
 
 export type SeedContentType = "article" | "book" | "video" | "podcast";
 
@@ -29,8 +29,8 @@ export const content: SeedContent[] = [
     description: "Кто такие венчурные инвесторы, откуда у них деньги и почему они ищут компании, способные вырасти в 100 раз.",
     type: "article",
     category: "finance",
-    author: "Редакция PìgBiz",
-    source: "PìgBiz",
+    author: "Редакция Kapital",
+    source: "Kapital",
     url: null,
     publishedAt: "2026-09-28",
     readingTime: 7,
@@ -63,8 +63,8 @@ export const content: SeedContent[] = [
     description: "Разбор, в каких процессах генеративный AI уже окупается, а где пока остаётся дорогим экспериментом.",
     type: "article",
     category: "ai",
-    author: "Редакция PìgBiz",
-    source: "PìgBiz",
+    author: "Редакция Kapital",
+    source: "Kapital",
     url: null,
     publishedAt: "2026-09-30",
     readingTime: 6,
@@ -498,8 +498,8 @@ export const content: SeedContent[] = [
     description: "CAC, LTV и маржа на одного клиента: как понять, зарабатывает ли бизнес на каждой продаже.",
     type: "article",
     category: "business",
-    author: "Редакция PìgBiz",
-    source: "PìgBiz",
+    author: "Редакция Kapital",
+    source: "Kapital",
     url: null,
     publishedAt: "2026-09-25",
     readingTime: 10,

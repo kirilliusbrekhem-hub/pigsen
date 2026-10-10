@@ -1,6 +1,6 @@
 
-/* PìgBiz design system, ported 1:1 from the approved prototype (moneyai/index.html).
-   Ink + cool paper from the PìgBiz mark, one jade accent, and a dark $PIG intelligence surface. */
+/* Kapital design system, ported 1:1 from the approved prototype (moneyai/index.html).
+   Ink + cool paper from the Kapital mark, one jade accent, and a dark CAP intelligence surface. */
 :root {
   --bg: #F2F3F0;
   --surface: #FFFFFF;
@@ -185,7 +185,7 @@ kbd {
 .dock-hint:hover { color: var(--ai-ink); border-color: var(--ai-ink-2); }
 .dock kbd { background: transparent; border-color: var(--ai-line); color: var(--ai-ink-2); }
 
-/* The $PIG glyph: a lens with a moving focal point */
+/* The CAP glyph: a lens with a moving focal point */
 .orb { width: 26px; height: 26px; flex: none; position: relative; display: inline-block; }
 .orb svg { width: 100%; height: 100%; }
 .orb .focal { transform-origin: 12px 12px; animation: orbit 6s linear infinite; }

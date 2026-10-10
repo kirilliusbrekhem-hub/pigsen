@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import { LEGAL, contactLine } from "@/lib/legal";
 
-export const metadata: Metadata = { title: "Правила — PìgBiz" };
+export const metadata: Metadata = { title: "Правила — Kapital" };
 
 export default function RulesPage() {
   return (
@@ -12,7 +12,7 @@ export default function RulesPage() {
 
       <h2>1. PigCoin$</h2>
       <ul>
-        <li>PigCoin$ — внутренние бонусные баллы PìgBiz. Это не деньги, не электронные деньги и не криптовалюта.</li>
+        <li>PigCoin$ — внутренние бонусные баллы Kapital. Это не деньги, не электронные деньги и не криптовалюта.</li>
         <li>PigCoin$ не имеют денежной стоимости, не выводятся и не обмениваются на деньги.</li>
         <li>Их можно тратить только внутри сервиса, например на пробный Pro.</li>
         <li>PigCoin$ можно получить за активность или купить пакетом за Telegram Stars. Купленные пакеты зачисляются один раз, сразу после оплаты, и тоже являются бонусными баллами без денежной стоимости.</li>

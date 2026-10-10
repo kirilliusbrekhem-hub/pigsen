@@ -19,7 +19,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     { k: "Активны за 7 дней", v: s.active7, d: `${s.users ? Math.round((s.active7 / s.users) * 100) : 0}% от всех` },
     { k: "Pro сейчас", v: s.pro, d: `${s.payments} успешных оплат` },
     { k: "Выручка", v: `${s.stars} ★`, d: s.rub ? `и ${rub(s.rub)}` : "Telegram Stars" },
-    { k: "Вопросов $PIG за 7 дней", v: s.messages7, d: `${s.convos} разговоров всего` },
+    { k: "Вопросов CAP за 7 дней", v: s.messages7, d: `${s.convos} разговоров всего` },
     { k: "Цели в копилке", v: s.goals, d: `накоплено ${rub(s.goalsSaved)}` },
     { k: "Пройдено уроков", v: s.lessonsDone, d: `${s.saved} сохранений` },
     { k: "PigCoin$ на руках", v: s.coins, d: `${s.blocked} заблокировано` },

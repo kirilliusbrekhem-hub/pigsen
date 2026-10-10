@@ -63,11 +63,11 @@ export function SettingsForm({ initial }: { initial: Settings }) {
           <Segmented<Theme> label="Тема" value={s.theme} onChange={(v) => update("theme", v)} options={[{ value: "system", label: "Авто" }, { value: "light", label: "Светлая" }, { value: "dark", label: "Тёмная" }]} />,
         )}
       </div>
-      <h3 style={{ fontSize: 15 }}>$PIG</h3>
+      <h3 style={{ fontSize: 15 }}>CAP</h3>
       <div className="card set-group">
         {setRow(
           "Стиль ответов",
-          "Как подробно $PIG объясняет темы.",
+          "Как подробно CAP объясняет темы.",
           <Segmented<AiTone> label="Стиль ответов" value={s.aiTone} onChange={(v) => update("aiTone", v)} options={[{ value: "concise", label: "Коротко" }, { value: "balanced", label: "Баланс" }, { value: "detailed", label: "Подробно" }]} />,
         )}
       </div>

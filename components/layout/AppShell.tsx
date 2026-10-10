@@ -134,7 +134,7 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
       return (
         <Link key={n.href} href={n.href} className={`nav-item ai-item ${on ? "is-active" : ""}`} aria-current={on ? "page" : undefined}>
           <Orb className="orb-sm" />
-          $PIG
+          CAP
           <kbd>⌘K</kbd>
         </Link>
       );
@@ -158,14 +158,14 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
   }
   const today = new Intl.DateTimeFormat("ru-RU", { weekday: "short", day: "numeric", month: "short" }).format(new Date());
   const parentHref = "/" + pathname.split("/").filter(Boolean).slice(0, -1).join("/");
-  const title = SECTION_TITLES[section] ?? "PìgBiz";
+  const title = SECTION_TITLES[section] ?? "Kapital";
 
   return (
     <CrumbContext.Provider value={setCrumb}>
     <div className="shell">
       <div className="app">
         <aside className="sidebar" aria-label="Основная навигация">
-          <Link href="/dashboard" aria-label="PìgBiz, на главную">
+          <Link href="/business" aria-label="Kapital, к бизнесу">
             <Brand sub />
           </Link>
           <nav className="nav">
@@ -206,13 +206,13 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
           </nav>
           <div className="side-foot">
             {user.plan !== "pro" && (
-              <Link href="/pro" className="btn btn-accent btn-sm btn-block" data-testid="side-pro">
+              <Link href="/plans" className="btn btn-accent btn-sm btn-block" data-testid="side-pro">
                 <Icon name="sparkle" size="sm" /> {user.plan === "lite" ? "Пробный Pro: перейти на полный" : "Перейти на Pro"}
               </Link>
             )}
             <div className="trust-note">
               <Icon name="shield" />
-              <span>$PIG объясняет и подсказывает. Решения всегда остаются за вами.</span>
+              <span>CAP объясняет и подсказывает. Решения всегда остаются за вами.</span>
             </div>
             <nav className="site-legal" aria-label="Документы">
               <Link href="/terms">Условия</Link>
@@ -259,7 +259,7 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
                 <span>{title}</span>
               </Link>
             ) : (
-              <Link href="/dashboard" className="brand" aria-label="PìgBiz">
+              <Link href="/business" className="brand" aria-label="Kapital">
                 <Pig />
                 {section === "dashboard" ? <Wordmark /> : <span className="wordmark" style={{ letterSpacing: "-.01em" }}>{title}</span>}
               </Link>
@@ -286,7 +286,7 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
                 }}
               >
                 <Orb />
-                <input ref={dockRef} value={dock} onChange={(e) => setDock(e.target.value)} placeholder="Спросите $PIG о бизнесе, деньгах, технологиях..." autoComplete="off" aria-label="Спросить $PIG" maxLength={4000} />
+                <input ref={dockRef} value={dock} onChange={(e) => setDock(e.target.value)} placeholder="Спросите CAP о бизнесе, деньгах, технологиях..." autoComplete="off" aria-label="Спросить CAP" maxLength={4000} />
                 <div className="dock-hints">
                   {(DOCK_HINTS[section] ?? []).map((h) => (
                     <button key={h} type="button" className="dock-hint" onClick={() => askDock(h)}>
@@ -306,7 +306,7 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
         <nav className="tabbar" aria-label="Основная навигация">
           {TABS.map((t) =>
             t.href === "/ai" ? (
-              <Link key={t.href} href={t.href} className={`tb tb-ai ${active(t.href) ? "is-active" : ""}`} aria-label="Спросить $PIG">
+              <Link key={t.href} href={t.href} className={`tb tb-ai ${active(t.href) ? "is-active" : ""}`} aria-label="Спросить CAP">
                 <span className="ai-btn">
                   <Orb />
                 </span>
@@ -319,10 +319,6 @@ export function AppShell({ user, savedCount, children }: { user: ShellUser; save
               </Link>
             ),
           )}
-          <button type="button" className={`tb ${more || moreItems.some((m) => active(m.href)) ? "is-active" : ""}`} onClick={() => setMore(true)} aria-haspopup="dialog" aria-expanded={more}>
-            <Icon name="grid" />
-            <span>Ещё</span>
-          </button>
         </nav>
 
       </div>

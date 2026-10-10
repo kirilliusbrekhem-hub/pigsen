@@ -1,4 +1,4 @@
-/* Proof of real savings + $PIG plan modes */
+/* Proof of real savings + CAP plan modes */
 .proof-pick { display: flex; flex-direction: column; gap: 6px; }
 .proof-chosen { display: inline-flex; gap: 8px; align-items: center; color: var(--accent); font-size: 13.5px; }
 .proof-note { font-size: 12px; display: inline-flex; gap: 6px; align-items: flex-start; line-height: 1.4; }

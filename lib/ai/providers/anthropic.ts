@@ -32,14 +32,14 @@ export function createAnthropicProvider(apiKey: string): AIProvider {
         }
         const final = await stream.finalMessage();
         if (final.stop_reason === "refusal") {
-          yield "\n\n_$PIG не может ответить на этот запрос. Попробуйте переформулировать вопрос._";
+          yield "\n\n_CAP не может ответить на этот запрос. Попробуйте переформулировать вопрос._";
         } else if (final.stop_reason === "max_tokens") {
           yield "\n\n_Ответ получился длинным и был обрезан. Попросите продолжить._";
         }
       } catch (err) {
         if (err instanceof Anthropic.APIUserAbortError) return;
         if (err instanceof Anthropic.RateLimitError) {
-          throw new AIProviderError(err.message, "$PIG сейчас перегружен. Попробуйте через минуту.");
+          throw new AIProviderError(err.message, "CAP сейчас перегружен. Попробуйте через минуту.");
         }
         if (err instanceof Anthropic.AuthenticationError) {
           throw new AIProviderError(err.message, "Ключ AI-провайдера недействителен. Проверьте ANTHROPIC_API_KEY.");

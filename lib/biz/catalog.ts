@@ -1,4 +1,4 @@
-// PìgBiz catalog: business types and their upgrade items. Pure data, safe to import on the client (BizScene maps
+// Kapital catalog: business types and their upgrade items. Pure data, safe to import on the client (BizScene maps
 // sprites by item id). Item ids are stable lowercase-kebab; the original coffee ids (chairs, sign, …) are kept as is.
 // Prices are in rubles of business capital, and capital only ever comes from real savings.
 
@@ -36,7 +36,7 @@ export interface UpgradeDef {
   exclusive?: boolean;
   /** Unique reward of an admin-approved challenge; never sold for capital. */
   challenge?: { source: "biz" | "social"; id: string };
-  /** Plausible $PIG hint text ("гости жалуются на вкус"). */
+  /** Plausible CAP hint text ("гости жалуются на вкус"). */
   hint: string;
 }
 

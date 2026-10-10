@@ -1,5 +1,5 @@
 "use client";
-// PìgBiz game panels: crisis, story, investors, business switching, Pro custom skin and admin-reviewed challenges.
+// Kapital game panels: crisis, story, investors, business switching, Pro custom skin and admin-reviewed challenges.
 // All numbers come from the server view; actions go through the `act` helper of BizApp.
 
 import { useRef, useState } from "react";
@@ -28,7 +28,7 @@ export function CrisisCard({ view, act, busy }: { view: BizView; act: Act; busy:
         <span className="muted biz-small">день {c.day} · решите за 3 дня, иначе всё решится само — и плохо</span>
       </div>
       <p style={{ margin: 0 }}>{c.text}</p>
-      {view.pigPartner && <p className="biz-small bg-pigsay">$PIG: {c.pig}</p>}
+      {view.pigPartner && <p className="biz-small bg-pigsay">CAP: {c.pig}</p>}
       <div className="bg-opts">
         {c.options.map((o) => (
           <Button

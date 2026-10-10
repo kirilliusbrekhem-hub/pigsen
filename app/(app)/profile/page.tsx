@@ -109,7 +109,7 @@ async function InterestsSection({ userInterests }: { userInterests: string[] }) 
   const cats = await listCategories();
   return (
     <>
-      <p className="ink2">Интересы влияют на рекомендации на главной и на то, как $PIG подбирает примеры.</p>
+      <p className="ink2">Интересы влияют на рекомендации на главной и на то, как CAP подбирает примеры.</p>
       <InterestsForm options={cats.map((c) => ({ slug: c.slug, name: c.name, description: c.description, icon: c.icon }))} initial={userInterests} />
     </>
   );

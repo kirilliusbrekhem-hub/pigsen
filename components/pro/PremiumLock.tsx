@@ -8,8 +8,8 @@ export function PremiumLock({ what = "материал" }: { what?: string }) {
       <span className="premium-lock-ic">
         <Icon name="lock" />
       </span>
-      <b>Эксклюзивный {what} PìgBiz Pro</b>
-      <p className="muted">Полная версия открыта в Pro вместе с безлимитным $PIG, x2 PigCoin$ и всеми премиум-курсами.</p>
+      <b>Эксклюзивный {what} Kapital Pro</b>
+      <p className="muted">Полная версия открыта в Pro вместе с безлимитным CAP, x2 PigCoin$ и всеми премиум-курсами.</p>
       <Link className="btn btn-accent" href="/pro">
         <Icon name="sparkle" size="sm" /> Открыть с Pro
       </Link>

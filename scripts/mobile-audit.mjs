@@ -21,11 +21,8 @@ await page.getByLabel("Email").fill(email);
 await page.getByLabel("Пароль").fill("supersecret1");
   await page.getByLabel(/Мне есть 18/).check();
 await page.getByRole("button", { name: "Зарегистрироваться" }).click();
-await page.waitForURL("**/onboarding");
-await page.screenshot({ path: `${SHOTS}/onboarding.png`, fullPage: true });
-await page.getByRole("button", { name: /^Finance/ }).click();
-await page.getByRole("button", { name: /Продолжить/ }).click();
-await page.waitForURL("**/dashboard");
+await page.waitForURL("**/new");
+  await page.goto(BASE + "/dashboard");
 const goal = await page.request.post(BASE + "/api/savings", { data: { title: "Очень длинное название цели на новый ноутбук для учёбы", target: 120000, initial: 30000, deadline: "2027-06-01" } });
 const goalId = (await goal.json()).goal?.id;
 const content = await page.request.post(BASE + "/api/admin/content", {
@@ -80,16 +77,11 @@ for (const width of [360, 390]) {
     }
   }
 }
-// "Ещё" menu
+// Kapital tab bar: 4 tabs, no "Ещё" menu (legacy sections stay reachable by URL)
 await page.goto(BASE + "/dashboard");
-await page.getByRole("button", { name: "Ещё" }).click();
-await page.getByRole("dialog", { name: "Все разделы" }).waitFor();
-await page.waitForTimeout(600);
-await page.screenshot({ path: `${SHOTS}/more-menu.png` });
-await page.getByRole("dialog").getByRole("link", { name: "Разбор трат" }).click();
-await page.waitForURL("**/analyze");
-if (await page.getByRole("dialog", { name: "Все разделы" }).isVisible()) problems.push("Меню «Ещё» не закрылось после перехода");
-
+await page.locator(".tabbar").getByRole("link", { name: "Команда" }).waitFor();
+if (await page.getByRole("button", { name: "Ещё" }).count()) problems.push("Меню «Ещё» всё ещё в навигации");
+await page.goto(BASE + "/analyze");
 await browser.close();
 console.log(problems.length ? "Проблемы:\n" + problems.map((p) => " ✗ " + p).join("\n") : "Вёрстка на телефоне без вылезаний.");
 process.exit(problems.length ? 1 : 0);

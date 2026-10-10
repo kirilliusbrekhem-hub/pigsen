@@ -51,7 +51,7 @@ export async function proxy(req: NextRequest) {
   }
 
   if (userId && (AUTH_PAGES.has(pathname) || pathname === "/") && !req.nextUrl.searchParams.has("gone")) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+    return NextResponse.redirect(new URL("/business", req.url));
   }
   if (!userId && !PUBLIC_PAGES.has(pathname)) {
     const url = new URL("/login", req.url);

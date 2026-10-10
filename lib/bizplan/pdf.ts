@@ -34,7 +34,7 @@ class Writer {
     this.page = this.doc.addPage([W, H]);
     this.y = H - M;
     if (this.watermark) {
-      this.page.drawText("PìgBiz Free", { x: 120, y: 300, size: 72, font: this.bold, color: GREEN, opacity: 0.08, rotate: degrees(35) });
+      this.page.drawText("Kapital Free", { x: 120, y: 300, size: 72, font: this.bold, color: GREEN, opacity: 0.08, rotate: degrees(35) });
     }
   }
   ensure(h: number) {
@@ -99,14 +99,14 @@ export async function renderPlanPdf(plan: PlanView, opts: { watermark: boolean }
   const font = await doc.embedFont(reg, { subset: true });
   const bold = await doc.embedFont(semi, { subset: true });
   doc.setTitle(`Бизнес-план: ${plan.title}`);
-  doc.setAuthor("PìgBiz");
-  doc.setCreator("PìgBiz · Бизнес-план за 10 минут");
+  doc.setAuthor("Kapital");
+  doc.setCreator("Kapital · Бизнес-план за 10 минут");
   const w = new Writer(doc, font, bold, opts.watermark);
   const { model: m, input, sections: s } = plan;
 
   // Cover band
   w.page.drawRectangle({ x: 0, y: H - 130, width: W, height: 130, color: INK });
-  w.page.drawText("PìgBiz", { x: M, y: H - 50, size: 12, font: bold, color: GREEN });
+  w.page.drawText("Kapital", { x: M, y: H - 50, size: 12, font: bold, color: GREEN });
   w.page.drawText("Бизнес-план", { x: M, y: H - 70, size: 10, font, color: rgb(0.8, 0.84, 0.82) });
   const titleLines = w.wrap(plan.title, 24, W - 2 * M, bold).slice(0, 2);
   titleLines.forEach((l, i) => w.page.drawText(l, { x: M, y: H - 100 - i * 26, size: 24, font: bold, color: rgb(1, 1, 1) }));
@@ -193,10 +193,10 @@ export async function renderPlanPdf(plan: PlanView, opts: { watermark: boolean }
 
   w.y -= 10;
   w.text(DISCLAIMER_TEXT, { size: 8, color: INK2 });
-  if (opts.watermark) w.text("Создано на бесплатном тарифе PìgBiz. В Pro — без водяного знака и без лимита планов.", { size: 8, color: GREEN });
+  if (opts.watermark) w.text("Создано на бесплатном тарифе Kapital. В Pro — без водяного знака и без лимита планов.", { size: 8, color: GREEN });
 
   // Page numbers
   const pages = doc.getPages();
-  pages.forEach((p, i) => p.drawText(`PìgBiz · ${i + 1}/${pages.length}`, { x: W - M - 70, y: 24, size: 8, font, color: INK2 }));
+  pages.forEach((p, i) => p.drawText(`Kapital · ${i + 1}/${pages.length}`, { x: W - M - 70, y: 24, size: 8, font, color: INK2 }));
   return doc.save();
 }

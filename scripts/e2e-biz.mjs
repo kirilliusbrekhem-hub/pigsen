@@ -30,10 +30,8 @@ async function user(name, tag, viewport = { width: 1440, height: 1000 }) {
   await page.getByLabel("Пароль").fill("supersecret1");
   await page.getByLabel(/Мне есть 18/).check();
   await page.getByRole("button", { name: "Зарегистрироваться" }).click();
-  await page.waitForURL("**/onboarding");
-  await page.getByRole("button", { name: /^Crypto/ }).click();
-  await page.getByRole("button", { name: /Продолжить/ }).click();
-  await page.waitForURL("**/dashboard");
+  await page.waitForURL("**/new");
+  await page.goto(BASE + "/dashboard");
   const g = await page.request.post(BASE + "/api/savings", { data: { title: "Подушка", target: 500000 } });
   const goalId = (await g.json()).goal.id;
   const entry = async (amount) => {
@@ -86,7 +84,8 @@ const B = await user("Боря Партнёров", "b");
 const invite = await A.page.getByTestId("biz-invite-path").textContent();
 await B.page.goto(BASE + invite.trim());
 await B.page.getByRole("button", { name: "Стать сооснователем" }).click();
-await B.page.waitForURL("**/biz");
+await B.page.waitForURL("**/business");
+await B.page.goto(BASE + "/biz");
 await B.page.getByTestId("biz-capital").waitFor();
 check((await A.view()).members.length === 2, "B is not a member");
 await B.entry(5000);
@@ -98,23 +97,23 @@ await A.page.reload();
 await A.page.getByTestId("biz-feed").getByText(/Боря Партнёров снял\(а\) 3\s000\s₽ из копилки — выручка упала/).waitFor();
 log("Команда: Боря вступил по ссылке, его взнос/снятие видны Ане в ленте");
 
-// Chat: B writes to $PIG, A sees it
+// Chat: B writes to CAP, A sees it
 await B.page.getByRole("tab", { name: "Чат команды" }).click();
-await B.page.getByLabel("Сообщение").fill("$PIG, что купить?");
+await B.page.getByLabel("Сообщение").fill("CAP, что купить?");
 await B.page.getByLabel("Отправить").click();
-await B.page.getByTestId("biz-chat").getByText("$PIG, что купить?").waitFor();
+await B.page.getByTestId("biz-chat").getByText("CAP, что купить?").waitFor();
 const chatV = await A.view();
-check(chatV.chat.some((c) => c.text === "$PIG, что купить?"), "A doesn't see B's chat");
-check(!chatV.pigPartner && !chatV.chat.some((c) => c.pig), "$PIG answered in a Free team chat");
+check(chatV.chat.some((c) => c.text === "CAP, что купить?"), "A doesn't see B's chat");
+check(!chatV.pigPartner && !chatV.chat.some((c) => c.pig), "CAP answered in a Free team chat");
 await B.page.getByTestId("pig-lock").first().waitFor();
-// $PIG-партнёр in the team chat is a Pro feature of the founder
+// CAP-партнёр in the team chat is a Pro feature of the founder
 const founderId = chatV.members.find((m) => m.you).userId;
 sql(`UPDATE "Profile" SET "proUntil" = now() + interval '30 days', "proTier" = 'pro' WHERE "userId" = '${founderId}'`);
-await B.page.request.post(BASE + "/api/biz/chat", { data: { text: "$PIG, что купить?" } });
+await B.page.request.post(BASE + "/api/biz/chat", { data: { text: "CAP, что купить?" } });
 const chatP = await A.view();
-check(chatP.pigPartner && chatP.chat.at(-1)?.pig, "$PIG didn't answer in a Pro team chat");
+check(chatP.pigPartner && chatP.chat.at(-1)?.pig, "CAP didn't answer in a Pro team chat");
 sql(`UPDATE "Profile" SET "proUntil" = NULL, "proTier" = NULL WHERE "userId" = '${founderId}'`);
-log("Чат команды: в Free $PIG молчит (замок «$PIG-партнёр доступен в Pro»), в Pro отвечает");
+log("Чат команды: в Free CAP молчит (замок «CAP-партнёр доступен в Pro»), в Pro отвечает");
 
 // Free plan: founder + 1 friend
 const C = await user("Вика Лишняя", "c");
@@ -221,7 +220,7 @@ await mp.screenshot({ path: `${SHOTS}/biz-390-top.png`, fullPage: true });
 log("Мобильная версия 390px");
 
 
-// ════════════════ PìgBiz 2: admin-reviewed challenges, story, crises, investors, types, Pro custom ════════════════
+// ════════════════ Kapital 2: admin-reviewed challenges, story, crises, investors, types, Pro custom ════════════════
 const bizId = (await A.view()).business.id;
 const bId = teamV.members.find((m) => !m.you).userId;
 const ADM = await user("Модератор Маша", "adm");

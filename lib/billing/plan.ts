@@ -89,8 +89,8 @@ export const isPlanId = (id: string): id is PlanId => id in PLANS;
 
 export const PRO_PERKS = [
   "Эксклюзивные курсы и материалы: финплан, инвестиции, запуск бизнеса, переговоры",
-  "Безлимитный чат с $PIG (на Free 7 вопросов в день)",
-  "Безлимитный $PIG-коуч и разбор трат «что если потрачу»",
+  "Безлимитный чат с CAP (на Free 7 вопросов в день)",
+  "Безлимитный CAP-коуч и разбор трат «что если потрачу»",
   "Безлимитный разбор бизнес-идей",
   "Сколько угодно целей в копилке (на Free 2)",
   "x2 PigCoin$ за всё: уроки, квизы, взносы",
@@ -106,7 +106,7 @@ export const PRO_PERKS = [
 /** Rows for the Free / trial / Pro comparison table. */
 export const COMPARE: { label: string; free: string; lite: string; pro: string }[] = [
   { label: "Эксклюзивные курсы и материалы", free: "превью", lite: "превью", pro: "✓" },
-  { label: "Вопросы $PIG в день", free: "7", lite: "25", pro: "∞" },
+  { label: "Вопросы CAP в день", free: "7", lite: "25", pro: "∞" },
   { label: "Советы коуча в день", free: "1", lite: "5", pro: "∞" },
   { label: "«Что если потрачу» в день", free: "2", lite: "10", pro: "∞" },
   { label: "Разбор идей в день", free: "1", lite: "5", pro: "∞" },

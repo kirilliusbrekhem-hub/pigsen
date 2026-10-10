@@ -25,7 +25,7 @@ export function TierPicker({ tiers, current, stars, enabled }: { tiers: TierOpti
         ))}
       </div>
       <span className="muted" style={{ fontSize: 13 }}>
-        Все возможности Pro + команда в «Моём бизнесе» до {t.people} человек (вы и {t.people - 1} друзей) и $PIG.
+        Все возможности Pro + команда в «Моём бизнесе» до {t.people} человек (вы и {t.people - 1} друзей) и CAP.
       </span>
       <div className="plan-row">
         <div className="plan-opt">

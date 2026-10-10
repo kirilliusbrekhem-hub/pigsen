@@ -3,7 +3,7 @@ import { PRO_PERKS } from "@/lib/billing/plan";
 import type { Metadata } from "next";
 import { LEGAL, contactLine } from "@/lib/legal";
 
-export const metadata: Metadata = { title: "Pro, оплата и возвраты — PìgBiz" };
+export const metadata: Metadata = { title: "Pro, оплата и возвраты — Kapital" };
 
 export default function OfferPage() {
   return (
@@ -13,7 +13,7 @@ export default function OfferPage() {
 
       <h2>1. Оферта</h2>
       <p>
-        Эта страница — публичная оферта {LEGAL.owner} на предоставление доступа к подписке PìgBiz Pro.
+        Эта страница — публичная оферта {LEGAL.owner} на предоставление доступа к подписке Kapital Pro.
         Оплата Pro означает принятие этих условий, а также «Условий использования».
       </p>
 
@@ -53,7 +53,7 @@ export default function OfferPage() {
 
       <h2>6. Прочее</h2>
       <p>
-        Pro не меняет образовательный характер сервиса: материалы и ответы $PIG не являются инвестиционными рекомендациями.
+        Pro не меняет образовательный характер сервиса: материалы и ответы CAP не являются инвестиционными рекомендациями.
         Контакты: {LEGAL.owner}, {contactLine()}.
       </p>
     </article>

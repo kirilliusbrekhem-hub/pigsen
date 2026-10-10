@@ -24,7 +24,7 @@ export default async function SavedPage({ searchParams }: { searchParams: Promis
         <div>
           <span className="label">Ваша библиотека</span>
           <h1>Сохранённое</h1>
-          <p>Материалы и курсы, к которым вы хотите вернуться. Сохранения также помогают PìgBiz точнее подбирать рекомендации.</p>
+          <p>Материалы и курсы, к которым вы хотите вернуться. Сохранения также помогают Kapital точнее подбирать рекомендации.</p>
         </div>
       </section>
       {all.length > 0 && (

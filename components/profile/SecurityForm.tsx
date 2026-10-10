@@ -41,7 +41,7 @@ export function SecurityForm() {
     try {
       if (kind === "clear") {
         await api("/api/ai/conversations", { method: "DELETE" });
-        toast.show("История разговоров с $PIG очищена");
+        toast.show("История разговоров с CAP очищена");
         setBusy(null);
         router.refresh();
         return;
@@ -80,7 +80,7 @@ export function SecurityForm() {
       <div className="card set-group">
         <div className="set-row">
           <div>
-            <div className="t">Очистить историю $PIG</div>
+            <div className="t">Очистить историю CAP</div>
             <div className="d">Удаляет все разговоры. Прогресс и сохранения останутся.</div>
           </div>
           <Button size="sm" onClick={() => action("clear")} loading={busy === "clear"}>

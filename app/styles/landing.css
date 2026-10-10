@@ -207,7 +207,7 @@ html:has(> body .lp) { overflow-x: clip; scroll-behavior: smooth; scroll-padding
   .lp-float-b { display: none; }
 }
 
-/* PìgBiz: how it works, co-founders + $PIG */
+/* Kapital: how it works, co-founders + CAP */
 .lp-cafe { display: block; width: 100%; height: auto; color: var(--ink); }
 .lp-cafe .lp-cafe-acc { stroke: var(--accent); }
 .lp-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }

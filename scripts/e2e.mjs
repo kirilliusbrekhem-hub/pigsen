@@ -1,4 +1,4 @@
-// End-to-end user scenario for PìgBiz (Playwright).
+// End-to-end user scenario for Kapital (Playwright).
 // Usage: start the app (npm run build && npm start), then: BASE_URL=http://localhost:3000 npm run e2e
 import { chromium } from "playwright";
 import { mkdirSync } from "node:fs";
@@ -47,14 +47,14 @@ async function desktopScenario() {
   current = page;
   const email = `e2e+${Date.now()}@pigsen.test`;
 
-  // 1. Open PìgBiz
+  // 1. Open Kapital
   await page.goto(BASE + "/");
-  await page.getByRole("heading", { name: /Make your money/ }).waitFor();
+  await page.getByRole("heading", { name: /Опиши свой/ }).waitFor();
   await shot(page, "01-landing");
-  log("1. Открыть PìgBiz");
+  log("1. Открыть Kapital");
 
   // 2. Register (with a validation check first)
-  await page.getByRole("link", { name: "Начать" }).click();
+  await page.getByRole("link", { name: "Начать бесплатно" }).click();
   await page.waitForURL("**/register");
   await page.getByRole("button", { name: "Зарегистрироваться" }).click();
   await page.getByText("Минимум 2 символа").waitFor();
@@ -64,14 +64,8 @@ async function desktopScenario() {
   await page.getByLabel(/Мне есть 18/).check();
   await shot(page, "02-register");
   await page.getByRole("button", { name: "Зарегистрироваться" }).click();
-  await page.waitForURL("**/onboarding");
-  for (const n of ["Startups", "AI", "Finance"]) await page.getByRole("button", { name: new RegExp(`^${n}`) }).click();
-  await shot(page, "02b-onboarding");
-  await page.getByRole("button", { name: /Продолжить/ }).click();
-  log("2. Зарегистрироваться", email);
-
-  // 3. Dashboard
-  await page.waitForURL("**/dashboard");
+  await page.waitForURL("**/new");
+  await page.goto(BASE + "/dashboard");
   await page.getByRole("heading", { name: /Кирилл/ }).waitFor();
   await page.getByText("Продолжить обучение").waitFor();
   await page.getByText("Персонально для вас").waitFor();
@@ -79,14 +73,13 @@ async function desktopScenario() {
   log("3. Dashboard");
 
   // 4. Open AI
-  await page.locator(".sidebar").getByRole("link", { name: /\$PIG/ }).click();
-  await page.waitForURL("**/ai");
+  await page.goto(BASE + "/ai");
   await page.getByText(/спросите о бизнесе что угодно/).waitFor();
   log("4. Открыть AI");
 
   // 5-6. Ask and get an answer
   const q = "Объясни мне, как работает венчурное финансирование.";
-  await page.getByLabel("Вопрос для $PIG").fill(q);
+  await page.getByLabel("Вопрос для CAP").fill(q);
   await page.getByRole("button", { name: "Отправить" }).click();
   await page.locator(".q-msg .bubble", { hasText: q }).waitFor();
   await page.getByRole("button", { name: "Копировать ответ" }).waitFor({ timeout: 90_000 });
@@ -125,7 +118,7 @@ async function desktopScenario() {
   // 8. Open material
   await page.getByRole("link", { name: "Как устроено венчурное финансирование" }).first().click();
   await page.waitForURL("**/library/kak-ustroeno-venchurnoe-finansirovanie");
-  await page.getByText("Конспект PìgBiz").waitFor();
+  await page.getByText("Конспект Kapital").waitFor();
   log("8. Открыть материал");
 
   // 9. Save
@@ -191,14 +184,13 @@ async function desktopScenario() {
   log("14. Открыть Profile (тема, прогресс, личные данные)");
 
   // 15. Back to AI: history, continue, delete
-  await page.locator(".sidebar").getByRole("link", { name: /\$PIG/ }).click();
-  await page.waitForURL("**/ai");
+  await page.goto(BASE + "/ai");
   const convo = page.locator(".ctx .convo-item a").first();
   await convo.waitFor();
   await convo.click();
   await page.waitForURL("**/ai/*");
   await page.locator(".q-msg").first().waitFor();
-  await page.getByLabel("Вопрос для $PIG").fill("А что такое юнит-экономика?");
+  await page.getByLabel("Вопрос для CAP").fill("А что такое юнит-экономика?");
   await page.keyboard.press("Enter");
   await page.locator(".ans-actions").nth(2).waitFor({ timeout: 90_000 });
   await shot(page, "15-ai-history");
@@ -244,7 +236,7 @@ async function mobileScenario(email) {
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Пароль").fill("supersecret1");
   await page.getByRole("button", { name: "Войти" }).click();
-  await page.waitForURL("**/dashboard");
+  await page.waitForURL("**/new");
   for (const [path, name] of [
     ["/dashboard", "m-dashboard"],
     ["/ai", "m-ai"],
@@ -262,10 +254,9 @@ async function mobileScenario(email) {
     await shot(page, name);
   }
   // Tab bar navigation and the AI history sheet
-  await page.locator(".tabbar").getByRole("link", { name: "Копилка" }).click();
-  await page.waitForURL("**/savings");
-  await page.locator(".tabbar").getByRole("link", { name: /\$PIG/ }).click();
-  await page.waitForURL("**/ai");
+  await page.locator(".tabbar").getByRole("link", { name: "CAP" }).click();
+  await page.waitForURL("**/cap");
+  await page.goto(BASE + "/ai");
   await page.getByRole("button", { name: /История/ }).click();
   await page.getByRole("dialog").waitFor();
   await shot(page, "m-ai-history-sheet");
@@ -278,7 +269,7 @@ async function mobileScenario(email) {
   await tp.getByLabel("Email").fill(email);
   await tp.getByLabel("Пароль").fill("supersecret1");
   await tp.getByRole("button", { name: "Войти" }).click();
-  await tp.waitForURL("**/dashboard");
+  await tp.waitForURL("**/new");
   for (const p of ["/dashboard", "/library", "/learn/osnovy-predprinimatelstva"]) {
     await tp.goto(BASE + p);
     await noHorizontalOverflow(tp, `tablet ${p}`);

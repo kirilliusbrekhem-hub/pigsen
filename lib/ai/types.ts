@@ -12,13 +12,13 @@ export interface RelatedMaterial {
   href: string;
 }
 
-/** Everything $PIG knows about the user for one reply. Built server-side only. */
+/** Everything CAP knows about the user for one reply. Built server-side only. */
 export interface AIContext {
   userName: string;
   tone: AiTone;
   interests: string[];
   learningSummary: string;
-  /** The user's savings goals, so $PIG can coach with real numbers. */
+  /** The user's savings goals, so CAP can coach with real numbers. */
   savingsSummary?: string;
   related: RelatedMaterial[];
   /** "edu" (Free): educational assistant. "partner" (Pro): business partner persona. Defaults to "edu". */

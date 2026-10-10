@@ -144,7 +144,7 @@
 @media (max-width: 960px) { .biz-grid { grid-template-columns: minmax(0, 1fr); } }
 .biz-sec-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 
-/* $PIG */
+/* CAP */
 .biz-pig { gap: 12px; border-left: 3px solid var(--accent); }
 .biz-pig-head { display: flex; gap: 10px; align-items: center; }
 .biz-pig-head div { display: flex; flex-direction: column; font-size: 14px; }

@@ -260,7 +260,7 @@ export function Wizard({ initial, planId }: { initial: PlanInput; planId?: strin
         <aside className="bp-side">
           <div className="bp-pig">
             <div className="bp-pig-head">
-              <Icon name="sparkle" size="sm" /> Подсказка $PIG
+              <Icon name="sparkle" size="sm" /> Подсказка CAP
             </div>
             <p>{hint[step] ?? s.hint}</p>
             <button type="button" className="btn btn-sm btn-light" disabled={hintBusy} onClick={askPig}>

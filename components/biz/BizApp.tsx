@@ -31,7 +31,7 @@ function effectText(e: { guests?: number; check?: number; rating?: number; churn
     .join(" · ");
 }
 
-/** Free teams: $PIG is not a partner here — upsell to Pro (founder's plan). */
+/** Free teams: CAP is not a partner here — upsell to Pro (founder's plan). */
 function PigPartnerLock({ compact = false }: { compact?: boolean }) {
   return (
     <div className="pig-lock" data-testid="pig-lock">
@@ -39,9 +39,9 @@ function PigPartnerLock({ compact = false }: { compact?: boolean }) {
         <Icon name="lock" size="sm" />
       </span>
       <div>
-        <b>$PIG-партнёр доступен в Pro</b>
+        <b>CAP-партнёр доступен в Pro</b>
         {!compact && <p>Сооснователь в чате команды, идеи «давай попробуем…», стратегия игры и разборы по цифрам. Включается, когда основатель команды на Pro.</p>}
-        {compact && <p>В Free $PIG не отвечает в чате команды — он работает как ассистент в разделе «$PIG».</p>}
+        {compact && <p>В Free CAP не отвечает в чате команды — он работает как ассистент в разделе «CAP».</p>}
         <Link href="/pro" className={btnClass("primary", "sm")}>
           Открыть Pro
         </Link>
@@ -224,14 +224,14 @@ export function BizApp({ initial }: { initial: BizView }) {
                 $
               </span>
               <div>
-                <b>$PIG · ИИ-сооснователь</b>
+                <b>CAP · ИИ-сооснователь</b>
                 <span className="muted">иногда ошибается — и честно признаётся</span>
               </div>
             </div>
             {view.pigPartner && pigLast && <p className="biz-pig-text">{pigLast.text}</p>}
             {view.pigPartner || view.pro ? (
               <div className="row" style={{ flexWrap: "wrap" }}>
-                <Button size="sm" variant="secondary" loading={busy === "advice"} onClick={() => act("advice", "/api/biz/advice", {}, () => "$PIG посчитал — смотрите чат").then(() => setTab("chat"))}>
+                <Button size="sm" variant="secondary" loading={busy === "advice"} onClick={() => act("advice", "/api/biz/advice", {}, () => "CAP посчитал — смотрите чат").then(() => setTab("chat"))}>
                   Разбор по цифрам
                 </Button>
                 <span className="muted biz-small">{view.pro ? "3 разбора в день" : "1 разбор в день · 3 с Pro"}</span>
@@ -300,7 +300,7 @@ export function BizApp({ initial }: { initial: BizView }) {
             <div className="biz-sec-head">
               <h2>Команда</h2>
               <span className="muted biz-small">
-                {view.members.length} из {b.maxMembers} + $PIG
+                {view.members.length} из {b.maxMembers} + CAP
               </span>
             </div>
             <ul className="biz-team">
@@ -340,7 +340,7 @@ export function BizApp({ initial }: { initial: BizView }) {
                   $
                 </span>
                 <span className="biz-team-name">
-                  <b>$PIG</b>
+                  <b>CAP</b>
                   <span className="muted biz-small">ИИ-сооснователь</span>
                 </span>
               </li>
@@ -399,7 +399,7 @@ export function BizApp({ initial }: { initial: BizView }) {
                   <div ref={chatEnd} />
                 </div>
                 <form className="biz-send" onSubmit={send}>
-                  <input className="input" value={msg} maxLength={300} onChange={(e) => setMsg(e.target.value)} placeholder="Написать команде или $PIG…" aria-label="Сообщение" />
+                  <input className="input" value={msg} maxLength={300} onChange={(e) => setMsg(e.target.value)} placeholder="Написать команде или CAP…" aria-label="Сообщение" />
                   <Button size="sm" variant="primary" loading={busy === "chat"} type="submit" aria-label="Отправить">
                     <Icon name="send" />
                   </Button>

@@ -18,7 +18,7 @@ export default async function SimPage() {
         <div>
           <span className="label">Бизнес-симулятор · бета</span>
           <h1>Управляйте бизнесом 12 недель</h1>
-          <p>Выберите дело, принимайте решения каждую неделю и смотрите, как они бьют по кассе. $PIG разберёт каждый ход.</p>
+          <p>Выберите дело, принимайте решения каждую неделю и смотрите, как они бьют по кассе. CAP разберёт каждый ход.</p>
         </div>
       </section>
       <SimGame key={run?.id ?? `new-${left}`} initial={run} kinds={kinds} recent={recent} runsLeft={left} pro={pro} />

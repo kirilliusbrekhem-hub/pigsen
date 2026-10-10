@@ -1,11 +1,11 @@
-// Captures clean, already-loaded states of the real PìgBiz interface for the landing hero video.
+// Captures clean, already-loaded states of the real Kapital interface for the landing hero video.
 // Step 1 of 2 (step 2: scripts/compose-demo.mjs renders the final hero.mp4 from these captures).
 //
 // Usage (app built and running, Postgres reachable):
 //   DATABASE_URL=postgresql://... BASE_URL=http://localhost:3500 node scripts/record-demo.mjs [outDir]
 // Prepares a demo account with realistic data (Pro, coins, goals, finished lesson + quiz, community posts,
 // a weekly leaderboard of friends), hides every floating element (toasts, popovers, bubbles, prompts) and
-// saves crisp PNG stills (deviceScaleFactor 1.5) plus a frame sequence of $PIG streaming its answer.
+// saves crisp PNG stills (deviceScaleFactor 1.5) plus a frame sequence of CAP streaming its answer.
 import { chromium } from "playwright";
 import { execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -50,7 +50,7 @@ function completeLessons(userId, n) {
 }
 const POSTS = [
   ["Марина К.", "Закрыла цель «Подушка безопасности» — 150 000 ₽ за 8 месяцев. Правило 10% реально работает!", 7],
-  ["Артём", "Прошёл курс по инвестициям и открыл ИИС. $PIG помог разобраться с налоговым вычетом за 5 минут.", 6],
+  ["Артём", "Прошёл курс по инвестициям и открыл ИИС. CAP помог разобраться с налоговым вычетом за 5 минут.", 6],
   ["Соня", "Месяц без спонтанных покупок: +12 400 ₽ в копилку. Кто со мной на челлендж?", 5],
   ["Дима Л.", "Квиз по сложному проценту — 5/5 с первой попытки, +40 XP", 4],
   ["Катя", "Первый доход с фриланса отправила сразу в цель «Ноутбук». Осталось 18%!", 3],
@@ -143,9 +143,9 @@ async function scrollToEl(locator, offset = 90) {
 const snap = (name) => page.screenshot({ path: join(OUT, `${name}.png`) });
 const manifest = {};
 
-// 1. $PIG: stream an answer, grabbing frames as it types.
+// 1. CAP: stream an answer, grabbing frames as it types.
 await go("/ai");
-const input = page.getByLabel("Вопрос для $PIG");
+const input = page.getByLabel("Вопрос для CAP");
 // Without a provider key the server answers in demo mode; this question hits its full investing answer.
 await page.addStyleTag({ content: ".badge.warn { display: none !important; }" });
 await input.fill("Как работает сложный процент и куда вложить первые 10 000 ₽?");

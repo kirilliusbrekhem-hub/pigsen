@@ -638,6 +638,13 @@ model BizBusiness {
   revenue    Int           @default(0)
   maxLevel   Int           @default(1)
   state      Json          @default("{}")
+  /// Kapital: the user's own words, the AI one-liner and type label, starting capital (₽) and the 3-step plan.
+  idea       String        @default("")
+  pitch      String        @default("")
+  typeLabel  String        @default("")
+  target     Int           @default(0)
+  monthly    Int           @default(0)
+  plan       Json          @default("[]")
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
   members    BizMember[]
@@ -657,6 +664,8 @@ model BizMember {
   name        String
   role        String      @default("member") // founder | member
   contributed Int         @default(0)
+  /// Kapital: the member's savings goal that «Отложить» deposits into (created on demand).
+  goalId      String?
   joinedAt    DateTime    @default(now())
 
   @@index([businessId])

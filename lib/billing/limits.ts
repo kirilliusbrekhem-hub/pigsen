@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db/prisma";
 import { advisoryLock } from "@/lib/db/lock";
 import { limitsFor, startOfUtcDay, tierOf, type LimitKind, type Tier } from "./plan";
 
-/** Extra $PIG questions per "boost-chat" purchase, valid for the day it was bought. */
+/** Extra CAP questions per "boost-chat" purchase, valid for the day it was bought. */
 export const CHAT_BOOST = 10;
 
 export interface Usage {

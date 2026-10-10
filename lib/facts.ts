@@ -1,5 +1,5 @@
 // "Fact of the day" for the dashboard: one per calendar day (UTC), cycling through the list.
-// Well-established figures and concepts only; each comes with a follow-up question for $PIG.
+// Well-established figures and concepts only; each comes with a follow-up question for CAP.
 
 export interface DailyFact {
   title: string;

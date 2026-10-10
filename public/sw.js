@@ -1,4 +1,4 @@
-/* PìgBiz service worker: Web Push for the smart piggy bank. */
+/* Kapital service worker: Web Push for the smart piggy bank. */
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (e) => e.waitUntil(self.clients.claim()));
 
@@ -18,7 +18,7 @@ self.addEventListener("push", (event) => {
     data: { url: data.url || "/savings" },
   };
   if (data.image) opts.image = data.image;
-  event.waitUntil(self.registration.showNotification(data.title || "PìgBiz", opts));
+  event.waitUntil(self.registration.showNotification(data.title || "Kapital", opts));
 });
 
 self.addEventListener("notificationclick", (event) => {

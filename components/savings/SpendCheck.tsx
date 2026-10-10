@@ -21,7 +21,7 @@ interface Result {
   demo: boolean;
 }
 
-/** "What happens if I spend it?" with $PIG's take and a one-tap "save it instead". */
+/** "What happens if I spend it?" with CAP's take and a one-tap "save it instead". */
 export function SpendCheck({ goals, defaultGoal }: { goals: Array<{ id: string; title: string }>; defaultGoal?: string }) {
   const router = useRouter();
   const toast = useToast();
@@ -67,7 +67,7 @@ export function SpendCheck({ goals, defaultGoal }: { goals: Array<{ id: string; 
         <div>
           <b>Что будет, если я потрачу?</b>
           <p className="muted" style={{ fontSize: 13 }}>
-            Введите покупку, и $PIG покажет, как она скажется на вашей цели и сколько эти деньги могли бы стать.
+            Введите покупку, и CAP покажет, как она скажется на вашей цели и сколько эти деньги могли бы стать.
           </p>
         </div>
       </div>
@@ -123,7 +123,7 @@ export function SpendCheck({ goals, defaultGoal }: { goals: Array<{ id: string; 
             )}
             {saved && <span className="pos">Отложено в копилку ✓</span>}
             <span className="muted" style={{ fontSize: 12 }}>
-              {res.demo ? "Базовый разбор. В Pro $PIG разбирает каждую трату." : "Разбор от $PIG."} Это не финансовая рекомендация.
+              {res.demo ? "Базовый разбор. В Pro CAP разбирает каждую трату." : "Разбор от CAP."} Это не финансовая рекомендация.
             </span>
           </div>
         </div>

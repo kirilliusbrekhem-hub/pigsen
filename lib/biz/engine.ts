@@ -176,7 +176,7 @@ export const clampRating = (r: number) => Math.round(Math.min(5, Math.max(1, r))
 export interface DayEvent {
   id: string;
   text: string;
-  /** Teaser for $PIG the day before. */
+  /** Teaser for CAP the day before. */
   teaser: string;
   mult: number;
   rating: number;
@@ -231,7 +231,7 @@ export interface Hint {
 }
 
 /**
- * $PIG's daily hint: honest picks the open item with the best effect per ruble; ~20% of days it's a deliberately
+ * CAP's daily hint: honest picks the open item with the best effect per ruble; ~20% of days it's a deliberately
  * weaker pick (game-only, the next day reveals it). Returns null when nothing is open.
  */
 /** Value per ruble, comparable across kinds (guests and check are scaled by the kind's base). */

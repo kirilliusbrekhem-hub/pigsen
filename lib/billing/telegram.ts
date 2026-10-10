@@ -6,7 +6,7 @@ import { HttpError } from "@/lib/api/http";
 import { COIN_PACKS, PLANS, isPlanId, type PackId, type PlanId } from "./plan";
 import { setProTier } from "./tier";
 
-// Telegram Stars payments through the PìgBiz bot. Token and webhook secret live only on the server.
+// Telegram Stars payments through the Kapital bot. Token and webhook secret live only on the server.
 const token = () => process.env.TELEGRAM_BOT_TOKEN?.trim() ?? "";
 export const webhookSecret = () => process.env.TELEGRAM_WEBHOOK_SECRET?.trim() ?? "";
 
@@ -32,8 +32,8 @@ export async function createStarsInvoice(userId: string, planId: PlanId): Promis
   const id = `tg_${randomBytes(12).toString("hex")}`;
   await prisma.payment.create({ data: { id, userId, plan: plan.id, amount: plan.stars, provider: "telegram" } });
   const url = await tg<string>("createInvoiceLink", {
-    title: `PìgBiz ${plan.title}`,
-    description: "Безлимитный $PIG-коуч, разбор трат, все обложки целей и x2 PigCoin$.",
+    title: `Kapital ${plan.title}`,
+    description: "Безлимитный CAP-коуч, разбор трат, все обложки целей и x2 PigCoin$.",
     payload: id,
     provider_token: "",
     currency: "XTR",
@@ -53,7 +53,7 @@ export async function createCoinsInvoice(userId: string, packId: PackId): Promis
   await prisma.payment.create({ data: { id, userId, plan: pack.id, amount: pack.stars, provider: "telegram" } });
   const url = await tg<string>("createInvoiceLink", {
     title: `${pack.coins} PigCoin$`,
-    description: `${pack.coins} PigCoin$ на баланс PìgBiz для магазина. Бонусные баллы без денежной стоимости.`,
+    description: `${pack.coins} PigCoin$ на баланс Kapital для магазина. Бонусные баллы без денежной стоимости.`,
     payload: id,
     provider_token: "",
     currency: "XTR",
@@ -101,7 +101,7 @@ export async function handleUpdate(u: Update): Promise<void> {
     if (pack) {
       // Coin pack: claim + credit in one transaction, so a redelivered update pays once.
       if (!(await creditStarsCoins(p.id, sp.telegram_payment_charge_id, pack.coins))) return;
-      await tg("sendMessage", { chat_id: u.message.chat.id, text: `Оплата прошла! +${pack.coins} PigCoin$ на вашем балансе PìgBiz. Вернитесь на сайт: страница обновится сама.` }).catch(() => {});
+      await tg("sendMessage", { chat_id: u.message.chat.id, text: `Оплата прошла! +${pack.coins} PigCoin$ на вашем балансе Kapital. Вернитесь на сайт: страница обновится сама.` }).catch(() => {});
       return;
     }
     let fresh: boolean;
@@ -118,11 +118,11 @@ export async function handleUpdate(u: Update): Promise<void> {
     if (!fresh) return;
     const until = await extendPro(p.userId, PLANS[p.plan as PlanId]?.days ?? 30);
     if (isPlanId(p.plan)) await setProTier(p.userId, PLANS[p.plan].tier);
-    await tg("sendMessage", { chat_id: u.message.chat.id, text: `Оплата прошла! PìgBiz Pro активен до ${until.toLocaleDateString("ru-RU")}.${isPlanId(p.plan) && PLANS[p.plan].recurring ? " Подписка продлевается каждый месяц, отменить можно в Telegram: Настройки → Мои звёзды." : ""} Вернитесь на сайт: страница обновится сама.` }).catch(() => {});
+    await tg("sendMessage", { chat_id: u.message.chat.id, text: `Оплата прошла! Kapital Pro активен до ${until.toLocaleDateString("ru-RU")}.${isPlanId(p.plan) && PLANS[p.plan].recurring ? " Подписка продлевается каждый месяц, отменить можно в Telegram: Настройки → Мои звёзды." : ""} Вернитесь на сайт: страница обновится сама.` }).catch(() => {});
     return;
   }
   if (u.message?.text?.startsWith("/start")) {
-    await tg("sendMessage", { chat_id: u.message.chat.id, text: "Привет! Я бот оплаты PìgBiz. Оформить Pro можно на сайте на странице «Pro и PigCoin$»." }).catch(() => {});
+    await tg("sendMessage", { chat_id: u.message.chat.id, text: "Привет! Я бот оплаты Kapital. Оформить Pro можно на сайте на странице «Pro и PigCoin$»." }).catch(() => {});
   }
 }
 

@@ -35,7 +35,7 @@ const POOL: QuestDef[] = [
   { kind: "lesson", title: "Пройди урок", hint: "Любой урок в разделе «Обучение»", href: "/learn", icon: "cap", target: 1 },
   { kind: "quiz", title: "Пройди квиз", hint: "Квиз внизу любого урока", href: "/learn", icon: "bulb", target: 1 },
   { kind: "quiz_perfect", title: "Ответь на квиз без ошибок", hint: "Все ответы верные", href: "/learn", icon: "sparkle", target: 1 },
-  { kind: "ask_pig", title: "Задай вопрос $PIG", hint: "Спроси о бизнесе или деньгах", href: "/ai", icon: "message", target: 1 },
+  { kind: "ask_pig", title: "Задай вопрос CAP", hint: "Спроси о бизнесе или деньгах", href: "/ai", icon: "message", target: 1 },
   { kind: "deposit", title: "Внеси в копилку", hint: "Любая сумма в любую цель", href: "/savings", icon: "piggy", target: 1 },
   { kind: "save", title: "Сохрани материал", hint: "Закладка у статьи или книги", href: "/library", icon: "bookmark", target: 1 },
   { kind: "community", title: "Напиши в комьюнити", hint: "Пост или ответ", href: "/community", icon: "users", target: 1, proOnly: true },

@@ -68,13 +68,11 @@ await p.getByLabel("Email").fill(`crawl+${Date.now()}@pigsen.test`);
 await p.getByLabel("Пароль").fill("supersecret1");
   await p.getByLabel(/Мне есть 18/).check();
 await p.getByRole("button", { name: "Зарегистрироваться" }).click();
-await p.waitForURL("**/onboarding");
-await p.getByRole("button", { name: /^Startups/ }).click();
-await p.getByRole("button", { name: /Продолжить/ }).click();
-await p.waitForURL("**/dashboard");
+await p.waitForURL("**/new");
+  await p.goto(BASE + "/dashboard");
 // activity: a chat, a saved item, a completed lesson with quiz, an idea review
 await p.goto(BASE + "/ai");
-await p.getByLabel("Вопрос для $PIG").fill("Что такое юнит-экономика?");
+await p.getByLabel("Вопрос для CAP").fill("Что такое юнит-экономика?");
 await p.getByRole("button", { name: "Отправить" }).click();
 await p.getByRole("button", { name: "Копировать ответ" }).waitFor({ timeout: 90_000 });
 await p.goto(BASE + "/library");

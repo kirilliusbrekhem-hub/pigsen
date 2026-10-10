@@ -22,7 +22,7 @@ export function getAIProvider(): AIProvider {
 
 export const MAX_HISTORY_TURNS = 20;
 
-/** Streams $PIG's reply for a conversation history. UI and routes never talk to providers directly. */
+/** Streams CAP's reply for a conversation history. UI and routes never talk to providers directly. */
 export function streamReply(history: ChatTurn[], context: AIContext, signal?: AbortSignal): AsyncIterable<string> {
   const provider = getAIProvider();
   const messages = history.slice(-MAX_HISTORY_TURNS);

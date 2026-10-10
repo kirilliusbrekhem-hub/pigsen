@@ -20,7 +20,7 @@ export default async function ToolsPage({ searchParams }: { searchParams: Promis
         <div>
           <span className="label">Инструменты</span>
           <h1>Посчитать и проверить</h1>
-          <p>Калькуляторы для денег и бизнеса и разбор идеи от $PIG. Любой результат можно обсудить с $PIG.</p>
+          <p>Калькуляторы для денег и бизнеса и разбор идеи от CAP. Любой результат можно обсудить с CAP.</p>
         </div>
       </section>
       {!isPro(user.profile) && <ProPromo place="tools" />}

@@ -32,7 +32,7 @@ function Field({ label, value, onChange, suffix, step = 1, max }: { label: strin
 function AskPig({ q }: { q: string }) {
   return (
     <Link className="btn btn-secondary" href={`/ai?q=${encodeURIComponent(q)}`}>
-      <Icon name="sparkle" size="sm" /> Разобрать с $PIG
+      <Icon name="sparkle" size="sm" /> Разобрать с CAP
     </Link>
   );
 }

@@ -15,7 +15,7 @@ export function BizJoin({ code, name, kindTitle, founder, members, full }: { cod
     setError("");
     try {
       await api("/api/biz/join", { method: "POST", body: { code } });
-      router.push("/biz");
+      router.push("/business");
       router.refresh();
     } catch (e) {
       setError(errorMessage(e));
@@ -31,7 +31,7 @@ export function BizJoin({ code, name, kindTitle, founder, members, full }: { cod
           {founder} зовёт вас в «{name}»
         </h1>
         <p className="muted">
-          {kindTitle}. В команде: {members.join(", ")} и $PIG. Ваши новые взносы в копилку будут растить общий капитал — а снятия будут видны всей команде.
+          {kindTitle}. В команде: {members.join(", ")} и CAP. Ваши новые взносы в копилку будут растить общий капитал — а снятия будут видны всей команде.
         </p>
         {error && <p className="biz-error">{error}</p>}
         <Button variant="primary" loading={busy} disabled={full} onClick={join}>

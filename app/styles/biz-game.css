@@ -1,4 +1,4 @@
-/* PìgBiz game layer: story, investors, crises, custom skin, challenge proofs. Brand: green + ink only. */
+/* Kapital game layer: story, investors, crises, custom skin, challenge proofs. Brand: green + ink only. */
 .bg-title { display: flex; align-items: center; gap: 10px; }
 .bg-logo { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--bg-accent, var(--accent)); font-size: 22px; flex: none; }
 .bg-crisis { border-left: 3px solid var(--ink); background: linear-gradient(180deg, var(--accent-soft), var(--surface) 80%); }

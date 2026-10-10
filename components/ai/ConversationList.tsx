@@ -22,7 +22,7 @@ interface Props {
 export function ConversationList({ items, activeId, onDelete, onSelect }: Props) {
   const [confirm, setConfirm] = useState<string | null>(null);
   if (!items.length) {
-    return <p className="muted" style={{ fontSize: 12.5, padding: "4px 10px" }}>Здесь появится история ваших разговоров с $PIG.</p>;
+    return <p className="muted" style={{ fontSize: 12.5, padding: "4px 10px" }}>Здесь появится история ваших разговоров с CAP.</p>;
   }
   return (
     <div className="ctx-list">

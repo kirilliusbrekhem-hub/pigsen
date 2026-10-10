@@ -191,7 +191,7 @@ export async function growthStats() {
   const DAYS = 30;
   const since = new Date(day(DAYS - 1).toISOString().slice(0, 10) + "T00:00:00Z");
   const keys = Array.from({ length: DAYS }, (_, i) => dayKey(new Date(since.getTime() + i * 86_400_000)));
-  // Prisma stores UTC in timestamp(3) without tz, so to_char gives the UTC day. Distinct (user, day) activity from real events: lessons, views, $PIG questions, coin ledger.
+  // Prisma stores UTC in timestamp(3) without tz, so to_char gives the UTC day. Distinct (user, day) activity from real events: lessons, views, CAP questions, coin ledger.
   const activity = await prisma.$queryRaw<{ userId: string; d: string }[]>`
     SELECT DISTINCT "userId", to_char(t, 'YYYY-MM-DD') AS d FROM (
       SELECT "userId", "updatedAt" AS t FROM "Progress" WHERE "updatedAt" >= ${since}

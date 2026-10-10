@@ -1,4 +1,4 @@
-// PìgBiz game layer: investors, story chapters and crises. Pure and deterministic; the service applies results
+// Kapital game layer: investors, story chapters and crises. Pure and deterministic; the service applies results
 // under the business lock. Nothing here ever adds capital: rewards are multipliers, unlocks, discounts, rating,
 // reputation, and modest PigCoin$/XP paid by the service.
 import { hashSeed, rng } from "./rng";

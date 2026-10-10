@@ -36,12 +36,12 @@ export async function createCheckout(userId: string, email: string, planId: Plan
       amount: { value: plan.price.toFixed(2), currency: "RUB" },
       capture: true,
       confirmation: { type: "redirect", return_url: `${origin}/pro?paid=1` },
-      description: `PìgBiz ${plan.title}`,
+      description: `Kapital ${plan.title}`,
       metadata: { userId, plan: plan.id },
       // Fiscal receipt (54-FZ) only when the shop has receipts enabled: YOOKASSA_RECEIPTS=1.
       ...(process.env.YOOKASSA_RECEIPTS === "1" ? { receipt: {
         customer: { email },
-        items: [{ description: `PìgBiz ${plan.title}`, quantity: "1.00", amount: { value: plan.price.toFixed(2), currency: "RUB" }, vat_code: 1, payment_mode: "full_payment", payment_subject: "service" }],
+        items: [{ description: `Kapital ${plan.title}`, quantity: "1.00", amount: { value: plan.price.toFixed(2), currency: "RUB" }, vat_code: 1, payment_mode: "full_payment", payment_subject: "service" }],
       } } : {}),
     }),
   });

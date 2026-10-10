@@ -56,7 +56,7 @@ export function LessonQuiz({ lessonId, passedBefore }: { lessonId: string; passe
       <div className="quiz-head">
         <Orb thinking={s.kind === "loading" || s.kind === "submitting"} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <span className="label">Квиз от $PIG</span>
+          <span className="label">Квиз от CAP</span>
           <h3>Проверьте себя</h3>
         </div>
         {s.kind === "play" && (
@@ -77,7 +77,7 @@ export function LessonQuiz({ lessonId, passedBefore }: { lessonId: string; passe
         </div>
       )}
 
-      {s.kind === "loading" && <p className="muted">$PIG составляет вопросы по уроку…</p>}
+      {s.kind === "loading" && <p className="muted">CAP составляет вопросы по уроку…</p>}
       {s.kind === "submitting" && <p className="muted">Проверяем ответы…</p>}
 
       {s.kind === "error" && (

@@ -32,7 +32,7 @@ export default async function AdminUser({ params }: { params: Promise<{ id: stri
           <div className="admin-tile"><span className="label">Был активен</span><b>{user.profile ? dateRu(user.profile.lastActiveAt) : "—"}</b></div>
           <div className="admin-tile"><span className="label">XP / PigCoin$</span><b className="num">{user.profile?.xp ?? 0} / {user.profile?.coins ?? 0}</b></div>
           <div className="admin-tile"><span className="label">Уроков</span><b className="num">{lessons}</b></div>
-          <div className="admin-tile"><span className="label">Разговоров $PIG</span><b className="num">{user._count.conversations}</b></div>
+          <div className="admin-tile"><span className="label">Разговоров CAP</span><b className="num">{user._count.conversations}</b></div>
           <div className="admin-tile"><span className="label">Сохранено</span><b className="num">{user._count.savedItems}</b></div>
           <div className="admin-tile"><span className="label">Разборов идей</span><b className="num">{user._count.ideaReviews}</b></div>
         </div>

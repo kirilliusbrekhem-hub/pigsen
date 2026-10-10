@@ -46,7 +46,7 @@ function ReviewCard({ idea, r }: { idea: string; r: IdeaReviewDTO }) {
         </div>
       </div>
       <Link className="btn btn-secondary" style={{ alignSelf: "flex-start" }} href={`/ai?q=${encodeURIComponent(`Помоги развить бизнес-идею: ${idea.slice(0, 1500)}\n\nТы оценил её на ${r.score}/10. Давай разберём главный риск и составим план проверки на 2 недели.`)}`}>
-        <Icon name="message" size="sm" /> Обсудить с $PIG
+        <Icon name="message" size="sm" /> Обсудить с CAP
       </Link>
     </div>
   );
@@ -86,7 +86,7 @@ export function IdeaReview({ history }: { history: Past[] }) {
         <div className="row" style={{ gap: 12 }}>
           <Orb thinking={busy} />
           <div>
-            <b>Опишите идею, а $PIG разберёт её как ментор-инвестор</b>
+            <b>Опишите идею, а CAP разберёт её как ментор-инвестор</b>
             <p className="muted" style={{ fontSize: 13 }}>
               Кто клиент, какую проблему решаете, как будете зарабатывать. Чем конкретнее, тем точнее разбор.
             </p>
@@ -113,13 +113,13 @@ export function IdeaReview({ history }: { history: Past[] }) {
       </form>
 
       {error && <ErrorBox message={error} />}
-      {busy && <p className="muted">$PIG изучает идею: рынок, клиентов, риски…</p>}
+      {busy && <p className="muted">CAP изучает идею: рынок, клиентов, риски…</p>}
       {current && (
         <>
           {current.demo && (
             <div className="safety">
               <Icon name="info" />
-              <span>Демо-режим: разбор собран по правилам. С подключённым AI-ключом $PIG разберёт идею по существу.</span>
+              <span>Демо-режим: разбор собран по правилам. С подключённым AI-ключом CAP разберёт идею по существу.</span>
             </div>
           )}
           <ReviewCard idea={current.idea} r={current.result} />

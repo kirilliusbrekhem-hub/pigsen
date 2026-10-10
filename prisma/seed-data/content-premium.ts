@@ -1,7 +1,7 @@
-// Premium batch (2026-10-06). Editorial PìgBiz material: education, not individual advice.
+// Premium batch (2026-10-06). Editorial Kapital material: education, not individual advice.
 import type { SeedContent } from "./content";
 
-const ed = { author: "Редакция PìgBiz", source: "PìgBiz", url: null, type: "article" as const, publishedAt: "2026-10-06", featured: false, premium: true as const };
+const ed = { author: "Редакция Kapital", source: "Kapital", url: null, type: "article" as const, publishedAt: "2026-10-06", featured: false, premium: true as const };
 const NOTE = "\n\n*Образовательный материал, не индивидуальная инвестиционная или налоговая рекомендация. Условия и правила меняются: проверяйте актуальную информацию.*";
 
 export const contentPremium: (SeedContent & { premium: true })[] = [

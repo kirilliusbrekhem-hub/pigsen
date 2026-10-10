@@ -25,10 +25,8 @@ async function register(p, email, ref) {
   await p.getByLabel("Пароль").fill("supersecret1");
   await p.getByLabel(/Мне есть 18/).check();
   await p.getByRole("button", { name: "Зарегистрироваться" }).click();
-  await p.waitForURL("**/onboarding");
-  await p.getByRole("button", { name: /^Finance/ }).click();
-  await p.getByRole("button", { name: /Продолжить/ }).click();
-  await p.waitForURL("**/dashboard");
+  await p.waitForURL("**/new");
+  await p.goto(BASE + "/dashboard");
   return prisma.user.findUnique({ where: { email }, include: { profile: true } });
 }
 

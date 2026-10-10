@@ -20,10 +20,8 @@ async function register(page, tag) {
   await page.getByLabel("Пароль").fill("supersecret1");
   await page.getByLabel(/Мне есть 18/).check();
   await page.getByRole("button", { name: "Зарегистрироваться" }).click();
-  await page.waitForURL("**/onboarding");
-  await page.getByRole("button", { name: /^Crypto/ }).click();
-  await page.getByRole("button", { name: /Продолжить/ }).click();
-  await page.waitForURL("**/dashboard");
+  await page.waitForURL("**/new");
+  await page.goto(BASE + "/dashboard");
 }
 
 async function run(viewport, tag, colorScheme) {
@@ -54,7 +52,7 @@ async function run(viewport, tag, colorScheme) {
   await page.getByTestId("an-result").waitFor({ timeout: 60_000 });
   await page.getByText("Траты по категориям", { exact: true }).waitFor();
   await page.getByText("Главные утечки", { exact: true }).waitFor();
-  await page.getByText("$PIG советует").waitFor();
+  await page.getByText("CAP советует").waitFor();
   const recs = await page.locator(".an-recs li").count();
   if (recs !== 3) problems.push(`[${tag}] ожидали 3 совета, получили ${recs}`);
   await page.getByText("По месяцам", { exact: true }).waitFor();

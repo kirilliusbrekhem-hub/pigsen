@@ -62,5 +62,5 @@ export async function buildReminder(userId: string, now = new Date()): Promise<P
     `«${g.title}» уже на ${Math.min(99, Math.round((g.saved / g.target) * 100))}%. Ещё ${rub(amount)} — и ты ближе к мечте 🐷`,
     `${MOTIVATION[dayN % MOTIVATION.length]} Отложи ${rub(amount)} в «${g.title}» 🐷`,
   ];
-  return { title: "Копилка PìgBiz", body: variants[dayN % variants.length], ...pick(g) };
+  return { title: "Копилка Kapital", body: variants[dayN % variants.length], ...pick(g) };
 }

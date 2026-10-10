@@ -112,7 +112,7 @@ function NewGoalForm({ themes, onDone }: { themes: string[]; onDone: () => void 
         method: "POST",
         body: { title, why, target: Math.round(Number(target) || 0), initial: Math.round(Number(initial) || 0), theme, deadline: deadline || null, image },
       });
-      toast.show("Цель создана! $PIG уже готов помочь.");
+      toast.show("Цель создана! CAP уже готов помочь.");
       onDone();
       router.push(`/savings/${r.goal.id}`);
     } catch (err) {

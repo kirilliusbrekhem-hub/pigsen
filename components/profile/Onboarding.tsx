@@ -30,7 +30,7 @@ export function Onboarding({ name, options, initial }: { name: string; options: 
       <div className="stack" style={{ gap: 8 }}>
         <span className="label">Шаг 2 из 2 · Интересы</span>
         <h1 style={{ fontSize: 30, fontWeight: 500, letterSpacing: "-.03em" }}>{name}, что вам интересно?</h1>
-        <p className="ink2">Выберите темы, и PìgBiz подберёт материалы, курсы и подсказки $PIG. Изменить выбор можно в профиле.</p>
+        <p className="ink2">Выберите темы, и Kapital подберёт материалы, курсы и подсказки CAP. Изменить выбор можно в профиле.</p>
       </div>
       {error && <ErrorBox message={error} />}
       <InterestsPicker options={options} value={value} onChange={setValue} />

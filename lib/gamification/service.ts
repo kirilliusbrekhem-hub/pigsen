@@ -117,7 +117,7 @@ const FAMILIES: { id: string; name: string; icon: string; what: (n: number) => s
   { id: "marathon", name: "Марафонец", icon: "flame", what: (n) => `Серия ${n} дней подряд`, targets: [14, 30, 100], stat: "bestStreak" },
   { id: "saver", name: "Копилочник", icon: "piggy", what: (n) => `${n} взносов в копилку`, targets: [5, 20, 50], stat: "deposits" },
   { id: "goal", name: "Цель достигнута", icon: "trophy", what: (n) => `Накопить на ${n} ${n === 1 ? "цель" : "цели"}`, targets: [1, 3, 5], stat: "goalsDone" },
-  { id: "talker", name: "Собеседник $PIG", icon: "message", what: (n) => `${n} разговоров с $PIG`, targets: [5, 20, 50], stat: "convos" },
+  { id: "talker", name: "Собеседник CAP", icon: "message", what: (n) => `${n} разговоров с CAP`, targets: [5, 20, 50], stat: "convos" },
   { id: "quester", name: "Квестовик", icon: "star", what: (n) => `Выполнить ${n} заданий дня`, targets: [5, 25, 75], stat: "quests" },
   { id: "lucky", name: "Везунчик", icon: "sparkle", what: (n) => `Крутить колесо удачи ${n} дней`, targets: [3, 14, 45], stat: "spins" },
 ];
@@ -206,7 +206,7 @@ async function loadGameStats(userId: string): Promise<GameStats> {
     { id: "perfect", name: "Без ошибок", description: "Ответить на все вопросы квиза верно", icon: "sparkle", earned: perfect },
     { id: "streak-3", name: "Огонёк", description: "Заниматься 3 дня подряд", icon: "rocket", earned: bestStreak >= 3 },
     { id: "streak-7", name: "Неделя силы", description: "Заниматься 7 дней подряд", icon: "cal", earned: bestStreak >= 7 },
-    { id: "pig", name: "Друг $PIG", description: "Начать разговор с $PIG", icon: "message", earned: convos >= 1 },
+    { id: "pig", name: "Друг CAP", description: "Начать разговор с CAP", icon: "message", earned: convos >= 1 },
     { id: "collector", name: "Коллекционер", description: "Сохранить 5 материалов", icon: "bookmark", earned: saved >= 5 },
     { id: "founder", name: "Фаундер", description: "Получить разбор бизнес-идеи", icon: "briefcase", earned: ideas >= 1 },
     ...tieredBadges({

@@ -8,7 +8,7 @@ import type { ChatMessage } from "./useChatStream";
 // react-markdown + remark-gfm are ~150 KB of JS: load them only once an answer is shown, not with the /ai page.
 const Markdown = lazy(() => import("@/components/content/Markdown").then((m) => ({ default: m.Markdown })));
 
-const STEPS = ["Понимаю вопрос", "Ищу материалы в библиотеке PìgBiz", "Формулирую ответ"];
+const STEPS = ["Понимаю вопрос", "Ищу материалы в библиотеке Kapital", "Формулирую ответ"];
 
 export function AnswerCard({ m, onAsk, last }: { m: ChatMessage; onAsk: (q: string) => void; last: boolean }) {
   const [copied, setCopied] = useState(false);
@@ -30,7 +30,7 @@ export function AnswerCard({ m, onAsk, last }: { m: ChatMessage; onAsk: (q: stri
     <div className="a-msg">
       <div className="a-head">
         <Orb thinking={thinking || streaming} />
-        $PIG
+        CAP
         {m.provider && (m.mock || m.provider === "Демо-режим") && <span className="badge warn">демо-режим</span>}
       </div>
       {thinking ? (
@@ -53,7 +53,7 @@ export function AnswerCard({ m, onAsk, last }: { m: ChatMessage; onAsk: (q: stri
           )}
           {!streaming && m.related.length > 0 && (
             <div className="ans-block">
-              <span className="label">Материалы PìgBiz по теме</span>
+              <span className="label">Материалы Kapital по теме</span>
               <div className="row-list" style={{ margin: "0 -12px" }}>
                 {m.related.map((r) => (
                   <ContentRow key={r.id} item={r} />
@@ -81,7 +81,7 @@ export function AnswerCard({ m, onAsk, last }: { m: ChatMessage; onAsk: (q: stri
               </button>
               <span className="note">
                 <Icon name="info" />
-                $PIG обучает и объясняет. Важные решения проверяйте и принимайте самостоятельно.
+                CAP обучает и объясняет. Важные решения проверяйте и принимайте самостоятельно.
               </span>
             </div>
           )}

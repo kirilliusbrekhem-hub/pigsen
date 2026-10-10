@@ -59,7 +59,7 @@ export default async function LessonPage({ params }: { params: Promise<{ course:
               <Disclaimer kind={RISKY_CATEGORIES.has(course.category.slug) ? "invest" : "general"} compact={!RISKY_CATEGORIES.has(course.category.slug)} />
               {!locked && course.premium && !pro && (
                 <p className="premium-note">
-                  Это бесплатный первый урок эксклюзивного курса. Остальные уроки открыты в <Link href="/pro">PìgBiz Pro</Link>.
+                  Это бесплатный первый урок эксклюзивного курса. Остальные уроки открыты в <Link href="/pro">Kapital Pro</Link>.
                 </p>
               )}
             </div>
@@ -113,7 +113,7 @@ export default async function LessonPage({ params }: { params: Promise<{ course:
               <Icon name="sparkle" />
             </span>
             <span style={{ flex: 1, minWidth: 0 }}>
-              <b style={{ fontWeight: 540, display: "block" }}>Разобрать с $PIG</b>
+              <b style={{ fontWeight: 540, display: "block" }}>Разобрать с CAP</b>
               <span className="muted" style={{ fontSize: 12.5 }}>
                 Объяснение на простом примере
               </span>

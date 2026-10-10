@@ -31,12 +31,12 @@ const C = { bg: "#090C0D", ink: "#ECEFEC", ink2: "#A3ADA9", accent: "#3FBD88", a
 
 /**
  * Scenes. Times in seconds. Each shot shows one still with a camera move: z = zoom, (x, y) = focus point
- * in image fractions. `reveal` uncovers the image top-down over a base still (the $PIG answer "typing").
+ * in image fractions. `reveal` uncovers the image top-down over a base still (the CAP answer "typing").
  */
 const SCENES = [
   { kind: "intro", t0: 0, t1: 2.3 },
   {
-    t0: 2.0, t1: 6.6, n: "01", tag: "$PIG", title: ["$PIG ответит на любой", { g: "вопрос о деньгах" }],
+    t0: 2.0, t1: 6.6, n: "01", tag: "CAP", title: ["CAP ответит на любой", { g: "вопрос о деньгах" }],
     shots: [
       { img: "ai/000.png", t0: 2.0, t1: 3.1, from: { z: 1.32, x: 0.47, y: 0.27 }, to: { z: 1.38, x: 0.47, y: 0.28 } },
       { img: "ai-top.png", under: "ai/000.png", reveal: [3.0, 4.7, 0.21, 0.83], t0: 3.0, t1: 6.6, from: { z: 1.38, x: 0.47, y: 0.29 }, to: { z: 1.5, x: 0.47, y: 0.52 } },

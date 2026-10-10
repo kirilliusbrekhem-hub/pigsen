@@ -102,7 +102,7 @@ export function PushToggle({ publicKey, compact = false }: { publicKey: string |
         <b>Напоминания копилки</b>
         <span className="muted">
           {state === "on"
-            ? "Включены: раз в день $PIG напомнит о цели."
+            ? "Включены: раз в день CAP напомнит о цели."
             : state === "denied"
               ? "Уведомления запрещены в настройках браузера. Разрешите их для этого сайта."
               : state === "unsupported"

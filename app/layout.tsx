@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
+import { Onest, Playfair_Display } from "next/font/google";
 import { Analytics } from "@/components/analytics/Analytics";
 import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
@@ -17,10 +18,15 @@ import "./styles/sim.css";
 import "./styles/bizplan.css";
 import "./styles/biz.css";
 import "./styles/proof.css";
+import "./styles/kapital.css";
+
+// Kapital brand fonts (both cover Cyrillic): Playfair Display for headlines and numbers, Onest for text.
+const playfair = Playfair_Display({ subsets: ["latin", "cyrillic"], weight: ["600", "700", "800"], style: ["normal", "italic"], variable: "--font-playfair", display: "swap" });
+const onest = Onest({ subsets: ["latin", "cyrillic"], weight: ["400", "500", "600", "700"], variable: "--font-onest", display: "swap" });
 
 export const metadata: Metadata = {
-  title: { default: "PìgBiz", template: "%s · PìgBiz" },
-  description: "PìgBiz — AI-платформа для изучения бизнеса, предпринимательства, финансов и технологий. Make your money Smarter.",
+  title: { default: "Kapital", template: "%s · Kapital" },
+  description: "Kapital — Savings that start businesses. Опиши идею, и ИИ соберёт бизнес, который растёт от твоих реальных накоплений.",
   icons: { icon: "/icon.png" },
 };
 
@@ -29,8 +35,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F2F3F0" },
-    { media: "(prefers-color-scheme: dark)", color: "#090C0D" },
+    { media: "(prefers-color-scheme: light)", color: "#050A07" },
+    { media: "(prefers-color-scheme: dark)", color: "#050A07" },
   ],
 };
 
@@ -41,7 +47,7 @@ const THEME_BOOT = `try{var t=localStorage.getItem("pigsen-theme");if(t==="light
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru" suppressHydrationWarning className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="ru" suppressHydrationWarning className={`${GeistSans.variable} ${GeistMono.variable} ${playfair.variable} ${onest.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
       </head>

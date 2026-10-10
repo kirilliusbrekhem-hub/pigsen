@@ -5,7 +5,7 @@ import { requireUser } from "@/lib/auth/session";
 import { usage } from "@/lib/billing/limits";
 import { getConversationWithMessages, listConversations } from "@/lib/ai/conversations";
 
-export const metadata: Metadata = { title: "$PIG" };
+export const metadata: Metadata = { title: "CAP" };
 
 export default async function ConversationPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requireUser();

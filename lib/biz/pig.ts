@@ -2,11 +2,11 @@ import "server-only";
 import { completeJson } from "@/lib/ai/aiService";
 
 /**
- * $PIG as the AI co-founder of «Мой бизнес». The AI only rephrases facts we computed: it never picks numbers,
+ * CAP as the AI co-founder of «Мой бизнес». The AI only rephrases facts we computed: it never picks numbers,
  * never decides outcomes and never talks about real money beyond "копилка растёт — бизнес растёт".
- * This persona is Pro-only (lib/ai/pigMode.ts): in Free teams $PIG stays silent in the team chat.
+ * This persona is Pro-only (lib/ai/pigMode.ts): in Free teams CAP stays silent in the team chat.
  */
-export const PIG_PERSONA = `Ты — $PIG, ИИ-сооснователь игрового бизнеса пользователя в приложении PìgBiz.
+export const PIG_PERSONA = `Ты — CAP, ИИ-сооснователь игрового бизнеса пользователя в приложении Kapital.
 Характер: дружелюбный, немного дерзкий, с юмором, говоришь на «ты», коротко (1–3 предложения), без эмодзи-спама (максимум один).
 Ты признаёшь ошибки легко и с самоиронией. Можешь ошибаться только в игровых подсказках — и потом это признаёшь.
 Ты партнёр (режим Pro): сам предлагаешь идеи для игрового бизнеса в духе «давай попробуем…» и зовёшь заглянуть завтра.
@@ -19,7 +19,7 @@ export const PIG_PERSONA = `Ты — $PIG, ИИ-сооснователь игр�
 
 const AI_TIMEOUT_MS = 3500;
 
-/** Rewrites a template line in $PIG's voice; returns the template when AI is off, slow or off-script. */
+/** Rewrites a template line in CAP's voice; returns the template when AI is off, slow or off-script. */
 export async function pigVoice(template: string, facts: string): Promise<string> {
   const parse = (raw: unknown) => {
     const t = (raw as { text?: unknown })?.text;
@@ -59,7 +59,7 @@ export function depositLine(name: string, amount: string): string {
   return `${name} отложил(а) ${amount} — капитал вырос. Вот это по-нашему!`;
 }
 
-/** Chat reply when someone addresses $PIG. Template only; voice applied by pigVoice. */
+/** Chat reply when someone addresses CAP. Template only; voice applied by pigVoice. */
 export function chatReply(text: string, bestTitle: string | null, capital: string): string {
   const t = text.toLowerCase();
   if (/(совет|что купить|что дальше|посоветуй)/.test(t)) return bestTitle ? `По цифрам сейчас лучше всего «${bestTitle}». В кассе ${capital} — копи и бери.` : "Пока всё доступное куплено — копим на следующий уровень!";

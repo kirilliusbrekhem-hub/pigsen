@@ -32,7 +32,7 @@ export default async function LearnPage({ searchParams }: { searchParams: Promis
         <div>
           <span className="label">Обучение</span>
           <h1>Курсы и прогресс</h1>
-          <p>Выберите тему, проходите короткие уроки и отмечайте завершённые. $PIG поможет разобрать любой урок.</p>
+          <p>Выберите тему, проходите короткие уроки и отмечайте завершённые. CAP поможет разобрать любой урок.</p>
         </div>
       </section>
 

@@ -82,11 +82,11 @@ export default async function CoursePage({ params }: { params: Promise<{ course:
           <div className="ai-card" style={{ padding: 22 }}>
             <div className="ai-tag">
               <span className="live" />
-              $PIG · помощник по курсу
+              CAP · помощник по курсу
             </div>
-            <p style={{ marginTop: 14, fontSize: 15 }}>Не понятен термин или пример? Спросите $PIG, и он объяснит на вашем уровне.</p>
+            <p style={{ marginTop: 14, fontSize: 15 }}>Не понятен термин или пример? Спросите CAP, и он объяснит на вашем уровне.</p>
             <Link className="btn btn-light btn-sm" style={{ marginTop: 16 }} href={`/ai?q=${encodeURIComponent(`Я прохожу курс «${course.title}». Объясни главные идеи курса простыми словами.`)}`}>
-              Спросить $PIG <Icon name="arrow" size="sm" />
+              Спросить CAP <Icon name="arrow" size="sm" />
             </Link>
           </div>
           <div className="card card-pad stack" style={{ gap: 10 }}>

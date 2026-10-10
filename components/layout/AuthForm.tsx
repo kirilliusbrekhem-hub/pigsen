@@ -2,20 +2,23 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/Button";
-import { ErrorBox } from "@/components/ui/States";
+import { LangToggle } from "@/components/kapital/LangToggle";
 import { api, ApiClientError, errorMessage } from "@/lib/client/api";
+import { dictFor, isLang, LANG_COOKIE, type Lang } from "@/lib/kapital/i18n";
 
 type Mode = "login" | "register";
 
-function safeNext(raw: string | null): string {
+function safeNext(raw: string | null, fallback: string): string {
   // Same-origin paths only: "//host" and "/\\host" would leave the site.
-  return raw && raw.startsWith("/") && !raw.startsWith("//") && !raw.includes("\\") ? raw : "/dashboard";
+  return raw && raw.startsWith("/") && !raw.startsWith("//") && !raw.includes("\\") ? raw : fallback;
 }
 
+/** Email + password sign-up and log-in (Kapital design). Validation is repeated on the server. */
 export function AuthForm({ mode }: { mode: Mode }) {
   const router = useRouter();
   const params = useSearchParams();
+  const [lang, setLang] = useState<Lang>("ru");
+  const t = dictFor(lang);
   const [values, setValues] = useState({ name: "", email: "", password: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -24,6 +27,12 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const rawRef = mode === "register" ? params.get("ref") : null;
   const ref = rawRef && /^[a-z0-9]{10,40}$/i.test(rawRef) ? rawRef : null;
 
+  useEffect(() => {
+    const m = document.cookie.match(new RegExp(`(?:^|;\\s*)${LANG_COOKIE}=([^;]+)`));
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- prerendered in RU; switch after mount
+    if (m && isLang(m[1]) && m[1] !== "ru") setLang(m[1]);
+  }, []);
+
   // Remember the inviter for 30 days, so the bonus survives leaving and coming back later.
   useEffect(() => {
     if (ref) document.cookie = `pigsen_ref=${encodeURIComponent(ref)}; Max-Age=${30 * 86400}; Path=/; SameSite=Lax`;
@@ -31,10 +40,11 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
   function validate(): Record<string, string> {
     const e: Record<string, string> = {};
-    if (mode === "register" && values.name.trim().length < 2) e.name = "Минимум 2 символа";
-    if (!/^\S+@\S+\.\S+$/.test(values.email.trim())) e.email = "Некорректный email";
-    if (mode === "register" && !accept) e.accept = "Подтвердите возраст и согласие с правилами";
-    if (mode === "register" ? values.password.length < 8 : !values.password) e.password = mode === "register" ? "Минимум 8 символов" : "Введите пароль";
+    const ru = lang === "ru";
+    if (mode === "register" && values.name.trim().length < 2) e.name = ru ? "Минимум 2 символа" : "At least 2 characters";
+    if (!/^\S+@\S+\.\S+$/.test(values.email.trim())) e.email = ru ? "Некорректный email" : "Invalid email";
+    if (mode === "register" && !accept) e.accept = ru ? "Подтвердите возраст и согласие с правилами" : "Confirm your age and consent";
+    if (mode === "register" ? values.password.length < 8 : !values.password) e.password = mode === "register" ? (ru ? "Минимум 8 символов" : "At least 8 characters") : ru ? "Введите пароль" : "Enter your password";
     return e;
   }
 
@@ -47,7 +57,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
     setLoading(true);
     try {
       await api(`/api/auth/${mode}`, { method: "POST", body: mode === "register" ? { ...values, accept, ...(ref ? { ref } : {}) } : { email: values.email, password: values.password } });
-      router.replace(mode === "register" ? "/onboarding" : safeNext(params.get("next")));
+      router.replace(safeNext(params.get("next"), mode === "register" ? "/new" : "/business"));
       router.refresh();
     } catch (err) {
       if (err instanceof ApiClientError && err.details) setErrors(err.details);
@@ -61,7 +71,6 @@ export function AuthForm({ mode }: { mode: Mode }) {
       <label htmlFor={`f-${key}`}>{label}</label>
       <input
         id={`f-${key}`}
-        className="input"
         type={type}
         autoComplete={autoComplete}
         value={values[key]}
@@ -78,41 +87,65 @@ export function AuthForm({ mode }: { mode: Mode }) {
   );
 
   return (
-    <form className="auth-card fade-in" onSubmit={onSubmit} noValidate>
-      <div className="stack" style={{ gap: 6 }}>
-        <span className="label">{mode === "register" ? "Регистрация" : "Вход"}</span>
-        <h1>{mode === "register" ? "Создайте аккаунт PìgBiz" : "С возвращением"}</h1>
-      </div>
-      {ref && <p className="growth-ref-note">Вас пригласил друг: после регистрации получите 200 PigCoin$.</p>}
-      {formError && <ErrorBox message={formError} />}
-      {mode === "register" && field("name", "Имя", "text", "name")}
-      {field("email", "Email", "email", "email")}
-      {field("password", "Пароль", "password", mode === "register" ? "new-password" : "current-password", mode === "register" ? "Не меньше 8 символов." : undefined)}
-      {mode === "register" && (
-        <div className="field">
-          <label className="consent">
-            <input type="checkbox" checked={accept} onChange={(e) => setAccept(e.target.checked)} aria-invalid={Boolean(errors.accept)} />
-            <span>
-              Мне есть 18 лет, я принимаю <Link href="/terms" target="_blank">Условия</Link> и <Link href="/privacy" target="_blank">Политику конфиденциальности</Link> и даю согласие на обработку персональных данных.
-            </span>
-          </label>
-          {errors.accept && <span className="hint">{errors.accept}</span>}
+    <>
+      <form className="card fade" onSubmit={onSubmit} noValidate>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+          <span className="eyebrow">{mode === "register" ? (lang === "ru" ? "Регистрация" : "Sign up") : lang === "ru" ? "Вход" : "Log in"}</span>
+          <LangToggle lang={lang} small label={t.lang} onChange={setLang} />
         </div>
-      )}
-      <Button variant="primary" size="lg" block loading={loading} type="submit">
-        {mode === "register" ? "Зарегистрироваться" : "Войти"}
-      </Button>
-      <p className="switch">
-        {mode === "register" ? (
-          <>
-            Уже есть аккаунт? <Link href="/login">Войти</Link>
-          </>
-        ) : (
-          <>
-            Впервые в PìgBiz? <Link href="/register">Создать аккаунт</Link>
-          </>
+        <div>
+          <h1>{mode === "register" ? t.regTitle : t.loginTitle}</h1>
+          <p className="lead" style={{ marginTop: 8 }}>{mode === "register" ? t.regSub : t.loginSub}</p>
+        </div>
+        {ref && <p className="k-ok">{lang === "ru" ? "Тебя пригласил друг: после регистрации получишь 200 PigCoin$." : "A friend invited you: you get 200 PigCoin$ after sign-up."}</p>}
+        {formError && (
+          <div className="k-err" role="alert">
+            {formError}
+          </div>
         )}
-      </p>
-    </form>
+        {mode === "register" && field("name", t.name, "text", "name")}
+        {field("email", t.email, "email", "email")}
+        {field("password", t.password, "password", mode === "register" ? "new-password" : "current-password", mode === "register" ? t.pwHint : undefined)}
+        {mode === "register" && (
+          <div className="field">
+            <label className="consent" style={{ fontWeight: 400, color: "var(--k-muted)" }}>
+              <input type="checkbox" checked={accept} onChange={(e) => setAccept(e.target.checked)} aria-invalid={Boolean(errors.accept)} />
+              <span>
+                {lang === "ru" ? (
+                  <>
+                    Мне есть 18 лет, я принимаю <Link href="/terms" target="_blank">Условия</Link> и <Link href="/privacy" target="_blank">Политику конфиденциальности</Link> и даю согласие на обработку персональных данных.
+                  </>
+                ) : (
+                  <>
+                    I am 18 or older, I accept the <Link href="/terms" target="_blank">Terms</Link> and the <Link href="/privacy" target="_blank">Privacy Policy</Link> and consent to the processing of my personal data.
+                  </>
+                )}
+              </span>
+            </label>
+            {errors.accept && <span className="hint" style={{ color: "#F2A99A" }}>{errors.accept}</span>}
+          </div>
+        )}
+        <button className="k-btn" type="submit" disabled={loading} aria-busy={loading}>
+          {loading ? <span className="k-spin" /> : mode === "register" ? t.register : t.login}
+        </button>
+        <p className="switch">
+          {mode === "register" ? (
+            <>
+              {t.haveAccount} <Link href={`/login${params.get("next") ? `?next=${encodeURIComponent(params.get("next")!)}` : ""}`}>{t.login}</Link>
+            </>
+          ) : (
+            <>
+              {t.noAccount} <Link href={`/register${params.get("next") ? `?next=${encodeURIComponent(params.get("next")!)}` : ""}`}>{t.createAccount}</Link>
+            </>
+          )}
+        </p>
+      </form>
+      <nav className="legal" aria-label="Документы">
+        <Link href="/terms">{t.legal.terms}</Link>
+        <Link href="/privacy">{t.legal.privacy}</Link>
+        <Link href="/offer">{t.legal.offer}</Link>
+        <Link href="/rules">{t.legal.rules}</Link>
+      </nav>
+    </>
   );
 }

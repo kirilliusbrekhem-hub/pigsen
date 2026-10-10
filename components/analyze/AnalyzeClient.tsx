@@ -254,7 +254,7 @@ function Result({ id, r }: { id: string; r: AnalysisResult }) {
       )}
 
       <section className="card card-pad stack an-pig" style={{ gap: 12 }}>
-        <b>$PIG советует</b>
+        <b>CAP советует</b>
         <ol className="an-recs">
           {r.recommendations.map((t, i) => <li key={i}>{t}</li>)}
         </ol>
