@@ -88,7 +88,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
   return (
     <>
-      <form className="card fade" onSubmit={onSubmit} noValidate>
+      <form className="kp-card fade" onSubmit={onSubmit} noValidate>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
           <span className="eyebrow">{mode === "register" ? (lang === "ru" ? "Регистрация" : "Sign up") : lang === "ru" ? "Вход" : "Log in"}</span>
           <LangToggle lang={lang} small label={t.lang} onChange={setLang} />
@@ -97,7 +97,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
           <h1>{mode === "register" ? t.regTitle : t.loginTitle}</h1>
           <p className="lead" style={{ marginTop: 8 }}>{mode === "register" ? t.regSub : t.loginSub}</p>
         </div>
-        {ref && <p className="k-ok">{lang === "ru" ? "Тебя пригласил друг: после регистрации получишь 200 PigCoin$." : "A friend invited you: you get 200 PigCoin$ after sign-up."}</p>}
+        {ref && <p className="k-ok">{lang === "ru" ? "Тебя пригласил друг: после регистрации получишь 200 монет." : "A friend invited you: you get 200 монет after sign-up."}</p>}
         {formError && (
           <div className="k-err" role="alert">
             {formError}

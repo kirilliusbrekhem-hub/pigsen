@@ -219,14 +219,17 @@ html:has(.kp), html:has(.kp) body { background: #050A07; }
 }
 
 /* ---------- auth ---------- */
-.kp-auth { min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 16px 32px; position: relative; overflow: hidden; }
-.kp-auth .card { position: relative; width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 14px; }
-.kp-auth .card h1 { font-family: var(--k-serif); font-weight: 800; font-size: 36px; line-height: 1.08; }
-.kp-auth .card .lead { color: var(--k-muted); font-size: 15px; line-height: 1.45; }
+.kp-auth { min-height: 100dvh; display: flex; flex-direction: column; align-items: center; padding: 20px 16px 32px; position: relative; overflow: hidden; background: var(--k-bg); }
+.kp-auth .top { position: relative; width: 100%; max-width: 440px; display: flex; justify-content: center; align-items: center; z-index: 2; margin: 8px 0 28px; }
+.kp-auth .kp-card { position: relative; z-index: 1; width: 100%; max-width: 440px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px; padding: 28px 24px 24px; border-radius: 28px; background: linear-gradient(180deg, #0E1A13 0%, #0A130E 100%); border: 1px solid var(--k-line); box-shadow: 0 30px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(169,216,138,.06); overflow: hidden; }
+.kp-auth .kp-card::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--k-green); }
+.kp-auth .kp-card .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--k-green); }
+.kp-auth .kp-card h1 { margin: 0; font-family: var(--k-serif); font-weight: 800; font-size: 34px; line-height: 1.08; color: var(--k-ink); }
+.kp-auth .kp-card .lead { margin: 0; color: var(--k-muted); font-size: 15px; line-height: 1.45; }
 .kp-auth .field { display: flex; flex-direction: column; gap: 6px; }
 .kp-auth .field label { font-size: 13px; font-weight: 600; color: var(--k-ink-2); }
 .kp-auth .field input[type="text"], .kp-auth .field input[type="email"], .kp-auth .field input[type="password"] {
-  height: 54px; border-radius: 16px; background: var(--k-s1); border: 1.5px solid var(--k-line); color: var(--k-ink); padding: 0 16px; font-size: 16px; outline: none;
+  height: 54px; border-radius: 16px; background: #060D09; border: 1.5px solid var(--k-line); color: var(--k-ink); padding: 0 16px; font-size: 16px; outline: none;
 }
 .kp-auth .field input:focus { border-color: var(--k-green); box-shadow: 0 0 0 5px rgba(133, 187, 101, .08); }
 .kp-auth .field.err input { border-color: #C0705F; }
@@ -235,8 +238,7 @@ html:has(.kp), html:has(.kp) body { background: #050A07; }
 .kp-auth .consent { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--k-muted); line-height: 1.45; }
 .kp-auth .consent input { margin-top: 2px; width: 18px; height: 18px; accent-color: var(--k-green); flex: none; }
 .kp-auth .switch { text-align: center; font-size: 14px; color: var(--k-muted); }
-.kp-auth .top { position: absolute; top: 16px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: center; z-index: 2; }
-.kp-auth .legal { position: relative; display: flex; flex-wrap: wrap; gap: 6px 14px; justify-content: center; margin-top: 22px; font-size: 12.5px; }
+.kp-auth .legal { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 6px 14px; justify-content: center; margin-top: 22px; font-size: 12.5px; }
 .kp-auth .legal a { color: var(--k-dim); }
 .kp .k-spin { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid rgba(6, 18, 11, .25); border-top-color: var(--k-on-green); animation: kp-spin .8s linear infinite; }
 
