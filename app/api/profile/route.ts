@@ -36,6 +36,8 @@ export const DELETE = handler(async () => {
     prisma.bizChat.deleteMany({ where: { userId: user.id } }),
     prisma.bizEvent.updateMany({ where: { userId: user.id }, data: { userId: null } }),
     prisma.bizPlan.deleteMany({ where: { userId: user.id } }),
+    prisma.duel.deleteMany({ where: { creatorId: user.id } }), // players + answers cascade
+    prisma.duelPlayer.updateMany({ where: { userId: user.id }, data: { userId: null } }),
     prisma.spendAnalysis.deleteMany({ where: { userId: user.id } }),
     prisma.user.delete({ where: { id: user.id } }),
   ]);

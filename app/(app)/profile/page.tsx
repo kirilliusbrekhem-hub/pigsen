@@ -43,7 +43,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
   const { tab } = await searchParams;
   const sec: Section = SECTIONS.some(([id]) => id === tab) ? (tab as Section) : "personal";
   const profile = user.profile;
-  const memberSince = user.createdAt.toLocaleDateString("ru-RU", { month: "long", year: "numeric" });
+  const memberSince = user.createdAt.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
   const pro = isPro(profile);
   const look = lookOf(profile);
 

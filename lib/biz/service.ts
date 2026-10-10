@@ -39,6 +39,7 @@ import { grantApprovedItems } from "./proofs";
 import { challengeView, weekStart } from "./challenges";
 import { confirmedDeposits, confirmedSavingsMany } from "@/lib/savings/proof";
 import { PIG_PARTNER_LOCK } from "@/lib/ai/pigMode";
+import { loopView, type LoopView } from "./loop";
 import { chatReply, depositLine, hintLine, isForPig, pigVoice, revealLine, teaserLine, withdrawLine } from "./pig";
 
 type Tx = Prisma.TransactionClient;
@@ -276,6 +277,8 @@ export interface BizView {
   pro: boolean;
   /** $PIG is a partner (persona, chat, hints, strategy) only when the team's founder is on Pro. */
   pigPartner: boolean;
+  /** The daily loop: savings target, streak, tomorrow, level progress, team week (lib/biz/loop.ts). */
+  loop: LoopView;
 }
 
 export async function getView(user: Actor, opts: { simulate?: boolean } = {}): Promise<BizView | null> {
@@ -386,6 +389,7 @@ export async function getView(user: Actor, opts: { simulate?: boolean } = {}): P
     challenges: await challengeView(b.id, user.id),
     pro,
     pigPartner,
+    loop: await loopView(user.id, b, owned, level, b.members),
   };
 }
 

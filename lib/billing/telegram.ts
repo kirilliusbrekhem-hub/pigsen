@@ -1,4 +1,5 @@
 import "server-only";
+import { track } from "@/lib/analytics/track";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { prisma } from "@/lib/db/prisma";
 import { creditStarsCoins, extendPro } from "@/lib/coins/service";
@@ -117,6 +118,7 @@ export async function handleUpdate(u: Update): Promise<void> {
     }
     if (!fresh) return;
     const until = await extendPro(p.userId, PLANS[p.plan as PlanId]?.days ?? 30);
+    await track("pro_purchase", p.userId, { plan: p.plan, amount: sp.total_amount, provider: "telegram" });
     if (isPlanId(p.plan)) await setProTier(p.userId, PLANS[p.plan].tier);
     await tg("sendMessage", { chat_id: u.message.chat.id, text: `Оплата прошла! PìgBiz Pro активен до ${until.toLocaleDateString("ru-RU")}.${isPlanId(p.plan) && PLANS[p.plan].recurring ? " Подписка продлевается каждый месяц, отменить можно в Telegram: Настройки → Мои звёзды." : ""} Вернитесь на сайт: страница обновится сама.` }).catch(() => {});
     return;

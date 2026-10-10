@@ -1,10 +1,12 @@
 "use client";
+// Onboarding for a user without a business, step 1–2 of 3: full-screen picker of business types grouped by category
+// (each card shows that business's own scene) → name it. Step 3 (first deposit → first item) is FirstRun in BizApp.
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api, errorMessage } from "@/lib/client/api";
-import { ACCENTS, KINDS, LOGOS, TEMPLATE_TITLES, type BizKind, type Template } from "@/lib/biz/catalog";
+import { ACCENTS, GROUPS, KINDS, LOGOS, TEMPLATE_TITLES, type BizGroup, type BizKind } from "@/lib/biz/catalog";
 import { Button, btnClass } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { BizScene } from "./BizScene";
@@ -17,12 +19,26 @@ interface Kind {
   levels: string[];
   template?: string;
   emoji?: string;
+  group?: string;
 }
 
-const TEMPLATES: Template[] = ["offline", "online", "it"];
+/** A believable "few weeks in" scene for the preview card: the first cheap, unlocked items of that business. */
+function previewOwned(kind: BizKind, n = 6) {
+  return KINDS[kind].catalog
+    .filter((x) => !x.premium && !x.exclusive && !x.minLevel)
+    .slice(0, n)
+    .map((x) => ({ itemId: x.id, status: "ok" }));
+}
+
+function Preview({ kind, rich = 6, guests = 14 }: { kind: BizKind; rich?: number; guests?: number }) {
+  const owned = useMemo(() => previewOwned(kind, rich), [kind, rich]);
+  const catalog = useMemo(() => KINDS[kind].catalog.filter((x) => owned.some((o) => o.itemId === x.id)).map((x) => ({ id: x.id, title: x.title, price: x.price, state: "owned", slot: x.slot })), [kind, owned]);
+  return <BizScene owned={owned} level={1} guests={guests} name={KINDS[kind].title} kind={kind} kindTitle={KINDS[kind].title} catalog={catalog} />;
+}
 
 export function BizStart({ kinds, defaultName, hasGoals, pro = false }: { kinds: Kind[]; defaultName: string; hasGoals: boolean; pro?: boolean }) {
-  const [kind, setKind] = useState<BizKind>("coffee");
+  const [kind, setKind] = useState<BizKind | null>(null);
+  const firstName = defaultName.split(" ").slice(1).join(" ");
   const [name, setName] = useState(defaultName);
   const [custom, setCustom] = useState(false);
   const [emoji, setEmoji] = useState<string>(LOGOS[7]);
@@ -31,8 +47,16 @@ export function BizStart({ kinds, defaultName, hasGoals, pro = false }: { kinds:
   const [error, setError] = useState("");
   const router = useRouter();
 
+  function pick(k: BizKind) {
+    setKind(k);
+    setName(`${KINDS[k].title} ${firstName}`.trim().slice(0, 40));
+    window.scrollTo({ top: 0 });
+    document.querySelector(".bo-screen")?.scrollTo({ top: 0 });
+  }
+
   async function create(e: React.FormEvent) {
     e.preventDefault();
+    if (!kind) return;
     setBusy(true);
     setError("");
     try {
@@ -44,62 +68,101 @@ export function BizStart({ kinds, defaultName, hasGoals, pro = false }: { kinds:
     }
   }
 
-  return (
-    <div className="biz stack">
-      <section className="biz-head">
-        <div>
-          <span className="label">Мой бизнес</span>
-          <h1>Бизнес, который растёт из вашей копилки</h1>
-          <p className="muted">
-            Каждый рубль, который вы откладываете в копилку, становится капиталом вашего виртуального бизнеса. Снимаете деньги — бизнес страдает. $PIG — ваш ИИ-сооснователь, друзья — партнёры.
-          </p>
+  if (!kind) {
+    return (
+      <div className="bo-screen" role="dialog" aria-modal="true" aria-labelledby="bo-title" data-testid="biz-picker">
+        <div className="bo-inner">
+          <header className="bo-top">
+            <Link href="/dashboard" className="bo-close" aria-label="Закрыть">
+              <Icon name="close" />
+            </Link>
+            <span className="bo-steps" aria-label="Шаг 1 из 3">
+              <i className="is-on" />
+              <i />
+              <i />
+            </span>
+          </header>
+          <span className="label">Мой бизнес · шаг 1 из 3</span>
+          <h1 id="bo-title">Какой бизнес откроем?</h1>
+          <p className="muted bo-lead">Капитал бизнеса — это ваши реальные накопления: каждый рубль в копилке становится рублём капитала. Выберите, что будете строить.</p>
+          <nav className="bo-groups" aria-label="Категории">
+            {GROUPS.map((g) => (
+              <a key={g.id} href={`#bo-${g.id}`} className="chip">
+                {g.title}
+              </a>
+            ))}
+          </nav>
+          {GROUPS.map((g) => (
+            <section key={g.id} id={`bo-${g.id}`} className="bo-group">
+              <div className="bo-group-head">
+                <h2>{g.title}</h2>
+                <span className="muted">{g.blurb}</span>
+              </div>
+              <div className="bo-cards">
+                {kinds
+                  .filter((k) => (k.group ?? KINDS[k.kind as BizKind]?.group) === (g.id as BizGroup))
+                  .map((k) => (
+                    <button type="button" key={k.kind} className="bo-card" disabled={!k.available} onClick={() => pick(k.kind as BizKind)} data-testid={`kind-${k.kind}`}>
+                      <span className="bo-card-art" aria-hidden>
+                        <Preview kind={k.kind as BizKind} />
+                      </span>
+                      <span className="bo-card-body">
+                        <b>
+                          <span aria-hidden>{k.emoji}</span> {k.title}
+                        </b>
+                        <span className="muted">{k.blurb}</span>
+                        <span className="bo-ladder">{k.levels.join(" → ")}</span>
+                      </span>
+                    </button>
+                  ))}
+              </div>
+            </section>
+          ))}
         </div>
-      </section>
-      <section className="card biz-stage">
-        <BizScene owned={[]} level={1} guests={8} name={KINDS[kind].levels[0]} kind={kind} kindTitle={KINDS[kind].title} />
-      </section>
-      <form className="card card-pad stack" onSubmit={create}>
-        <h2>Какой бизнес открываем?</h2>
-        {TEMPLATES.map((t) => (
-          <div key={t} className="stack" style={{ gap: 8 }}>
-            <span className="label">{TEMPLATE_TITLES[t]}</span>
-            <div className="biz-kinds">
-              {kinds
-                .filter((k) => (k.template ?? "offline") === t)
-                .map((k) => (
-                  <button
-                    type="button"
-                    key={k.kind}
-                    className={`biz-kind ${kind === k.kind ? "is-on" : ""}`}
-                    disabled={!k.available}
-                    onClick={() => {
-                      setKind(k.kind as BizKind);
-                      if (name === defaultName || Object.values(KINDS).some((x) => name.startsWith(x.title))) setName(`${k.title} ${defaultName.split(" ").slice(1).join(" ")}`.trim().slice(0, 40));
-                    }}
-                    aria-pressed={kind === k.kind}
-                    data-testid={`kind-${k.kind}`}
-                  >
-                    <b>
-                      {k.emoji} {k.title}
-                    </b>
-                    <span className="muted biz-small">{k.blurb}</span>
-                    <span className="biz-small">{k.available ? k.levels.join(" → ") : "Скоро"}</span>
-                  </button>
-                ))}
-            </div>
-          </div>
-        ))}
+      </div>
+    );
+  }
+
+  const k = KINDS[kind];
+  return (
+    <div className="bo-screen" role="dialog" aria-modal="true" aria-labelledby="bo-title" data-testid="biz-name-step">
+      <form className="bo-inner" onSubmit={create}>
+        <header className="bo-top">
+          <button type="button" className="bo-close" onClick={() => setKind(null)} aria-label="Выбрать другой бизнес">
+            <Icon name="back" />
+          </button>
+          <span className="bo-steps" aria-label="Шаг 2 из 3">
+            <i className="is-done" />
+            <i className="is-on" />
+            <i />
+          </span>
+        </header>
+        <span className="label">
+          {k.emoji} {k.title} · шаг 2 из 3
+        </span>
+        <h1 id="bo-title">Как назовём?</h1>
+        <div className="bo-hero card">
+          <Preview kind={kind} rich={1} guests={6} />
+        </div>
         <div className="field">
           <label htmlFor="biz-name">Название</label>
-          <input id="biz-name" className="input" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} />
+          <input id="biz-name" className="input bo-name" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} autoComplete="off" />
         </div>
+        <ol className="bo-path" aria-label="Путь бизнеса">
+          {k.levels.map((l, i) => (
+            <li key={l} className={i === 0 ? "is-on" : ""}>
+              <b>{l}</b>
+              <span className="muted">{i === 0 ? "старт" : i === 1 ? "4 ключевых улучшения" : "второй филиал"}</span>
+            </li>
+          ))}
+        </ol>
 
         <div className={`card card-pad stack ${pro ? "" : "bg-locked"}`} style={{ gap: 10 }} data-testid="custom-biz">
           <div className="biz-sec-head">
             <b>Свой бизнес · Pro</b>
             {!pro && <Icon name="lock" size="sm" />}
           </div>
-          <span className="muted biz-small">Шаблон — выбранный выше тип ({TEMPLATE_TITLES[KINDS[kind].template]}), а логотип, оттенок и названия улучшений — ваши. Плюс премиум-предметы.</span>
+          <span className="muted biz-small">Шаблон — {k.title.toLowerCase()} ({TEMPLATE_TITLES[k.template]}), а логотип, оттенок и названия улучшений — ваши. Плюс премиум-предметы.</span>
           {pro ? (
             <>
               <label className="row biz-small" style={{ gap: 8 }}>
@@ -123,28 +186,23 @@ export function BizStart({ kinds, defaultName, hasGoals, pro = false }: { kinds:
               )}
             </>
           ) : (
-            <>
-              <div className="bg-preview" aria-hidden>
-                <span style={{ background: "#0b7a4b" }}>🚀</span>
-                <span style={{ background: "#3fbf7f" }}>🧁</span>
-                <span style={{ background: "#0e5c3c" }}>🎧</span>
-              </div>
-              <Link href="/pro" className={btnClass("secondary", "sm")}>
-                <Icon name="lock" size="sm" /> Открыть в Pro
-              </Link>
-            </>
+            <Link href="/pro" className={btnClass("secondary", "sm")}>
+              <Icon name="lock" size="sm" /> Открыть в Pro
+            </Link>
           )}
         </div>
 
         {!hasGoals && (
           <p className="biz-note muted">
-            <Icon name="piggy" size="sm" /> У вас пока нет цели в копилке. <Link href="/savings">Создайте цель</Link> — взносы в неё станут капиталом бизнеса.
+            <Icon name="piggy" size="sm" /> Цель в копилке создадим на следующем шаге — взносы в неё станут капиталом.
           </p>
         )}
         {error && <p className="biz-error">{error}</p>}
-        <Button variant="primary" loading={busy} type="submit">
-          Открыть бизнес
-        </Button>
+        <div className="bo-cta">
+          <Button variant="primary" size="lg" block loading={busy} type="submit">
+            Открыть бизнес
+          </Button>
+        </div>
       </form>
     </div>
   );

@@ -5,6 +5,7 @@ import { Analytics } from "@/components/analytics/Analytics";
 import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
 import "./styles/growth.css";
+import "./styles/metrics.css";
 import "./styles/social.css";
 import "./styles/cosmetics.css";
 import "./styles/savings-push.css";

@@ -1,3 +1,4 @@
+import { track } from "@/lib/analytics/track";
 import "server-only";
 import { prisma } from "@/lib/db/prisma";
 import { addCoins } from "@/lib/coins/service";
@@ -21,6 +22,7 @@ export async function attachReferral(inviteeId: string, ref: string | null | und
   if (!inviter || inviter.blocked) return false;
   try {
     await prisma.referral.create({ data: { inviterId: inviter.id, inviteeId } });
+    await track("invite_accepted", inviteeId, { inviterId: inviter.id });
   } catch (e) {
     if ((e as { code?: string }).code === "P2002") return false;
     throw e;

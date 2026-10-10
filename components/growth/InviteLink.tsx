@@ -1,9 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
+
+const noop = () => () => {};
 import { Icon } from "@/components/ui/Icon";
 
 export function InviteLink({ path }: { path: string }) {
   const [copied, setCopied] = useState(false);
+  const origin = useSyncExternalStore(noop, () => window.location.origin, () => "");
   const full = () => `${window.location.origin}${path}`;
   const text = "Учусь управлять деньгами в PìgBiz. Регистрируйся по ссылке и получи 200 PigCoin$:";
 
@@ -34,7 +37,7 @@ export function InviteLink({ path }: { path: string }) {
 
   return (
     <div className="growth-link stack" style={{ gap: 10 }}>
-      <code className="growth-link-url" data-testid="invite-url">{path}</code>
+      <code className="growth-link-url" data-testid="invite-url">{origin.replace(/^https?:\/\//, "")}{path}</code>
       <div className="growth-link-actions">
         <button type="button" className="btn btn-primary" onClick={copy}>
           <Icon name={copied ? "check" : "link"} /> {copied ? "Скопировано" : "Копировать ссылку"}

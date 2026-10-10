@@ -10,7 +10,8 @@ import { useToast } from "@/components/ui/Toast";
 import { Button, btnClass } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import dynamic from "next/dynamic";
-import { ChallengesPanel, CrisisCard, CustomPanel, InvestorsPanel, StoryPanel, SwitchBusiness } from "./BizGame";
+import { DailyEvent, FirstRun, LevelPath, TeamWeek, TodayCard } from "./BizLoop";
+import { ChallengesPanel, CustomPanel, InvestorsPanel, StoryPanel, SwitchBusiness } from "./BizGame";
 
 // Scene is heavy SVG + an animation loop: load it lazily, client-only.
 const BizScene = dynamic(() => import("./BizScene"), { ssr: false, loading: () => <div className="bz-scene-skel" aria-hidden /> });
@@ -54,6 +55,7 @@ export function BizApp({ initial }: { initial: BizView }) {
   const [view, setView] = useState(initial);
   const [busy, setBusy] = useState<string | null>(null);
   const [tab, setTab] = useState<"feed" | "chat">("feed");
+  const [firstRun, setFirstRun] = useState(initial.loop.firstRun);
   const [msg, setMsg] = useState("");
   const toast = useToast();
   const router = useRouter();
@@ -145,14 +147,7 @@ export function BizApp({ initial }: { initial: BizView }) {
             </span>
             {b.name}
           </h1>
-          <div className="biz-levels" aria-label="Уровень бизнеса">
-            {b.levels.map((l, i) => (
-              <span key={l} className={`biz-lvl ${i + 1 === b.level ? "is-on" : i + 1 < b.level ? "is-done" : ""}`}>
-                {l}
-              </span>
-            ))}
-          </div>
-          {b.nextNeeds.length > 0 && <p className="muted biz-next">До уровня «{b.levels[b.level]}»: {b.nextNeeds.join(", ")}</p>}
+          <LevelPath view={view} />
         </div>
         <span className="row" style={{ flexWrap: "wrap", gap: 8 }}>
         <Link href="/biz/top" className={btnClass("secondary", "md")}>
@@ -176,6 +171,13 @@ export function BizApp({ initial }: { initial: BizView }) {
           {b.today.penalty > 0 && <span className="badge neg">−{Math.round(b.today.penalty * 100)}% гостей после снятия</span>}
         </p>
       </section>
+
+      {firstRun && <FirstRun view={view} setView={setView} onDone={() => setFirstRun(false)} />}
+      <div className="bl-loop">
+        <TodayCard key={view.loop.savedToday} view={view} setView={setView} />
+        <DailyEvent view={view} act={act} busy={busy} />
+        <TeamWeek view={view} />
+      </div>
 
       <section className="biz-metrics">
         <div className="card biz-metric biz-capital" data-testid="biz-capital">
@@ -241,7 +243,6 @@ export function BizApp({ initial }: { initial: BizView }) {
             )}
           </section>
 
-          <CrisisCard view={view} act={act} busy={busy} />
           <StoryPanel view={view} act={act} busy={busy} />
           <InvestorsPanel view={view} act={act} busy={busy} />
           <ChallengesPanel view={view} act={act} busy={busy} />

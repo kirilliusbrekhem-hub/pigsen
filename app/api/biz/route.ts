@@ -4,6 +4,7 @@ import { handler, json, parseBody, requireApiUser } from "@/lib/api/http";
 import { sanitizeText } from "@/lib/validation/schemas";
 import { BIZ_KIND_IDS } from "@/lib/biz/engine";
 import { createBusiness, getView } from "@/lib/biz/service";
+import { track } from "@/lib/analytics/track";
 import { CustomBody } from "./_custom";
 
 const Body = z.object({ kind: z.enum(BIZ_KIND_IDS), name: z.string().trim().min(2, "Минимум 2 символа").max(40, "До 40 символов"), custom: CustomBody.nullable().optional() }).strict();
@@ -20,5 +21,6 @@ export const POST = handler(async (req: Request) => {
   await enforceDbRateLimit(`biz-create:${user.id}`, 5, 10 * 60_000);
   const b = await parseBody(req, Body);
   await createBusiness(user, b.kind, sanitizeText(b.name), b.custom ?? null);
+  await track("biz_created", user.id, { kind: b.kind, custom: !!b.custom });
   return json({ view: await getView(user, { simulate: false }) }, 201);
 });

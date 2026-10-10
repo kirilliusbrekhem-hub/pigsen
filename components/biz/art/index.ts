@@ -2,6 +2,7 @@
 import { bakeryArt, coffeeArt } from "./coffee";
 import { officeArt } from "./office";
 import { barberArt, shopArt } from "./others";
+import { aiArt, beautyArt, burgerArt, carwashArt, clothesArt, fitnessArt, gamedevArt, sushiArt } from "./more";
 import type { Art, Slot, SpriteDef } from "./types";
 
 export type { Art, SceneCtx, Slot, SpriteDef, Flow, BubbleIcon, Tod } from "./types";
@@ -14,7 +15,9 @@ export function artFor(kind: string, title = ""): Art {
   if (hit) return hit;
   const s = `${kind} ${title}`.toLowerCase();
   let art: Art;
-  if (/coffee|cafe|кофе/.test(s)) art = coffeeArt;
+  const exact: Record<string, Art> = { burger: burgerArt, sushi: sushiArt, fitness: fitnessArt, carwash: carwashArt, beauty: beautyArt, clothes: clothesArt, gamedev: gamedevArt, ai: aiArt };
+  if (exact[kind]) art = exact[kind];
+  else if (/coffee|cafe|кофе/.test(s)) art = coffeeArt;
   else if (/barber|барбер|salon|салон/.test(s)) art = barberArt;
   else if (/bak|пекар|bread/.test(s)) art = bakeryArt;
   else if (/saas|стартап|startup/.test(s)) art = officeArt("SAAS · CLOUD");

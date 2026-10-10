@@ -1,7 +1,9 @@
+import { track } from "@/lib/analytics/track";
 import { z } from "zod";
 import { enforceRateLimit, handler, HttpError, json, parseBody, requireApiUser } from "@/lib/api/http";
 import { addEntry } from "@/lib/savings/service";
 import { ProofImageField, assertFreshHash, attachProof, limitProofUploads, prepareProofImage } from "@/lib/savings/proof";
+import { prisma } from "@/lib/db/prisma";
 import { sanitizeText } from "@/lib/validation/schemas";
 
 const Body = z.object({
@@ -25,6 +27,11 @@ export const POST = handler(async (req: Request, { params }: { params: Promise<{
     await assertFreshHash(img.hash);
   }
   const r = await addEntry(user.id, id, b.amount, sanitizeText(b.note));
+  if (b.amount > 0) {
+    const first = !(await prisma.analyticsEvent.findFirst({ where: { userId: user.id, name: "deposit" }, select: { id: true } }));
+    await track("deposit", user.id, { amount: b.amount, proof: !!img });
+    if (first) await track("first_deposit", user.id, { amount: b.amount });
+  }
   if (!img) return json(r);
   try {
     return json({ ...r, proof: await attachProof(user.id, r.entryId, img) });

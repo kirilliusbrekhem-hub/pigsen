@@ -749,3 +749,31 @@ model ChallengeSubmission {
   @@index([userId, source, challengeId])
   @@index([businessId, challengeId])
 }
+
+/// First-party product analytics (lib/analytics/track.ts). name: signup | login | deposit | first_deposit | pro_purchase | invite_accepted | pig_message | biz_* …
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  name      String
+  props     Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  @@index([name, createdAt])
+  @@index([userId, createdAt])
+  @@index([createdAt])
+}
+
+/// Server errors captured by instrumentation.ts onRequestError (no paid monitoring service).
+model ErrorLog {
+  id        String   @id @default(cuid())
+  message   String
+  digest    String   @default("")
+  path      String   @default("")
+  method    String   @default("")
+  routeType String   @default("")
+  routePath String   @default("")
+  stack     String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

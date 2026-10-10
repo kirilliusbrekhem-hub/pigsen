@@ -1,4 +1,5 @@
 import "server-only";
+import { track } from "@/lib/analytics/track";
 import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/db/prisma";
 import { extendPro } from "@/lib/coins/service";
@@ -66,6 +67,7 @@ export async function syncPayment(id: string): Promise<"succeeded" | "pending" |
     const claimed = await prisma.payment.updateMany({ where: { id, applied: false }, data: { applied: true, status: "succeeded" } });
     if (claimed.count) {
       await extendPro(local.userId, PLANS[local.plan as PlanId]?.days ?? 30);
+      await track("pro_purchase", local.userId, { plan: local.plan, amount: local.amount, provider: "yookassa" });
       if (isPlanId(local.plan)) await setProTier(local.userId, PLANS[local.plan].tier);
     }
     return "succeeded";

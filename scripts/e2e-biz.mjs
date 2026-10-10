@@ -51,6 +51,7 @@ await A.page.goto(BASE + "/dashboard");
 await A.page.getByTestId("biz-dash").waitFor();
 await A.page.getByTestId("biz-dash").click();
 await A.page.waitForURL("**/biz");
+await A.page.getByTestId("kind-coffee").click();
 await A.page.getByRole("button", { name: "Открыть бизнес" }).click();
 await A.page.getByTestId("biz-capital").waitFor();
 check((await A.view()).business.capital === 0, "fresh capital != 0");
@@ -352,7 +353,7 @@ log("Инвестор Олег Капустин: 4 недели по 3 000 ₽ �
 
 // ── Catalog API: every type has 15–25 items with stable kebab ids ──
 const cat = (await (await A.page.request.get(BASE + "/api/biz/catalog")).json()).types;
-check(cat.length === 7, `types ${cat.length}`);
+check(cat.length === 15, `types ${cat.length}`);
 for (const t of cat) {
   const own = t.items.filter((i) => !i.challenge);
   check(own.length >= 15 && own.length <= 25, `${t.kind}: ${own.length} items`);

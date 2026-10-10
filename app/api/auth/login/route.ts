@@ -1,3 +1,4 @@
+import { track } from "@/lib/analytics/track";
 import { prisma } from "@/lib/db/prisma";
 import { clientIp, handler, HttpError, json, parseBody } from "@/lib/api/http";
 import { enforceDbRateLimit } from "@/lib/api/rate-limit-db";
@@ -16,5 +17,6 @@ export const POST = handler(async (req: Request) => {
   if (user.blocked) throw new HttpError(403, "Аккаунт заблокирован. Напишите в поддержку.");
   await prisma.profile.upsert({ where: { userId: user.id }, update: { lastActiveAt: new Date() }, create: { userId: user.id } });
   await startSession(user.id);
+  await track("login", user.id);
   return json({ id: user.id, name: user.name });
 });

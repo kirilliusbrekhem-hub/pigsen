@@ -1,3 +1,4 @@
+import { track } from "@/lib/analytics/track";
 import { consumeAllowance } from "@/lib/billing/limits";
 import { savingsSummary } from "@/lib/savings/service";
 import { pigModeOf } from "@/lib/ai/pigMode";
@@ -40,6 +41,7 @@ export const POST = handler(async (req: Request, { params }: Ctx) => {
   }
   const userMsg = retry ? last : await appendMessage(convo.id, "user", content);
   if (!retry) await trackQuest(user.id, "ask_pig");
+  if (!retry) await track("pig_message", user.id);
   if (convo.title === DEFAULT_TITLE) {
     await prisma.conversation.update({ where: { id: convo.id }, data: { title: titleFromQuestion(content) } });
   }

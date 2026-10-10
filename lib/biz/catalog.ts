@@ -2,7 +2,9 @@
 // sprites by item id). Item ids are stable lowercase-kebab; the original coffee ids (chairs, sign, …) are kept as is.
 // Prices are in rubles of business capital, and capital only ever comes from real savings.
 
-export type BizKind = "coffee" | "bakery" | "barber" | "shop" | "webstudio" | "app" | "saas";
+export type BizKind = "coffee" | "bakery" | "burger" | "sushi" | "barber" | "fitness" | "carwash" | "beauty" | "webstudio" | "app" | "saas" | "gamedev" | "ai" | "shop" | "clothes";
+/** Picker groups: Еда, Услуги, IT, Торговля. */
+export type BizGroup = "food" | "services" | "it" | "retail";
 export type Template = "offline" | "online" | "it";
 export type ItemCategory = "furniture" | "equipment" | "staff" | "marketing" | "tech" | "infra" | "product" | "premium" | "decor";
 /** Where the scene renderer should put the sprite. */
@@ -53,6 +55,7 @@ export interface KindDef {
   kind: BizKind;
   title: string;
   template: Template;
+  group: BizGroup;
   emoji: string;
   available: boolean;
   blurb: string;
@@ -242,7 +245,192 @@ const SAAS: UpgradeDef[] = [
   u("saas-ai-assistant", "ИИ-ассистент", "premium", "cloud", 6000, { check: 50, rating: 0.2 }, "Подсказки внутри продукта", "клиенты просят умного помощника", { premium: true }),
 ];
 
-export const KINDS: Record<BizKind, KindDef> = {
+// ── Бургерная ──
+const BURGER: UpgradeDef[] = [
+  u("grill", "Гриль", "equipment", "counter", 7000, { check: 80, rating: 0.3 }, "Котлеты с корочкой, а не со сковородки", "котлеты жарим на сковородке — это не бургер"),
+  u("fryer", "Фритюрница", "equipment", "counter", 4000, { check: 60 }, "Хрустящая картошка к каждому бургеру", "все спрашивают картошку фри", { requires: ["grill"] }),
+  u("burger-sign", "Вывеска «BURGERS»", "marketing", "wall", 2000, { guests: 10 }, "Видно с другого конца улицы", "прохожие не понимают, что мы продаём"),
+  u("burger-tables", "Столы и лавки", "furniture", "floor", 3000, { guests: 10, rating: 0.1 }, "Можно съесть бургер горячим", "люди едят стоя у окна"),
+  u("buns", "Свои булочки", "product", "counter", 3000, { rating: 0.3, check: 20 }, "Бриошь из своей пекарни", "магазинные булки крошатся"),
+  u("sauces", "Фирменные соусы", "product", "counter", 2000, { check: 30, rating: 0.1 }, "Копчёный, чесночный, острый", "кетчуп из ведра — несерьёзно"),
+  u("cook", "Нанять повара", "staff", "staff", 9000, { guests: 14, rating: 0.2 }, "Два гриля работают одновременно", "очередь стоит, гриль один, ты один", { requires: ["grill"] }),
+  u("burger-cashier", "Кассир", "staff", "staff", 6000, { guests: 8 }, "Заказы принимаются без задержек", "повар и жарит, и принимает заказы", { requires: ["cook"] }),
+  u("milkshake", "Молочные коктейли", "product", "counter", 3500, { check: 50 }, "Ваниль, шоколад, солёная карамель", "к бургеру хочется коктейль"),
+  u("burger-smm", "Фуд-фото в соцсетях", "marketing", "screen", 5000, { guests: 14 }, "Сочные фото собирают очередь", "наши бургеры никто не видел в ленте", { requires: ["burger-sign"] }),
+  u("burger-renovation", "Ремонт в стиле дайнер", "furniture", "wall", 12000, { rating: 0.5, guests: 6 }, "Плитка, неон и диваны", "зал как в столовой", { minLevel: 2 }),
+  u("burger-delivery", "Доставка", "staff", "street", 10000, { guests: 16, check: 20 }, "Горячие бургеры в офисы и домой", "звонят и просят доставку", { minLevel: 2, requires: ["cook"] }),
+  u("burger-branch", "Точка в фудкорте", "furniture", "annex", 40000, { guests: 40 }, "Вторая точка — шаг к сети", "в фудкорте напротив нет бургеров", { minLevel: 2, requires: ["burger-renovation"] }),
+  u("smoker", "Коптильня", "equipment", "annex", 22000, { check: 80, rating: 0.4 }, "Эксклюзив от инвестора: копчёная грудинка", "копчёное мясо — то, чего нет у конкурентов", { requires: ["grill"], exclusive: true }),
+  u("wagyu", "Бургер с вагю", "premium", "counter", 5000, { check: 60, rating: 0.3 }, "Премиальная котлета для гурманов", "гурманы ищут что-то особенное", { requires: ["grill"], premium: true }),
+  u("burger-neon", "Неон «Burger»", "premium", "wall", 3000, { guests: 12 }, "Светится зелёным по вечерам", "вечером нас не видно", { requires: ["burger-sign"], premium: true }),
+];
+
+// ── Суши-бар ──
+const SUSHI: UpgradeDef[] = [
+  u("rice-cooker", "Рисоварка", "equipment", "counter", 4000, { rating: 0.3, check: 20 }, "Рис идеальной текстуры", "рис то разваренный, то сырой"),
+  u("fish-fridge", "Рыбная витрина", "equipment", "counter", 7000, { check: 120, rating: 0.2 }, "Свежий лосось и тунец на льду", "рыбу держим в обычном холодильнике"),
+  u("sushi-bar", "Стойка у шефа", "furniture", "floor", 5000, { guests: 8, rating: 0.2 }, "Гости смотрят, как готовят", "гостям негде сесть"),
+  u("sushi-sign", "Вывеска с фонарями", "marketing", "wall", 2500, { guests: 8 }, "Красиво светится вечером", "нас не находят даже соседи"),
+  u("sushi-chef", "Нанять сушиста", "staff", "staff", 10000, { guests: 10, rating: 0.4 }, "Ровные роллы и красивая подача", "роллы разваливаются в руках", { requires: ["fish-fridge"] }),
+  u("knives", "Японские ножи", "equipment", "counter", 3000, { rating: 0.3 }, "Чистый срез — другой вкус", "рыбу режем тупым ножом", { requires: ["rice-cooker"] }),
+  u("rolls-menu", "Меню роллов", "marketing", "wall", 3000, { check: 60 }, "Филадельфия, калифорния и авторские", "все спрашивают филадельфию"),
+  u("miso", "Супы и рамен", "product", "counter", 3500, { check: 70, guests: 4 }, "Горячее к роллам", "зимой хочется горячего"),
+  u("sushi-boxes", "Фирменная упаковка", "product", "floor", 2000, { rating: 0.2, guests: 3 }, "Роллы доезжают ровными", "навынос всё мнётся"),
+  u("sushi-delivery", "Доставка роллов", "staff", "street", 10000, { guests: 18, check: 30 }, "Роллы к сериалу — главный хит", "звонят и просят доставку", { minLevel: 2, requires: ["sushi-chef"] }),
+  u("sushi-renovation", "Интерьер в японском стиле", "furniture", "wall", 12000, { rating: 0.5, guests: 6 }, "Дерево, бумага и тёплый свет", "зал выглядит случайно", { minLevel: 2 }),
+  u("sushi-branch", "Второй бар", "furniture", "annex", 40000, { guests: 35 }, "Вторая точка — шаг к сети", "в соседнем районе нет нормальных суши", { minLevel: 2, requires: ["sushi-renovation"] }),
+  u("conveyor", "Конвейер-лента", "equipment", "floor", 22000, { guests: 20, rating: 0.3 }, "Эксклюзив от инвестора: тарелки едут сами", "конвейер — это шоу, на него идут", { exclusive: true }),
+  u("omakase", "Омакасе от шефа", "premium", "counter", 5000, { check: 150, rating: 0.3 }, "Сет на доверии к шефу", "гурманы просят удивить", { requires: ["sushi-chef"], premium: true }),
+  u("sushi-lanterns", "Бумажные фонари", "premium", "wall", 3000, { rating: 0.3 }, "Мягкий свет над стойкой", "в зале слишком ярко", { premium: true }),
+];
+
+// ── Фитнес-клуб ──
+const FITNESS: UpgradeDef[] = [
+  u("treadmill", "Беговые дорожки", "equipment", "floor", 8000, { guests: 8, rating: 0.2 }, "Кардио без очереди", "все ждут единственную дорожку"),
+  u("rack", "Силовая рама", "equipment", "floor", 6000, { guests: 6, rating: 0.2 }, "Присед, жим и тяга", "негде делать базу"),
+  u("dumbbells", "Гантельный ряд", "equipment", "wall", 3000, { guests: 4, rating: 0.1 }, "От 2 до 40 кг", "гантели только до 10 кг"),
+  u("gym-mirrors", "Зеркала во всю стену", "furniture", "wall", 3000, { rating: 0.2 }, "Видно технику и прогресс", "не видно, правильно ли делаешь"),
+  u("gym-sign", "Вывеска клуба", "marketing", "wall", 2000, { guests: 6 }, "Клуб видно с остановки", "о нас не знают даже соседи"),
+  u("lockers", "Раздевалки", "furniture", "wall", 4000, { rating: 0.3 }, "Шкафчики и душ", "переодеваться негде"),
+  u("trainer", "Тренер", "staff", "staff", 9000, { guests: 6, check: 200, rating: 0.2 }, "Программы и техника", "новички не знают, с чего начать", { requires: ["rack"] }),
+  u("gym-reception", "Ресепшен и абонементы", "equipment", "counter", 3500, { check: 100 }, "Карты на месяц и год", "все платят разово"),
+  u("protein-bar", "Фитнес-бар", "product", "counter", 4000, { check: 120 }, "Протеин и смузи после тренировки", "после тренировки хочется пить"),
+  u("group-classes", "Групповые занятия", "product", "floor", 5000, { guests: 10 }, "Йога, стретчинг, функционал", "просят групповые тренировки", { requires: ["trainer"] }),
+  u("gym-app", "Запись в приложении", "tech", "screen", 4000, { guests: 4, rating: 0.1 }, "Расписание в телефоне", "никто не знает расписание"),
+  u("gym-renovation", "Ремонт зала", "furniture", "wall", 12000, { rating: 0.5, guests: 6 }, "Свет, вентиляция, покрытие", "в зале душно и темно", { minLevel: 2 }),
+  u("gym-sauna", "Сауна", "furniture", "annex", 15000, { rating: 0.4, check: 80 }, "Расслабиться после тренировки", "все просят сауну", { minLevel: 2 }),
+  u("pool", "Бассейн", "furniture", "annex", 40000, { guests: 30, rating: 0.3 }, "Плавание — шаг к сети клубов", "в районе нет бассейна", { minLevel: 2, requires: ["gym-renovation"] }),
+  u("cryo", "Криокапсула", "equipment", "floor", 20000, { check: 150, rating: 0.3 }, "Эксклюзив от инвестора: восстановление", "спортсмены ищут криотерапию", { exclusive: true }),
+  u("personal", "Персональные программы", "premium", "screen", 5000, { check: 200 }, "План под каждого клиента", "клиенты хотят свою программу", { requires: ["trainer"], premium: true }),
+  u("gym-neon", "Неон «NO PAIN»", "premium", "wall", 3000, { guests: 8 }, "Для фото в зеркале", "в зале нечего сфотографировать", { requires: ["gym-sign"], premium: true }),
+];
+
+// ── Автомойка ──
+const CARWASH: UpgradeDef[] = [
+  u("pressure", "Мойка высокого давления", "equipment", "floor", 6000, { guests: 4, rating: 0.2 }, "Грязь слетает за минуту", "моем из шланга — долго и плохо"),
+  u("foam", "Пеногенератор", "equipment", "floor", 3000, { check: 100, rating: 0.2 }, "Бесконтактная мойка пеной", "без пены остаются разводы", { requires: ["pressure"] }),
+  u("wash-box", "Моечный бокс", "furniture", "floor", 8000, { guests: 5 }, "Моем в любую погоду", "в дождь и мороз мы закрыты"),
+  u("wash-sign", "Вывеска «МОЙКА 24»", "marketing", "wall", 2000, { guests: 3 }, "Видно с дороги", "водители проезжают мимо"),
+  u("vacuum", "Пылесос для салона", "equipment", "floor", 2500, { check: 150 }, "Чистый салон за десять минут", "просят пропылесосить салон"),
+  u("dryer", "Сушка-обдув", "equipment", "wall", 4000, { rating: 0.3 }, "Без капель и разводов", "машины уезжают мокрыми"),
+  u("washer", "Нанять мойщика", "staff", "staff", 8000, { guests: 4, rating: 0.2 }, "Две машины одновременно", "очередь машин до дороги", { requires: ["pressure"] }),
+  u("wax", "Воск и полировка", "product", "counter", 3500, { check: 200, rating: 0.1 }, "Кузов блестит неделю", "клиенты просят воск"),
+  u("wash-waiting", "Зона ожидания с кофе", "furniture", "floor", 3000, { rating: 0.2 }, "Подождать с комфортом", "клиенты ждут на улице"),
+  u("wash-cashbox", "Касса и терминал", "equipment", "counter", 2500, { guests: 2 }, "Оплата картой и по QR", "наличных ни у кого нет"),
+  u("wash-app", "Онлайн-запись", "tech", "screen", 3000, { guests: 3 }, "Время без очереди", "все приезжают в одно время"),
+  u("tunnel", "Тоннельная мойка", "equipment", "annex", 40000, { guests: 20 }, "Машина за пять минут — шаг к сети", "очередь в выходные на час", { minLevel: 2, requires: ["wash-box"] }),
+  u("detailing", "Детейлинг-студия", "product", "annex", 15000, { check: 500, rating: 0.3 }, "Химчистка и полировка под ключ", "владельцы дорогих машин ищут детейлинг", { minLevel: 2, requires: ["washer"] }),
+  u("ceramic", "Керамика для кузова", "equipment", "counter", 20000, { check: 400, rating: 0.3 }, "Эксклюзив от инвестора: защита кузова", "керамика — самая прибыльная услуга", { exclusive: true }),
+  u("wash-sub", "Абонемент на мойки", "premium", "screen", 4000, { guests: 4, rating: 0.2 }, "Безлимит на месяц", "постоянные клиенты просят абонемент", { premium: true }),
+  u("wash-neon", "Неоновая подсветка бокса", "premium", "wall", 3000, { guests: 3 }, "Мойка как в клипе", "ночью бокс выглядит мрачно", { premium: true }),
+];
+
+// ── Салон красоты ──
+const BEAUTY: UpgradeDef[] = [
+  u("beauty-chair", "Кресло стилиста", "furniture", "floor", 6000, { guests: 2, rating: 0.2 }, "Удобно клиенту и мастеру", "стрижём на обычном стуле"),
+  u("manicure", "Маникюрный стол", "furniture", "floor", 4000, { guests: 2, check: 200 }, "Лампа, вытяжка, полочки", "маникюр делать негде"),
+  u("beauty-mirror", "Зеркало с лампами", "furniture", "wall", 3000, { rating: 0.2, check: 100 }, "Видно каждую прядь", "клиентки не видят результат"),
+  u("hair-dryer", "Профессиональные фены", "equipment", "counter", 3000, { rating: 0.3 }, "Укладка за десять минут", "фен из дома не тянет"),
+  u("beauty-sign", "Вывеска салона", "marketing", "wall", 2000, { guests: 2 }, "Аккуратно и заметно", "нас не находят по адресу"),
+  u("stylist", "Нанять стилиста", "staff", "staff", 9000, { guests: 3, rating: 0.3 }, "Стрижки и укладки", "запись на месяц вперёд", { requires: ["beauty-chair"] }),
+  u("nail-master", "Мастер маникюра", "staff", "staff", 8000, { guests: 3 }, "Гель-лак и дизайн", "на маникюр нет мастера", { requires: ["manicure"] }),
+  u("beauty-shelf", "Витрина с косметикой", "product", "wall", 4000, { check: 250 }, "Уход, который берут домой", "спрашивают, чем пользоваться дома"),
+  u("beauty-booking", "Онлайн-запись", "tech", "screen", 3000, { guests: 2, rating: 0.1 }, "Запись в два клика", "до нас не дозвониться"),
+  u("coloring", "Окрашивание", "product", "counter", 5000, { check: 400 }, "Сложные техники и тонирование", "все хотят окрашивание", { requires: ["stylist"] }),
+  u("beauty-sofa", "Зона ожидания", "furniture", "floor", 3000, { rating: 0.2 }, "Диван, журналы и чай", "клиентки ждут стоя"),
+  u("beauty-renovation", "Светлый ремонт", "furniture", "wall", 12000, { rating: 0.5, guests: 2 }, "Светлые стены и мягкий свет", "салон выглядит как кабинет", { minLevel: 2 }),
+  u("spa", "SPA-кабинет", "furniture", "annex", 30000, { guests: 6, check: 600 }, "Массаж и уход за лицом", "просят массаж и уход", { minLevel: 2, requires: ["beauty-renovation"] }),
+  u("beauty-branch", "Второй салон", "furniture", "annex", 40000, { guests: 10 }, "Вторая точка — шаг к сети", "в соседнем районе нет хорошего салона", { minLevel: 2, requires: ["stylist"] }),
+  u("keratin", "Кератин-лаборатория", "equipment", "counter", 20000, { check: 500, rating: 0.3 }, "Эксклюзив от инвестора: дорогой уход", "кератин — самая дорогая услуга", { exclusive: true }),
+  u("beauty-neon", "Неон «BEAUTY»", "premium", "wall", 3000, { guests: 2 }, "Фото-зона для сторис", "клиенткам негде сфотографироваться", { requires: ["beauty-sign"], premium: true }),
+];
+
+// ── Магазин одежды ──
+const CLOTHES: UpgradeDef[] = [
+  u("racks", "Рейлы с одеждой", "furniture", "floor", 4000, { guests: 6, check: 200 }, "Всё видно и можно потрогать", "вещи лежат в коробках"),
+  u("fitting", "Примерочные", "furniture", "wall", 5000, { check: 400, rating: 0.2 }, "Шторка, крючки, хороший свет", "примерить негде — уходят"),
+  u("mannequins", "Манекены в витрине", "decor", "window", 3000, { guests: 8 }, "Готовые образы с улицы", "с улицы непонятно, что мы продаём"),
+  u("clothes-sign", "Вывеска бутика", "marketing", "wall", 2000, { guests: 6 }, "Название, которое запоминают", "нас путают с соседями"),
+  u("clothes-cashbox", "Касса и терминал", "equipment", "counter", 2500, { guests: 4 }, "Карта, телефон, рассрочка", "уходят, потому что нельзя картой"),
+  u("clothes-mirror", "Большое зеркало", "furniture", "wall", 2000, { rating: 0.2 }, "Видно образ целиком", "в маленькое зеркало ничего не видно"),
+  u("seller", "Продавец-консультант", "staff", "staff", 8000, { guests: 6, check: 300, rating: 0.2 }, "Подберёт размер и образ", "покупатели не могут найти размер", { requires: ["racks"] }),
+  u("collection", "Новая коллекция", "product", "floor", 6000, { check: 600 }, "Свежий сезон на рейлах", "ассортимент не менялся полгода", { requires: ["racks"] }),
+  u("accessories", "Аксессуары у кассы", "product", "counter", 3000, { check: 250 }, "Ремни, сумки, украшения", "к образу не хватает мелочей"),
+  u("clothes-insta", "Лукбук в соцсетях", "marketing", "screen", 4000, { guests: 10 }, "Образы на моделях каждую неделю", "в соцсетях нас нет"),
+  u("clothes-bags", "Фирменные пакеты", "product", "counter", 1500, { rating: 0.2 }, "С пакетом ходят по городу", "вещи кладём в обычный пакет"),
+  u("clothes-renovation", "Ремонт с подсветкой витрин", "furniture", "wall", 12000, { rating: 0.5, guests: 6 }, "Как в хорошем бутике", "магазин выглядит как склад", { minLevel: 2 }),
+  u("clothes-online", "Интернет-витрина", "tech", "screen", 10000, { guests: 14 }, "Заказ онлайн, примерка в магазине", "спрашивают, можно ли заказать онлайн", { minLevel: 2, requires: ["seller"] }),
+  u("clothes-branch", "Магазин в ТЦ", "furniture", "annex", 40000, { guests: 30 }, "Второй магазин — шаг к сети", "в ТЦ есть свободное место", { minLevel: 2, requires: ["clothes-renovation"] }),
+  u("own-brand", "Своя марка", "product", "annex", 22000, { check: 600, rating: 0.3 }, "Эксклюзив от инвестора: своя коллекция", "своя марка — то, чего нет у других", { exclusive: true }),
+  u("stylist-service", "Персональный стилист", "premium", "staff", 5000, { check: 500, rating: 0.2 }, "Подбор гардероба под клиента", "клиенты просят собрать образ", { requires: ["seller"], premium: true }),
+  u("clothes-neon", "Неон «SALE»", "premium", "wall", 3000, { guests: 8 }, "Видно из другого конца ТЦ", "о распродаже никто не знает", { requires: ["clothes-sign"], premium: true }),
+];
+
+// ── Игровая студия ──
+const GAMEDEV: UpgradeDef[] = [
+  u("gd-pc", "Игровые ПК", "equipment", "desk", 8000, { rating: 0.2, bugs: -2 }, "Билд собирается за минуты", "редактор тормозит на старом ноутбуке"),
+  u("engine", "Лицензия движка", "tech", "screen", 4000, { rating: 0.3, bugs: -1 }, "Готовые инструменты вместо велосипеда", "пишем свой движок — это годы"),
+  u("artist", "2D/3D-художник", "staff", "staff", 9000, { rating: 0.4, guests: 10 }, "Картинка, которую хочется скриншотить", "игра выглядит как прототип", { requires: ["gd-pc"] }),
+  u("gd-programmer", "Геймплей-программист", "staff", "staff", 10000, { guests: 8, bugs: 1 }, "Механики, в которые затягивает", "механики не работают", { requires: ["gd-pc"] }),
+  u("gd-qa", "Плейтестеры", "staff", "staff", 6000, { bugs: -4, rating: 0.2 }, "Находят баги раньше игроков", "игроки находят баги в первый же час", { requires: ["gd-programmer"] }),
+  u("trailer", "Трейлер игры", "marketing", "screen", 5000, { guests: 25 }, "Минута, которая продаёт игру", "без трейлера про игру не узнают"),
+  u("steam-page", "Страница в сторе", "marketing", "screen", 3000, { guests: 15 }, "Скриншоты, описание, вишлисты", "игру негде добавить в вишлист"),
+  u("gd-servers", "Игровые серверы", "infra", "server", 7000, { churn: -0.02, bugs: -1 }, "Мультиплеер без лагов", "в онлайне всё лагает"),
+  u("composer", "Музыка и звук", "staff", "staff", 5000, { rating: 0.3, churn: -0.01 }, "Саундтрек, который напевают", "в игре тишина"),
+  u("gd-console", "Консоли для тестов", "equipment", "desk", 6000, { guests: 10 }, "Игра выходит не только на ПК", "просят версию для консолей"),
+  u("dlc", "DLC и скины", "product", "cloud", 6000, { check: 8 }, "Новый контент для фанатов", "игроки прошли всё и скучают"),
+  u("arcade", "Аркадный автомат", "decor", "floor", 3000, { rating: 0.1, churn: -0.01 }, "Вдохновение в перерывах", "команда выгорает"),
+  u("gd-office", "Студия с залом", "furniture", "annex", 30000, { rating: 0.4, guests: 20 }, "Место для большой команды", "команде тесно в одной комнате", { minLevel: 2 }),
+  u("esports", "Киберспортивный турнир", "marketing", "street", 15000, { guests: 60 }, "Турнир по вашей игре — путь в издатели", "стримеры хотят турнир", { minLevel: 2, requires: ["gd-servers"] }),
+  u("mocap", "Мокап-костюмы", "equipment", "floor", 22000, { rating: 0.4, guests: 20 }, "Эксклюзив от инвестора: живые анимации", "анимации выглядят деревянными", { exclusive: true }),
+  u("gd-ai-npc", "Умные NPC", "premium", "cloud", 6000, { churn: -0.02, rating: 0.2 }, "Персонажи отвечают по-настоящему", "NPC повторяют одно и то же", { premium: true }),
+  u("gd-neon", "RGB-подсветка", "premium", "wall", 3000, { rating: 0.2 }, "Студия как на стриме", "в офисе скучно", { premium: true }),
+];
+
+// ── ИИ-стартап ──
+const AI: UpgradeDef[] = [
+  u("gpu", "GPU-сервер", "infra", "server", 9000, { rating: 0.3, bugs: -1 }, "Модель отвечает быстро", "ответы идут по минуте"),
+  u("dataset", "Датасет", "product", "cloud", 4000, { rating: 0.3 }, "Чистые данные — умная модель", "модель путается, данных мало"),
+  u("ml-engineer", "ML-инженер", "staff", "staff", 11000, { rating: 0.4, check: 50 }, "Дообучение и оптимизация", "модель не понимает задачу клиента", { requires: ["gpu"] }),
+  u("ai-backend", "Бэкенд и API", "tech", "server", 6000, { guests: 3, bugs: -2 }, "Клиенты подключаются по API", "интеграция падает раз в день"),
+  u("ai-landing", "Лендинг с демо", "marketing", "screen", 3000, { guests: 4 }, "Можно попробовать без регистрации", "непонятно, что умеет продукт"),
+  u("labeling", "Разметчики данных", "staff", "staff", 6000, { rating: 0.2, bugs: -1 }, "Каждый пример проверен", "в данных много мусора", { requires: ["dataset"] }),
+  u("ai-chat", "Чат-интерфейс", "tech", "screen", 4000, { guests: 3, churn: -0.01 }, "Удобно и без кода", "без интерфейса продукт сложный"),
+  u("evals", "Тесты качества модели", "tech", "screen", 4000, { bugs: -3, rating: 0.2 }, "Каждая версия лучше прошлой", "новая версия сломала старое", { requires: ["ml-engineer"] }),
+  u("ai-sales", "Продажи в компании", "staff", "staff", 9000, { guests: 4, check: 80 }, "Корпоративные клиенты", "крупные компании спрашивают про внедрение"),
+  u("ai-cloud", "Облачные кредиты", "infra", "cloud", 5000, { churn: -0.02 }, "Сервис не падает под нагрузкой", "в пиках всё ложится"),
+  u("safety", "Модерация и безопасность", "tech", "cloud", 5000, { rating: 0.3, churn: -0.01 }, "Модель не говорит лишнего", "клиенты боятся утечек"),
+  u("ai-office", "Лаборатория", "furniture", "annex", 30000, { guests: 8, rating: 0.3 }, "Место для исследований", "команде негде думать", { minLevel: 2 }),
+  u("cluster", "Свой GPU-кластер", "infra", "annex", 40000, { guests: 10, check: 100 }, "Своя модель — путь в лаборатории", "аренда GPU съедает всё", { minLevel: 2, requires: ["gpu"] }),
+  u("ai-paper", "Научная статья", "marketing", "screen", 20000, { guests: 12, rating: 0.4 }, "Эксклюзив от инвестора: о вас пишут", "статья сделает нам имя", { exclusive: true }),
+  u("ai-voice", "Голосовой режим", "premium", "cloud", 5000, { check: 40 }, "С моделью можно говорить", "клиенты хотят голос", { premium: true }),
+  u("ai-neon", "Неоновая нейросеть", "premium", "wall", 3000, { rating: 0.2 }, "Светящаяся схема на стене", "офис выглядит скучно", { premium: true }),
+];
+
+/** First item: costs 100 ₽ so any first deposit puts something in the business right away. */
+const STARTERS: Record<string, [string, SlotHint, string]> = {
+  coffee: ["Термос и стойка", "counter", "С этого начинается любая кофейня"],
+  bakery: ["Корзина булочек", "counter", "Первые булочки — соседям"],
+  barber: ["Ножницы и расчёска", "counter", "Первый клиент уже в кресле"],
+  shop: ["Первая коробка товаров", "floor", "Первые товары на продажу"],
+  webstudio: ["Ноутбук-старичок", "desk", "Первый заказ можно делать уже сегодня"],
+  app: ["Макет в Figma", "desk", "Первый экран приложения"],
+  saas: ["Домен и сервер за 100 ₽", "desk", "Первый пользователь может зайти"],
+  burger: ["Прилавок и меню мелом", "counter", "Первый бургер — соседям"],
+  sushi: ["Бамбуковый коврик", "counter", "Первый ролл своими руками"],
+  fitness: ["Коврик и гантели", "floor", "Первая тренировка"],
+  carwash: ["Ведро и губки", "floor", "Первая чистая машина"],
+  beauty: ["Столик мастера", "counter", "Первая клиентка"],
+  clothes: ["Вешалка с первыми вещами", "floor", "Первые вещи на продажу"],
+  gamedev: ["Прототип на выходных", "desk", "Первый уровень игры"],
+  ai: ["Ноутбук с API-ключом", "desk", "Первый запрос к модели"],
+};
+const starter = (kind: string): UpgradeDef => {
+  const [title, slot, blurb] = STARTERS[kind];
+  return u("starter", title, "furniture", slot, 100, { guests: 2 }, blurb, "начни с малого — первый взнос уже работает");
+};
+
+const BASE_KINDS: Record<BizKind, Omit<KindDef, "group">> = {
   coffee: {
     kind: "coffee", title: "Кофейня", template: "offline", emoji: "☕", available: true, blurb: "От ларька с термосом до сети кофеен",
     levels: ["Ларёк", "Кофейня", "Сеть"], base: { guests: 15, check: 150, churn: 0, bugs: 0 }, labels: OFFLINE_LABELS,
@@ -279,7 +467,60 @@ export const KINDS: Record<BizKind, KindDef> = {
     levels: ["MVP", "Стартап", "Скейл-ап"], base: { guests: 6, check: 300, churn: 0.1, bugs: 8 }, labels: IT_LABELS("Активных клиентов", "клиентов", "ARPU", "клиентов"),
     levelRules: [["saas-laptops", "cloud-servers", "saas-backend", "landing"], ["saas-region", "customer-success"]], catalog: SAAS,
   },
+  burger: {
+    kind: "burger", title: "Бургерная", template: "offline", emoji: "🍔", available: true, blurb: "От фудтрака до сети бургерных",
+    levels: ["Фудтрак", "Бургерная", "Сеть бургерных"], base: { guests: 14, check: 350, churn: 0, bugs: 0 }, labels: OFFLINE_LABELS,
+    levelRules: [["grill", "fryer", "burger-sign", "burger-tables"], ["burger-branch", "burger-delivery"]], catalog: BURGER,
+  },
+  sushi: {
+    kind: "sushi", title: "Суши-бар", template: "offline", emoji: "🍣", available: true, blurb: "От роллов навынос до сети суши-баров",
+    levels: ["Роллы навынос", "Суши-бар", "Сеть"], base: { guests: 10, check: 600, churn: 0, bugs: 0 }, labels: OFFLINE_LABELS,
+    levelRules: [["rice-cooker", "fish-fridge", "sushi-bar", "sushi-sign"], ["sushi-branch", "sushi-delivery"]], catalog: SUSHI,
+  },
+  fitness: {
+    kind: "fitness", title: "Фитнес-клуб", template: "offline", emoji: "🏋️", available: true, blurb: "От зала в подвале до сети клубов",
+    levels: ["Зал в подвале", "Фитнес-клуб", "Сеть клубов"], base: { guests: 8, check: 500, churn: 0, bugs: 0 }, labels: { ...OFFLINE_LABELS, guests: "Клиентов в день", guestsShort: "клиентов", noun: "клиентов" },
+    levelRules: [["treadmill", "rack", "gym-mirrors", "gym-sign"], ["pool", "gym-sauna"]], catalog: FITNESS,
+  },
+  carwash: {
+    kind: "carwash", title: "Автомойка", template: "offline", emoji: "🚗", available: true, blurb: "От шланга во дворе до сети моек",
+    levels: ["Мойка во дворе", "Автомойка", "Сеть моек"], base: { guests: 6, check: 700, churn: 0, bugs: 0 }, labels: { ...OFFLINE_LABELS, guests: "Машин в день", guestsShort: "машин", noun: "машин" },
+    levelRules: [["pressure", "foam", "wash-box", "wash-sign"], ["tunnel", "detailing"]], catalog: CARWASH,
+  },
+  beauty: {
+    kind: "beauty", title: "Салон красоты", template: "offline", emoji: "💅", available: true, blurb: "От кабинета на дому до сети салонов",
+    levels: ["Кабинет", "Салон", "Сеть салонов"], base: { guests: 5, check: 1500, churn: 0, bugs: 0 }, labels: { ...OFFLINE_LABELS, guests: "Клиентов в день", guestsShort: "клиентов", noun: "клиентов" },
+    levelRules: [["beauty-chair", "beauty-mirror", "hair-dryer", "beauty-sign"], ["spa", "beauty-branch"]], catalog: BEAUTY,
+  },
+  clothes: {
+    kind: "clothes", title: "Магазин одежды", template: "offline", emoji: "👕", available: true, blurb: "От корнера до сети магазинов",
+    levels: ["Корнер", "Бутик", "Сеть магазинов"], base: { guests: 10, check: 2500, churn: 0, bugs: 0 },
+    labels: { guests: "Покупателей в день", guestsShort: "покупателей", check: "Средний чек", revenue: "Выручка дня", noun: "покупателей" },
+    levelRules: [["racks", "fitting", "mannequins", "clothes-sign"], ["clothes-branch", "clothes-online"]], catalog: CLOTHES,
+  },
+  gamedev: {
+    kind: "gamedev", title: "Игровая студия", template: "it", emoji: "🎮", available: true, blurb: "От инди-игры до своего издательства",
+    levels: ["Инди", "Студия", "Издатель"], base: { guests: 30, check: 20, churn: 0.12, bugs: 10 }, labels: IT_LABELS("Игроков в день", "игроков", "Доход с игрока", "игроков"),
+    levelRules: [["gd-pc", "engine", "artist", "gd-programmer"], ["gd-office", "esports"]], catalog: GAMEDEV,
+  },
+  ai: {
+    kind: "ai", title: "ИИ-стартап", template: "it", emoji: "🤖", available: true, blurb: "От ноутбука с идеей до своей лаборатории",
+    levels: ["Идея", "ИИ-стартап", "ИИ-лаборатория"], base: { guests: 5, check: 400, churn: 0.1, bugs: 8 }, labels: IT_LABELS("Активных клиентов", "клиентов", "ARPU", "клиентов"),
+    levelRules: [["gpu", "dataset", "ml-engineer", "ai-backend"], ["ai-office", "cluster"]], catalog: AI,
+  },
 };
+
+const GROUP_OF: Record<BizKind, BizGroup> = { coffee: "food", bakery: "food", barber: "services", shop: "retail", webstudio: "it", app: "it", saas: "it", burger: "food", sushi: "food", fitness: "services", carwash: "services", beauty: "services", clothes: "retail", gamedev: "it", ai: "it" };
+const ORDER: BizKind[] = ["coffee", "bakery", "burger", "sushi", "barber", "fitness", "carwash", "beauty", "webstudio", "app", "saas", "gamedev", "ai", "shop", "clothes"];
+export const KINDS = Object.fromEntries(
+  ORDER.map((k) => [k, { ...BASE_KINDS[k], group: GROUP_OF[k], catalog: [starter(k), ...BASE_KINDS[k].catalog] }]),
+) as Record<BizKind, KindDef>;
+export const GROUPS: { id: BizGroup; title: string; blurb: string }[] = [
+  { id: "food", title: "Еда", blurb: "Гости, запахи и очереди" },
+  { id: "services", title: "Услуги", blurb: "Мастера, записи и постоянные клиенты" },
+  { id: "it", title: "IT", blurb: "Код, пользователи и подписки" },
+  { id: "retail", title: "Торговля", blurb: "Товары, витрины и доставка" },
+];
 
 // ── Unique challenge rewards (ids prefixed "ch-"): work in every business type, can't be bought ──
 const ch = (id: string, title: string, slot: SlotHint, effect: Effect, blurb: string, source: "biz" | "social", challengeId: string): UpgradeDef => ({

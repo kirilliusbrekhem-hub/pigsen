@@ -23,7 +23,7 @@ function OfficeBackground({ ctx, variant }: { ctx: SceneCtx; variant: string }) 
   );
 }
 
-function OfficeFixtures() {
+export function OfficeFixtures() {
   return (
     <g>
       <Worker gx={7.3} gy={3.05} look={LOOKS[4]} />
@@ -37,7 +37,7 @@ function OfficeFixtures() {
   );
 }
 
-const TEAM: Pt[] = [
+export const TEAM: Pt[] = [
   [3.4, 1.9],
   [5.0, 1.9],
   [2.9, 0.3],
@@ -59,7 +59,7 @@ function Sofa({ gx, gy }: { gx: number; gy: number }) {
   );
 }
 
-const officeSprites: SpriteDef[] = [
+export const officeSprites: SpriteDef[] = [
   {
     match: ["laptops", "app-laptops", "saas-laptops"],
     slots: [{ gx: 6.6, gy: 1.9, w: 1.3, d: 0.75 }],
@@ -157,7 +157,7 @@ const officeSprites: SpriteDef[] = [
   },
 ];
 
-const officeFlow = {
+export const officeFlow = {
   door: [0.15, 5.7] as Pt,
   inside: [1.2, 5.75] as Pt,
   queueHead: [1.9, 4.45] as Pt,
@@ -169,7 +169,18 @@ const officeFlow = {
   fast: (ok: Set<string>) => 1 + 0.25 * Math.min(4, [...ok].filter((i) => /dev|design|manag|sales|pm|team|hire|lead/.test(i)).length),
 };
 
-const OFFICE_REWARDS: RewardPlaces = { ...DEFAULT_REWARDS, floor: [{ gx: 4.0, gy: 6.3 }, { gx: 8.4, gy: 3.9 }, { gx: 2.6, gy: 6.4 }, { gx: 5.0, gy: 6.4 }], frames: [{ gx: 6.1, gy: 0, wall: "R", w: 0.7, z: 52 }, { gx: 6.9, gy: 0, wall: "R", w: 0.7, z: 52 }, { gx: 0, gy: 4.5, wall: "L", d: 0.6, z: 82 }] as Slot[], neon: [{ gx: 3.0, gy: 0, wall: "R", w: 2, z: 88 }] };
+export const OFFICE_REWARDS: RewardPlaces = { ...DEFAULT_REWARDS, floor: [{ gx: 4.0, gy: 6.3 }, { gx: 8.4, gy: 3.9 }, { gx: 2.6, gy: 6.4 }, { gx: 5.0, gy: 6.4 }], frames: [{ gx: 6.1, gy: 0, wall: "R", w: 0.7, z: 52 }, { gx: 6.9, gy: 0, wall: "R", w: 0.7, z: 52 }, { gx: 0, gy: 4.5, wall: "L", d: 0.6, z: 82 }] as Slot[], neon: [{ gx: 3.0, gy: 0, wall: "R", w: 2, z: 88 }] };
+
+export const officeHints = {
+    staff: TEAM.map(([gx, gy]) => ({ gx, gy, w: 1.3, d: 0.75, desk: true })),
+    desk: [{ gx: 1.5, gy: 1.9, w: 1.3, d: 0.75 }],
+    screen: [0.35, 1.45, 2.55, 3.65].flatMap((gy) => [{ gx: 0, gy, wall: "L" as const, d: 0.9, z: 48 }]).concat([0.35, 1.45, 2.55].map((gy) => ({ gx: 0, gy, wall: "L" as const, d: 0.9, z: 74 }))),
+    wall: [6.1, 6.9, 7.7].map((gx) => ({ gx, gy: 0, wall: "R" as const, w: 0.7, z: 74 })),
+    cloud: [[0, 6, 128], [1.5, 4, 138], [3.5, 2.5, 140], [5.5, 1, 138], [7.5, 0, 130], [9.5, -0.5, 120]].map(([gx, gy, z]) => ({ gx, gy, z })),
+    annex: [{ gx: 9.6, gy: 0.4 }, { gx: 9.6, gy: 2.6 }, { gx: 9.6, gy: 4.8 }],
+    counter: [{ gx: 2.2, gy: 3.3, z: 24 }, { gx: 7.4, gy: 2.0, z: 22.5 }],
+    street: [{ gx: 6.2, gy: 7.6 }],
+};
 
 export const officeArt = (variant: string): Art => ({
   key: "office",

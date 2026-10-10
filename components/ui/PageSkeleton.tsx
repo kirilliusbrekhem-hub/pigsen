@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/States";
 
-export default function Loading() {
+export function PageSkeleton() {
   return (
     <div className="stack" style={{ gap: 28 }} aria-busy="true" aria-label="Загрузка">
       <div className="stack" style={{ gap: 10 }}>

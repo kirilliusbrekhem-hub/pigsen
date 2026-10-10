@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { track } from "@/lib/analytics/track";
 import { prisma } from "@/lib/db/prisma";
 import { enforceDbRateLimit } from "@/lib/api/rate-limit-db";
 import { clientIp, handler, HttpError, json, parseBody } from "@/lib/api/http";
@@ -31,6 +32,7 @@ export const POST = handler(async (req: Request) => {
     console.error("[referral] attach failed", e);
   }
   await saveAttribution(user.id, req, referred);
+  await track("signup", user.id, { referred });
   await startSession(user.id);
   const res = json({ id: user.id, name: user.name, referred }, 201);
   if (referred) res.cookies.set(REF_COOKIE, "", { maxAge: 0, path: "/" });

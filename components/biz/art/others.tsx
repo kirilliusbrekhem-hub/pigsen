@@ -181,7 +181,7 @@ const shopSprites: SpriteDef[] = [
   },
 ];
 
-function SimpleFixtures({ tone }: { tone: "barber" | "shop" }) {
+export function SimpleFixtures({ tone }: { tone: "barber" | "shop" }) {
   return (
     <g>
       <Staff gx={1.85} gy={2.75} look={LOOKS[tone === "shop" ? 4 : 2]} apron={tone === "shop" ? C.g7 : C.ink} className="bz-idle" />
@@ -193,7 +193,7 @@ function SimpleFixtures({ tone }: { tone: "barber" | "shop" }) {
   );
 }
 
-const counterFlow = {
+export const counterFlow = {
   door: [0.15, 5.7] as Pt,
   inside: [1.2, 5.75] as Pt,
   queueHead: [1.9, 4.45] as Pt,

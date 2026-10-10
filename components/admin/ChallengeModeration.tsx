@@ -22,7 +22,7 @@ export function ChallengeModeration({ id }: { id: string }) {
   }
   return (
     <div className="bg-mod" data-testid="chs-mod">
-      <input className="input" maxLength={300} value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Комментарий (обязателен при отказе)" aria-label="Комментарий" />
+      <input className="input" maxLength={300} value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Причина отказа" aria-label="Комментарий" />
       <button type="button" className="btn btn-primary btn-sm" disabled={busy} onClick={() => act("approve")}>
         Одобрить
       </button>

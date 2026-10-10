@@ -22,7 +22,7 @@ export default async function MemberPage({ params }: { params: Promise<{ id: str
   });
   if (!u || u.blocked) notFound();
   const game = await getGameStats(u.id);
-  const since = u.createdAt.toLocaleDateString("ru-RU", { month: "long", year: "numeric" });
+  const since = u.createdAt.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
   const self = u.id === me.id;
   return (
     <div className="stack" style={{ gap: 16 }}>

@@ -220,8 +220,8 @@
 .biz-top li.is-me { background: var(--accent-soft); border-radius: var(--r-md); }
 .biz-top .pos { font-weight: 700; font-size: 18px; text-align: center; color: var(--ink-3); }
 .biz-top li:nth-child(-n+3) .pos { color: var(--accent); }
-.biz-top .who { display: flex; flex-direction: column; min-width: 0; }
-.biz-top .who b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.biz-top .who { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
+.biz-top .who b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .biz-top .stat { display: flex; flex-direction: column; align-items: flex-end; font-size: 13px; }
 .bz-neon-strip { filter: drop-shadow(0 0 3px #3FBD88); animation: bz-neon 5s ease-in-out infinite; }
 .bz-float { animation: bz-floaty 4s ease-in-out infinite; }
